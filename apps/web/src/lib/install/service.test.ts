@@ -20,7 +20,23 @@ function createPayloadMock({
   userDocs?: Array<Record<string, unknown>>;
 }) : Parameters<typeof getInstallStatusFromPayload>[0] {
   return {
-    create: vi.fn(),
+    create: vi.fn(async ({ collection }: { collection: string }) => {
+      if (collection === InstallationState.slug) {
+        return {
+          id: 'installation-state-id',
+        };
+      }
+
+      if (collection === Users.slug) {
+        return {
+          id: 'user-id',
+        };
+      }
+
+      return {
+        id: 'audit-log-id',
+      };
+    }),
     find: vi.fn(async ({ collection }: { collection: string }) => {
       if (collection === InstallationState.slug) {
         return {
@@ -97,7 +113,7 @@ describe('installSystemWithPayload', () => {
 
     await installSystemWithPayload(payload, runtimeConfig, input);
 
-    expect(payload.create).toHaveBeenCalledTimes(2);
+    expect(payload.create).toHaveBeenCalledTimes(3);
     expect(payload.create).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
@@ -105,6 +121,7 @@ describe('installSystemWithPayload', () => {
         data: {
           email: 'admin@example.com',
           password: 'StrongPassword!2',
+          role: 'super-admin',
         },
         overrideAccess: true,
       }),
@@ -118,6 +135,19 @@ describe('installSystemWithPayload', () => {
           key: INSTALLATION_STATE_KEY,
           siteName: 'NexPress',
           status: 'installed',
+        }),
+        overrideAccess: true,
+      }),
+    );
+    expect(payload.create).toHaveBeenNthCalledWith(
+      3,
+      expect.objectContaining({
+        collection: 'audit-logs',
+        data: expect.objectContaining({
+          action: 'system.install.completed',
+          actorEmail: 'admin@example.com',
+          actorRole: 'super-admin',
+          result: 'success',
         }),
         overrideAccess: true,
       }),

@@ -1,3 +1,4 @@
+import { installationStateReadAccess } from '@/lib/auth/access';
 import type { CollectionConfig } from 'payload';
 
 export const INSTALLATION_STATE_KEY = 'primary';
@@ -11,7 +12,7 @@ export const InstallationState: CollectionConfig = {
   access: {
     create: () => false,
     delete: () => false,
-    read: () => false,
+    read: installationStateReadAccess,
     update: () => false,
   },
   fields: [

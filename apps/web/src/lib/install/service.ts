@@ -1,3 +1,4 @@
+import { AUDIT_ACTIONS, createAuditContext, writeAuditEntry } from '@/lib/audit/service';
 import { INSTALLATION_STATE_KEY, InstallationState } from '@/collections/InstallationState';
 import { Users } from '@/collections/Users';
 import { getPayloadClient } from '@/lib/payload';
@@ -18,6 +19,7 @@ type PayloadClientLike = {
 };
 
 type InstallationRecord = {
+  id?: number | string;
   adminEmail: string;
   installedAt: string;
   siteName: string;
@@ -201,15 +203,32 @@ export async function installSystemWithPayload(
   }
 
   await payload.create({
+    context: createAuditContext({
+      actor: {
+        email: input.adminEmail,
+        role: 'super-admin',
+        source: 'anonymous',
+      },
+      source: 'install',
+    }),
     collection: Users.slug,
     data: {
       email: input.adminEmail,
       password: input.adminPassword,
+      role: 'super-admin',
     },
     overrideAccess: true,
   });
 
-  await payload.create({
+  const installationState = (await payload.create({
+    context: createAuditContext({
+      actor: {
+        email: input.adminEmail,
+        role: 'super-admin',
+        source: 'anonymous',
+      },
+      source: 'install',
+    }),
     collection: InstallationState.slug,
     data: {
       adminEmail: input.adminEmail,
@@ -219,6 +238,22 @@ export async function installSystemWithPayload(
       status: 'installed',
     },
     overrideAccess: true,
+  })) as InstallationRecord;
+
+  await writeAuditEntry(payload, {
+    action: AUDIT_ACTIONS.installCompleted,
+    actor: {
+      email: input.adminEmail,
+      role: 'super-admin',
+      source: 'anonymous',
+    },
+    metadata: {
+      siteName: input.siteName,
+      source: 'install',
+    },
+    result: 'success',
+    targetCollection: InstallationState.slug,
+    ...(installationState.id != null ? { targetId: installationState.id } : {}),
   });
 }
 

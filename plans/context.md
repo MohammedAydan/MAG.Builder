@@ -6,7 +6,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 
 ## Current Status
 
-- Active feature: phase-05-install-wizard-runtime-config
+- Active feature: phase-06-identity-rbac-audit
 - Overall health: green
 - Last updated: 2026-05-13
 
@@ -26,6 +26,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - phase-03-payload-cms-foundation: done, Payload CMS integrated with Next.js App Router, admin/API routes configured, Users collection, split-schema env pattern
 - phase-04-database-migrations-seed: done, PostgreSQL migration workflow configured, idempotent seed script, migration/seed scripts, backup runbook
 - phase-05-install-wizard-runtime-config: done, hidden installation-state model, server-only install checks, first-run `/install`, safe install POST route, install runtime runbook
+- phase-06-identity-rbac-audit: done, typed role model, centralized permission helpers, protected user/admin access, hidden audit log collection, audited install and auth/user actions
 
 ## Known Issues / Tech Debt
 

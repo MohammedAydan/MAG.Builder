@@ -218,3 +218,44 @@ Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-04-database-migrat
 ### Resume instructions
 
 Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-05-install-wizard-runtime-config/review.md`, and `docs/runbooks/installation.md`, then start Phase 06 only if explicitly requested.
+---
+## Session: 2026-05-14
+
+### What was done
+
+- Implemented Phase 06 identity, RBAC, and audit foundations in `apps/web`
+- Added typed roles and centralized permission helpers
+- Tightened Payload access rules for users, installation state, and audit logs
+- Added hidden audit-log storage plus audited install, user, login, logout, and seed actions
+- Verified `pnpm install`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`
+
+### Decisions made
+
+- Use a minimal role set of `super-admin`, `admin`, and `editor` - Reason: this is explicit, production-safe, and avoids prematurely adding team or org RBAC
+- Keep `super-admin` as the only role that can manage users, roles, audit logs, and installation-state reads - Reason: current system actions are highly privileged and should not be spread across multiple roles yet
+- Use fail-open audit persistence for current hooks and install completion logging - Reason: current hooks run after writes succeed, and blocking on after-hook failures would create misleading partial-failure behavior
+
+### Files changed
+
+- `apps/web/src/lib/auth/*`
+- `apps/web/src/lib/audit/*`
+- `apps/web/src/collections/{Users,InstallationState,AuditLogs}.ts`
+- `apps/web/src/lib/install/service.ts`
+- `apps/web/src/scripts/seed.ts`
+- `apps/web/src/payload.config.ts`
+- `docs/runbooks/identity-rbac-audit.md`
+- `plans/context.md`
+- `plans/SESSION_LOG.md`
+- `plans/phase-06-identity-rbac-audit/review.md`
+- `IMPLEMENTATION_STATUS.md`
+
+### State at end of session
+
+- Active feature: phase-06-identity-rbac-audit
+- Last completed task: Phase 06 verification and review
+- Next task: wait for explicit instruction before starting Phase 07
+- Blockers: none
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-06-identity-rbac-audit/review.md`, and `docs/runbooks/identity-rbac-audit.md`, then start Phase 07 only if explicitly requested.

@@ -25,6 +25,7 @@
 
 import 'dotenv/config';
 import { getPayload } from 'payload';
+import { createAuditContext } from '../lib/audit/service.js';
 import config from '../payload.config.js';
 
 function requireEnv(name: string): string {
@@ -65,9 +66,18 @@ async function seed() {
     // Create the admin user.
     await payload.create({
       collection: 'users',
+      context: createAuditContext({
+        actor: {
+          email: adminEmail,
+          role: 'super-admin',
+          source: 'system',
+        },
+        source: 'seed',
+      }),
       data: {
         email: adminEmail,
         password: adminPassword,
+        role: 'super-admin',
       },
     });
 

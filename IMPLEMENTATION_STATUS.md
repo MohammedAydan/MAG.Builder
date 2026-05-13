@@ -2,10 +2,10 @@
 
 Project: NexPress
 Mode: Greenfield
-Current phase: 05-install-wizard-runtime-config
+Current phase: 06-identity-rbac-audit
 Overall status: in-progress
 
-Only the platform foundation, Payload CMS foundation, database/migration/seed layer, and install/runtime configuration foundation are implemented. Auth, builder, commerce, plugin, theme, template, and MCP features remain out of scope for the current repository state.
+Only the platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, and identity/RBAC/audit foundation are implemented. Builder, commerce, plugin, theme, template, and MCP features remain out of scope for the current repository state.
 
 ## Phase tracker
 
@@ -15,7 +15,7 @@ Only the platform foundation, Payload CMS foundation, database/migration/seed la
 - [x] Phase 03 - Payload CMS Foundation: done
 - [x] Phase 04 - Database, Migrations, and Seed: done
 - [x] Phase 05 - Install Wizard and Runtime Config: done
-- [ ] Phase 06 - Identity, RBAC, and Audit: not-started
+- [x] Phase 06 - Identity, RBAC, and Audit: done
 - [ ] Phase 07 - Admin Dashboard Shell: not-started
 - [ ] Phase 08 - Design System and Public Shell: not-started
 - [ ] Phase 09 - Content, Media, and SEO: not-started
@@ -42,7 +42,7 @@ Only the platform foundation, Payload CMS foundation, database/migration/seed la
 
 ### Date
 
-2026-05-13
+2026-05-14
 
 ### Agent/tool
 
@@ -50,28 +50,24 @@ Codex (GPT-5)
 
 ### Requested phase
 
-Phase 05 - Install Wizard and Runtime Config
+Phase 06 - Identity, RBAC, and Audit
 
 ### Files changed
 
-- `apps/web/src/collections/InstallationState.ts` - hidden installation state collection
-- `apps/web/src/lib/payload.ts` - cached server-side Payload client helper
-- `apps/web/src/lib/install/runtime-config.ts` - typed Phase 05 runtime config validation
-- `apps/web/src/lib/install/service.ts` - install status checks, bootstrap writes, reinstall guards
-- `apps/web/src/lib/install/security.ts` - same-origin protection for install POSTs
-- `apps/web/src/app/install/page.tsx` - first-run setup page
-- `apps/web/src/app/api/install/route.ts` - server-first install route
-- `apps/web/src/app/api/install/route.test.ts` - install route smoke tests
-- `apps/web/src/lib/install/runtime-config.test.ts` - runtime config tests
-- `apps/web/src/lib/install/security.test.ts` - same-origin protection tests
-- `apps/web/src/lib/install/service.test.ts` - install-state and bootstrap tests
-- `apps/web/src/app/page.tsx` - redirects fresh installs into `/install`
-- `apps/web/src/app/layout.tsx` - updated shell metadata and phase copy
-- `apps/web/src/payload.config.ts` - registered the installation-state collection
-- `apps/web/vitest.config.ts` - added Phase 05 test env vars
-- `.env.example` - added `NEXPRESS_INSTALLATION_MODE`, `NEXPRESS_DEFAULT_SITE_NAME`
-- `docs/runbooks/installation.md` - installation/runtime config runbook
-- `plans/phase-05-install-wizard-runtime-config/review.md` - phase review
+- `apps/web/src/lib/auth/roles.ts` - typed role definitions
+- `apps/web/src/lib/auth/permissions.ts` - centralized permission matrix
+- `apps/web/src/lib/auth/access.ts` - server-side permission and access helpers
+- `apps/web/src/lib/auth/access.test.ts` - permission helper tests
+- `apps/web/src/lib/audit/service.ts` - server-only audit logging service with metadata sanitization
+- `apps/web/src/lib/audit/service.test.ts` - audit sanitization and failure-policy tests
+- `apps/web/src/collections/AuditLogs.ts` - hidden audit log collection
+- `apps/web/src/collections/Users.ts` - role field, admin access rules, audit hooks
+- `apps/web/src/collections/InstallationState.ts` - restricted super-admin read access
+- `apps/web/src/lib/install/service.ts` - first-install super-admin assignment and install-completion audit
+- `apps/web/src/scripts/seed.ts` - seeded bootstrap user now created as `super-admin` with audit context
+- `apps/web/src/payload.config.ts` - registered the audit-log collection
+- `docs/runbooks/identity-rbac-audit.md` - identity/RBAC/audit runbook
+- `plans/phase-06-identity-rbac-audit/review.md` - phase review
 - `plans/context.md`
 - `plans/SESSION_LOG.md`
 
@@ -91,7 +87,7 @@ Phase 05 - Install Wizard and Runtime Config
 - `pnpm install` - passed
 - `pnpm lint` - passed
 - `pnpm typecheck` - passed
-- `pnpm test` - passed (25/25 tests, 8 test files)
+- `pnpm test` - passed (33/33 tests, 10 test files)
 - `pnpm build` - passed
 - `pnpm --dir apps/web lint` - passed
 - `pnpm --dir apps/web typecheck` - passed
@@ -99,11 +95,12 @@ Phase 05 - Install Wizard and Runtime Config
 
 ### Security notes
 
-- `DATABASE_URL` and `PAYLOAD_SECRET` remain runtime-only validated and are not exposed to client components
-- Install POST uses same-origin validation to reduce CSRF risk during first-run bootstrap
-- Initial admin password is validated server-side for minimum length and character diversity
-- Reinstall is blocked when an installation record or existing admin user is present
-- Payload Local API uses `overrideAccess: true` only for initial bootstrap writes; this is documented in `docs/runbooks/installation.md`
+- Roles and permissions are explicit, typed, and centralized
+- Admin access is protected server-side through Payload `access.admin`
+- Only `super-admin` can manage users, roles, audit logs, and installation-state reads
+- Audit metadata is sanitized before persistence and does not store secrets, passwords, tokens, `DATABASE_URL`, or `PAYLOAD_SECRET`
+- Audit logging is server-only and does not expose permission internals to public APIs
+- Install protections from Phase 05 remain intact
 
 ### Blockers
 
@@ -111,4 +108,4 @@ Phase 05 - Install Wizard and Runtime Config
 
 ### Next recommended prompt
 
-Start Phase 06 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and 03-phases/phase-06-identity-rbac-audit/* before implementing.
+Start Phase 07 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and 03-phases/phase-07-admin-dashboard-shell/* before implementing.

@@ -3,6 +3,7 @@ import { postgresAdapter } from '@payloadcms/db-postgres';
 import { lexicalEditor } from '@payloadcms/richtext-lexical';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { AuditLogs } from './collections/AuditLogs';
 import { InstallationState } from './collections/InstallationState';
 import { Users } from './collections/Users';
 
@@ -17,7 +18,6 @@ const dirname = path.dirname(filename);
  * to sign sessions — this is caught by env.ts before the server starts.
  *
  * Security note: overrideAccess is NOT used anywhere in this config.
- * All collection access rules default to authenticated-only.
  */
 const payloadSecret = process.env.PAYLOAD_SECRET ?? '';
 const databaseUrl = process.env.DATABASE_URL ?? '';
@@ -32,7 +32,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, InstallationState],
+  collections: [Users, InstallationState, AuditLogs],
   editor: lexicalEditor({}),
   secret: payloadSecret,
   typescript: {
