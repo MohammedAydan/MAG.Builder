@@ -6,7 +6,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 
 ## Current Status
 
-- Active feature: phase-00-greenfield-bootstrap
+- Active feature: phase-01-product-lock-and-adr
 - Overall health: green
 - Last updated: 2026-05-13
 
@@ -20,11 +20,13 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 ## Active Features
 
 - phase-00-greenfield-bootstrap: done, initial repository scaffold and status artifacts are in place
+- phase-01-product-lock-and-adr: done, v1 scope and architecture governance are locked through ADRs and product docs
 
 ## Known Issues / Tech Debt
 
 - Dependency installation and real framework scaffolding are deferred to later phases
 - Root quality gates are bootstrap validators until package implementations exist
+- v1 scope is now frozen and any expansion requires an ADR update
 
 ## Team / Ownership
 

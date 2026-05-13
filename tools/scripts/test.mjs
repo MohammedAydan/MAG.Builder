@@ -10,8 +10,8 @@ if (!implementationStatus.includes("Phase 00")) {
   throw new Error("test: IMPLEMENTATION_STATUS.md is missing Phase 00 tracking");
 }
 
-if (!implementationStatus.includes("No product features implemented yet")) {
-  throw new Error("test: Phase 00 guardrail text is missing");
+if (!implementationStatus.includes("No application features are implemented yet")) {
+  throw new Error("test: early-phase guardrail text is missing");
 }
 
 console.log("test: bootstrap status artifacts verified");

@@ -61,3 +61,42 @@ Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-00-greenfield-
 
 Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-00-greenfield-bootstrap/review.md`, then start Phase 01 only if explicitly requested.
 ---
+## Session: 2026-05-13
+
+### What was done
+
+- Created the Phase 01 planning files under `plans/phase-01-product-lock-and-adr/`
+- Formalized the ADR index and added ADRs for frozen v1 scope and v1 architecture constraints
+- Expanded `docs/product/v1-scope.md` into an explicit scope-freeze document with in-scope, out-of-scope, and deferred items
+- Updated project status and planning summaries to reflect the Phase 01 governance lock
+
+### Decisions made
+
+- Recorded ADR-002 to freeze the v1 product boundary - Reason: future implementation phases need a stable scope contract
+- Recorded ADR-003 to lock non-negotiable v1 architecture constraints - Reason: package boundaries and safety rules must not erode during implementation
+
+### Files changed
+
+- `docs/decisions/README.md`
+- `docs/decisions/0002-v1-product-scope-freeze.md`
+- `docs/decisions/0003-v1-architecture-constraints.md`
+- `docs/product/README.md`
+- `docs/product/v1-scope.md`
+- `plans/context.md`
+- `plans/DECISIONS.md`
+- `plans/SESSION_LOG.md`
+- `plans/phase-01-product-lock-and-adr/*`
+- `IMPLEMENTATION_STATUS.md`
+- `tools/scripts/test.mjs`
+
+### State at end of session
+
+- Active feature: phase-01-product-lock-and-adr
+- Last completed task: Phase 01 verification and review
+- Next task: wait for explicit instruction before starting Phase 02
+- Blockers: none
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, `docs/product/v1-scope.md`, and the ADRs in `docs/decisions/`, then start Phase 02 only if explicitly requested.
+---

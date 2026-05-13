@@ -2,15 +2,15 @@
 
 Project: NexPress
 Mode: Greenfield
-Current phase: 00-greenfield-bootstrap
+Current phase: 01-product-lock-and-adr
 Overall status: in-progress
 
-No product features implemented yet. Phase 00 is repository bootstrap only.
+No application features are implemented yet. Phases 00 and 01 cover bootstrap and governance only.
 
 ## Phase tracker
 
 - [x] Phase 00 - Greenfield Bootstrap: done
-- [ ] Phase 01 - Product Lock and ADR: not-started
+- [x] Phase 01 - Product Lock and ADR: done
 - [ ] Phase 02 - Next.js Platform Foundation: not-started
 - [ ] Phase 03 - Payload CMS Foundation: not-started
 - [ ] Phase 04 - Database, Migrations, and Seed: not-started
@@ -50,20 +50,25 @@ Codex
 
 ### Requested phase
 
-Phase 00 - Greenfield Bootstrap
+Phase 01 - Product Lock and ADR
 
 ### Files changed
 
-- `plans/*`
-- root workspace/config files
-- placeholder directories under `apps/`, `packages/`, `templates/`, `plugins/`, `docs/`, and `tools/`
-- bootstrap validation scripts under `tools/scripts/`
+- `docs/decisions/README.md`
+- `docs/decisions/0002-v1-product-scope-freeze.md`
+- `docs/decisions/0003-v1-architecture-constraints.md`
+- `docs/product/README.md`
+- `docs/product/v1-scope.md`
+- `plans/context.md`
+- `plans/DECISIONS.md`
+- `plans/SESSION_LOG.md`
+- `plans/phase-01-product-lock-and-adr/*`
+- `IMPLEMENTATION_STATUS.md`
+- `tools/scripts/test.mjs`
 
 ### Commands run
 
-- repository inspection commands
 - required document reads
-- `pnpm.cmd install`
 - `pnpm.cmd lint`
 - `pnpm.cmd typecheck`
 - `pnpm.cmd test`
@@ -71,7 +76,6 @@ Phase 00 - Greenfield Bootstrap
 
 ### Test results
 
-- `pnpm install` passed
 - `pnpm lint` passed
 - `pnpm typecheck` passed
 - `pnpm test` passed
@@ -83,4 +87,4 @@ Phase 00 - Greenfield Bootstrap
 
 ### Next recommended prompt
 
-Start Phase 01 only. Read the current status files first, then implement Product Lock and ADR.
+Start Phase 02 only. Read the current status, scope, and ADR files first, then implement the Next.js platform foundation.
