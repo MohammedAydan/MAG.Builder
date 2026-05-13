@@ -136,3 +136,48 @@ Read `plans/context.md`, `plans/SESSION_LOG.md`, `docs/product/v1-scope.md`, and
 
 Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-02-nextjs-platform-foundation/review.md`, and `apps/web/*`, then start Phase 03 only if explicitly requested.
 ---
+## Session: 2026-05-13
+
+### What was done
+
+- Added explicit `migrationDir` to `payload.config.ts` pointing to `apps/web/src/migrations`
+- Created `apps/web/src/migrations/.gitkeep` to track the migrations directory
+- Created `apps/web/src/scripts/seed.ts` — idempotent Payload Local API seed script
+- Created `apps/web/src/scripts/seed.test.ts` — 6 env-validation smoke tests (no real DB required)
+- Added migration and seed scripts to `apps/web/package.json`
+- Installed `tsx` (dev) and `dotenv` as dependencies for the seed runner
+- Added `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` to `.env.example` and vitest env
+- Created `docs/runbooks/migrations.md` documenting the full migration and backup workflow
+- Created `plans/phase-04-database-migrations-seed/review.md`
+
+### Decisions made
+
+- No initial migration file is committed — this must be generated against a live DB using `pnpm migrate:create`. Committing a migration without a live DB produces an incorrect file.
+- Seed does not use `overrideAccess` to preserve Payload's access control guarantees.
+- `migrate:fresh` is documented as dev-only; no code guard yet (deferred to Phase 25).
+
+### Files changed
+
+- `apps/web/src/payload.config.ts`
+- `apps/web/src/migrations/.gitkeep`
+- `apps/web/src/scripts/seed.ts`
+- `apps/web/src/scripts/seed.test.ts`
+- `apps/web/package.json`
+- `apps/web/vitest.config.ts`
+- `.env.example`
+- `docs/runbooks/migrations.md`
+- `plans/phase-04-database-migrations-seed/review.md`
+- `plans/context.md`
+- `plans/SESSION_LOG.md`
+- `IMPLEMENTATION_STATUS.md`
+
+### State at end of session
+
+- Active feature: phase-04-database-migrations-seed
+- Last completed task: Phase 04 verification and review
+- Next task: wait for explicit instruction before starting Phase 05
+- Blockers: none
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-04-database-migrations-seed/review.md`, and `apps/web/*`, then start Phase 05 only if explicitly requested.

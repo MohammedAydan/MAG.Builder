@@ -2,10 +2,10 @@
 
 Project: NexPress
 Mode: Greenfield
-Current phase: 03-payload-cms-foundation
+Current phase: 04-database-migrations-seed
 Overall status: in-progress
 
-Only the platform foundation and Payload CMS foundation are implemented. Auth, builder, commerce, plugin, theme, template, and MCP features remain out of scope for the current repository state.
+Only the platform foundation, Payload CMS foundation, and database/migration/seed layer are implemented. Auth, builder, commerce, plugin, theme, template, and MCP features remain out of scope for the current repository state.
 
 ## Phase tracker
 
@@ -13,7 +13,7 @@ Only the platform foundation and Payload CMS foundation are implemented. Auth, b
 - [x] Phase 01 - Product Lock and ADR: done
 - [x] Phase 02 - Next.js Platform Foundation: done
 - [x] Phase 03 - Payload CMS Foundation: done
-- [ ] Phase 04 - Database, Migrations, and Seed: not-started
+- [x] Phase 04 - Database, Migrations, and Seed: done
 - [ ] Phase 05 - Install Wizard and Runtime Config: not-started
 - [ ] Phase 06 - Identity, RBAC, and Audit: not-started
 - [ ] Phase 07 - Admin Dashboard Shell: not-started
@@ -50,29 +50,24 @@ Antigravity (Claude Sonnet)
 
 ### Requested phase
 
-Phase 03 - Payload CMS Foundation
+Phase 04 - Database, Migrations, and Seed
 
 ### Files changed
 
-- `apps/web/package.json` — added `payload`, `@payloadcms/next`, `@payloadcms/db-postgres`, `@payloadcms/richtext-lexical`, `graphql`, `sharp`; added `generate:types` and `generate:importmap` scripts
-- `apps/web/next.config.ts` — wrapped with `withPayload`
-- `apps/web/src/payload.config.ts` — created; `buildConfig` with PostgreSQL adapter, Lexical rich-text, Users collection, security defaults
-- `apps/web/src/collections/Users.ts` — created; `auth: true`, read access restricted to authenticated users
-- `apps/web/src/app/(payload)/layout.tsx` — created; Payload admin layout with `handleServerFunctions` and `RootLayout`
-- `apps/web/src/app/(payload)/admin/[[...segments]]/page.tsx` — created; Payload admin page with `generatePageMetadata`
-- `apps/web/src/app/(payload)/admin/[[...segments]]/not-found.tsx` — created; Payload `NotFoundPage`
-- `apps/web/src/app/(payload)/api/[...slug]/route.ts` — created; Payload REST/GraphQL API handler
-- `apps/web/src/app/(payload)/admin/importMap.js` — generated via `generate:importmap`
-- `apps/web/src/lib/env.ts` — split into `buildEnv` (eager, NODE_ENV only) and lazy Proxy `env` that calls `getRuntimeEnv()` for secrets; prevents static prerender failures
-- `apps/web/src/lib/env.test.ts` — updated error message regex for new split-schema error messages
-- `apps/web/vitest.config.ts` — injected `PAYLOAD_SECRET` and `DATABASE_URL` as test env vars
-- `apps/web/eslint.config.mjs` — ignored `importMap.js` (generated file)
-- `apps/web/.env.example` — added `PAYLOAD_SECRET` and `DATABASE_URL`
+- `apps/web/src/payload.config.ts` — added explicit `migrationDir` pointing to `src/migrations`
+- `apps/web/src/migrations/.gitkeep` — created migrations directory
+- `apps/web/src/scripts/seed.ts` — idempotent admin-user seed script using Payload Local API
+- `apps/web/src/scripts/seed.test.ts` — 6 env-validation smoke tests
+- `apps/web/package.json` — added `migrate:create`, `migrate`, `migrate:status`, `migrate:fresh`, `seed` scripts; added `tsx` and `dotenv` deps
+- `apps/web/vitest.config.ts` — added `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD` to test env
+- `.env.example` — added `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD` placeholders
+- `docs/runbooks/migrations.md` — migration workflow and backup preconditions runbook
+- `plans/phase-04-database-migrations-seed/review.md` — phase review
 
 ### Commands run
 
-- `pnpm install` (dependency installation)
-- `pnpm generate:importmap` (generated `importMap.js`)
+- `pnpm add dotenv --filter @nexpress/web`
+- `pnpm add -D tsx --filter @nexpress/web`
 - `pnpm typecheck` (tsc --noEmit)
 - `pnpm lint` (eslint --max-warnings=0)
 - `pnpm test` (vitest run)
@@ -82,14 +77,16 @@ Phase 03 - Payload CMS Foundation
 
 - `pnpm typecheck` — ✅ passed (exit 0)
 - `pnpm lint` — ✅ passed (exit 0, 0 warnings)
-- `pnpm test` — ✅ passed (6/6 tests, 3 test files)
-- `pnpm build` — ✅ passed (exit 0); routes: `/` static, `/_not-found` static, `/admin/[[...segments]]` dynamic, `/api/[...slug]` dynamic, `/api/health` dynamic
+- `pnpm test` — ✅ passed (12/12 tests, 4 test files including new seed smoke tests)
+- `pnpm build` — ✅ passed (exit 0)
 
 ### Security notes
 
-- Payload admin is behind Payload's own auth; no unauthenticated access to `/admin`
-- `PAYLOAD_SECRET` and `DATABASE_URL` are never accessed during static prerender; only triggered inside request handlers
-- `Users` collection defaults to `read: ({ req }) => !!req.user` — no anonymous read access
+- `DATABASE_URL` never exposed to client bundle; only accessed in server-only Payload config and seed script
+- Seed credentials come from env vars only; no hardcoded credentials
+- Seed does NOT use `overrideAccess`; standard Payload access rules apply
+- `migrate:fresh` is documented as dev-only in the runbook
+- Backup preconditions documented in `docs/runbooks/migrations.md`
 
 ### Blockers
 
@@ -97,5 +94,5 @@ Phase 03 - Payload CMS Foundation
 
 ### Next recommended prompt
 
-Start Phase 04 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and 03-phases/phase-04-database-migrations-seed/* before implementing.
+Start Phase 05 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and 03-phases/phase-05-install-wizard-runtime-config/* before implementing.
 

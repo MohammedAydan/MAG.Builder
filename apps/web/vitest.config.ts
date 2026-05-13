@@ -16,6 +16,8 @@ export default defineConfig({
       NODE_ENV: "test",
       PAYLOAD_SECRET: "vitest-test-secret",
       DATABASE_URL: "postgres://localhost:5432/nexpress_test",
+      SEED_ADMIN_EMAIL: "test-admin@example.com",
+      SEED_ADMIN_PASSWORD: "test-password-123",
     }
   }
 });

@@ -6,7 +6,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 
 ## Current Status
 
-- Active feature: phase-02-nextjs-platform-foundation
+- Active feature: phase-04-database-migrations-seed
 - Overall health: green
 - Last updated: 2026-05-13
 
@@ -23,6 +23,8 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - phase-00-greenfield-bootstrap: done, initial repository scaffold and status artifacts are in place
 - phase-01-product-lock-and-adr: done, v1 scope and architecture governance are locked through ADRs and product docs
 - phase-02-nextjs-platform-foundation: done, `apps/web` is now a real Next.js 16 app with env validation and a health route
+- phase-03-payload-cms-foundation: done, Payload CMS integrated with Next.js App Router, admin/API routes configured, Users collection, split-schema env pattern
+- phase-04-database-migrations-seed: done, PostgreSQL migration workflow configured, idempotent seed script, migration/seed scripts, backup runbook
 
 ## Known Issues / Tech Debt
 
