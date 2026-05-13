@@ -1,0 +1,1 @@
+Start the requested phase only. Read AGENTS.md, PLAN.md, 01-final-decision-record.md, IMPLEMENTATION_STATUS.md, 03-phases/README.md, and the requested phase folder. Implement only that phase and update IMPLEMENTATION_STATUS.md.

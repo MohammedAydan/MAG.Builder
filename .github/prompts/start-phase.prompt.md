@@ -1,0 +1,1 @@
+Start the requested NexPress phase only. Read `.github/copilot-instructions.md`, `PLAN.md`, `IMPLEMENTATION_STATUS.md`, and the requested phase folder. Implement only that phase and update the status file.

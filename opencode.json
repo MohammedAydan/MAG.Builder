@@ -1,0 +1,17 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "architect": {
+      "prompt": "{file:.opencode/prompts/architect.md}"
+    },
+    "implementer": {
+      "prompt": "{file:.opencode/prompts/implementer.md}"
+    },
+    "reviewer": {
+      "prompt": "{file:.opencode/prompts/reviewer.md}"
+    },
+    "security": {
+      "prompt": "{file:.opencode/prompts/security.md}"
+    }
+  }
+}
