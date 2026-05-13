@@ -29,7 +29,7 @@ packages/observability -> shared logging and telemetry
 
 | Component | Responsibility | Location |
 |-----------|---------------|----------|
-| web app | Admin/public shells and route handlers | `apps/web` |
+| web app | Admin/public shells, route handlers, root layout, env validation, and health surface | `apps/web` |
 | cms | Payload config and content adapters | `packages/cms` |
 | builder-core | Safe builder schema, validation, renderer contracts | `packages/builder-core` |
 | builder-editor | Visual editor adapter surfaces | `packages/builder-editor` |
@@ -43,7 +43,7 @@ packages/observability -> shared logging and telemetry
 
 ## Data Flow
 
-Requests enter through `apps/web`, pass through security and authorization boundaries, call package-level services, and render public/admin output using typed contracts rather than direct cross-layer coupling.
+Requests enter through `apps/web`, pass through the app shell and route handlers, validate runtime configuration early, and render public/admin output using typed contracts rather than direct cross-layer coupling.
 
 ## External Integrations
 

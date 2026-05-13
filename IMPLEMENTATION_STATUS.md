@@ -2,16 +2,16 @@
 
 Project: NexPress
 Mode: Greenfield
-Current phase: 01-product-lock-and-adr
+Current phase: 02-nextjs-platform-foundation
 Overall status: in-progress
 
-No application features are implemented yet. Phases 00 and 01 cover bootstrap and governance only.
+Only the platform foundation is implemented. CMS, auth, builder, commerce, plugin, theme, template, and MCP features remain out of scope for the current repository state.
 
 ## Phase tracker
 
 - [x] Phase 00 - Greenfield Bootstrap: done
 - [x] Phase 01 - Product Lock and ADR: done
-- [ ] Phase 02 - Next.js Platform Foundation: not-started
+- [x] Phase 02 - Next.js Platform Foundation: done
 - [ ] Phase 03 - Payload CMS Foundation: not-started
 - [ ] Phase 04 - Database, Migrations, and Seed: not-started
 - [ ] Phase 05 - Install Wizard and Runtime Config: not-started
@@ -50,36 +50,37 @@ Codex
 
 ### Requested phase
 
-Phase 01 - Product Lock and ADR
+Phase 02 - Next.js Platform Foundation
 
 ### Files changed
 
-- `docs/decisions/README.md`
-- `docs/decisions/0002-v1-product-scope-freeze.md`
-- `docs/decisions/0003-v1-architecture-constraints.md`
-- `docs/product/README.md`
-- `docs/product/v1-scope.md`
+- root `package.json`, `.env.example`, `.gitignore`, `pnpm-lock.yaml`
+- `apps/web/*`
 - `plans/context.md`
-- `plans/DECISIONS.md`
+- `plans/TECH_STACK.md`
+- `plans/ARCH.md`
 - `plans/SESSION_LOG.md`
-- `plans/phase-01-product-lock-and-adr/*`
+- `plans/phase-02-nextjs-platform-foundation/*`
 - `IMPLEMENTATION_STATUS.md`
-- `tools/scripts/test.mjs`
 
 ### Commands run
 
 - required document reads
+- `pnpm.cmd install`
 - `pnpm.cmd lint`
 - `pnpm.cmd typecheck`
 - `pnpm.cmd test`
 - `pnpm.cmd build`
+- local boot check for `@nexpress/web`
 
 ### Test results
 
+- `pnpm install` passed
 - `pnpm lint` passed
 - `pnpm typecheck` passed
 - `pnpm test` passed
 - `pnpm build` passed
+- temporary local boot check passed
 
 ### Blockers
 
@@ -87,4 +88,4 @@ Phase 01 - Product Lock and ADR
 
 ### Next recommended prompt
 
-Start Phase 02 only. Read the current status, scope, and ADR files first, then implement the Next.js platform foundation.
+Start Phase 03 only. Read the current app foundation, scope, and ADR files first, then implement Payload CMS foundation.

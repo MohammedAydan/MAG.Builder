@@ -4,17 +4,17 @@
 
 | Layer | Technology | Version | Notes |
 |-------|-----------|---------|-------|
-| Language | TypeScript | planned | strict mode required |
-| Runtime | Node.js | 22.x target | bootstrap validators use Node scripts |
-| Package Manager | pnpm | 10.x target | workspace root initialized in Phase 00 |
+| Language | TypeScript | 6.0.3 | strict mode required |
+| Runtime | Node.js | 22.x target | local target for the current workspace |
+| Package Manager | pnpm | 10.11.0 | workspace root initialized in Phase 00 |
 
 ## Frontend
 
 | Layer | Technology | Version | Notes |
 |-------|-----------|---------|-------|
-| Framework | Next.js | 16.x target | App Router only |
-| UI Library | React | planned | paired with Next.js |
-| Styling | Tailwind CSS | planned | implementation deferred |
+| Framework | Next.js | 16.2.6 | App Router only |
+| UI Library | React | 19.2.6 | paired with Next.js |
+| Styling | Tailwind CSS | 4.3.0 | baseline active in `apps/web` |
 | UI Primitives | shadcn/ui + Radix UI | planned | implementation deferred |
 | Icons | Lucide | planned | implementation deferred |
 | Forms | React Hook Form + Zod | planned | implementation deferred |
@@ -25,7 +25,7 @@
 |-------|-----------|---------|-------|
 | CMS | Payload CMS | planned | integrated in later phase |
 | Database | PostgreSQL | 16.x target | first-class production DB |
-| Validation | Zod | planned | required at public boundaries |
+| Validation | Zod | 4.4.3 | env validation active in Phase 02 |
 | Queue | BullMQ + Redis | planned | adapter-first, later phase |
 
 ## Infrastructure
@@ -41,12 +41,13 @@
 
 | Tool | Version | Config File |
 |------|---------|------------|
-| Workspace orchestrator | Turborepo schema | `turbo.json` |
-| TypeScript config | bootstrap | `tsconfig.base.json` |
-| Validation scripts | custom Node scripts | `tools/scripts/*.mjs` |
+| Workspace orchestrator | Turbo | 2.9.12 | `turbo.json` |
+| Linter | ESLint CLI + `eslint-config-next` | 9.39.4 / 16.2.6 | `apps/web/eslint.config.mjs` |
+| TypeScript config | root base + app override | `tsconfig.base.json`, `apps/web/tsconfig.json` |
+| Testing | Vitest | 4.1.6 | `apps/web/vitest.config.ts` |
 
 ## Key Conventions
 
-- Import alias: `@/` reserved at repo root for future shared path conventions
+- Import alias: `@/` maps to `apps/web/src/` inside the web app
 - App router is the only approved routing model
-- Phase 00 uses placeholders only; no product behavior lands yet
+- Server Components remain the default in `apps/web`

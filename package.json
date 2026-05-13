@@ -7,11 +7,15 @@
     "node": ">=22.0.0",
     "pnpm": ">=10.0.0"
   },
+  "devDependencies": {
+    "turbo": "2.9.12"
+  },
   "scripts": {
-    "lint": "node ./tools/scripts/lint.mjs",
-    "typecheck": "node ./tools/scripts/typecheck.mjs",
-    "test": "node ./tools/scripts/test.mjs",
-    "build": "node ./tools/scripts/build.mjs",
+    "dev": "pnpm --filter @nexpress/web dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "build": "turbo run build",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   }
 }

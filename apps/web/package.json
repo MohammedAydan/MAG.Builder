@@ -1,6 +1,31 @@
 {
   "name": "@nexpress/web",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
-  "description": "Phase 00 placeholder for the future Next.js web app."
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "next": "16.2.6",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.0",
+    "@types/node": "25.7.0",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "eslint": "9.39.4",
+    "eslint-config-next": "16.2.6",
+    "tailwindcss": "4.3.0",
+    "typescript": "6.0.3",
+    "vitest": "4.1.6"
+  }
 }
