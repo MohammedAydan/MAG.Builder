@@ -2,10 +2,10 @@
 
 Project: NexPress
 Mode: Greenfield
-Current phase: 07-admin-dashboard-shell
+Current phase: 08-design-system-public-shell
 Overall status: in-progress
 
-Only the platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, and admin dashboard shell are implemented. Design system, builder, commerce, plugin, theme, template, and MCP features remain out of scope for the current repository state.
+Only the platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, and public design-system shell are implemented. Content modeling, builder, commerce, plugin, theme-template packaging, and MCP features remain out of scope for the current repository state.
 
 ## Phase tracker
 
@@ -17,7 +17,7 @@ Only the platform foundation, Payload CMS foundation, database/migration/seed la
 - [x] Phase 05 - Install Wizard and Runtime Config: done
 - [x] Phase 06 - Identity, RBAC, and Audit: done
 - [x] Phase 07 - Admin Dashboard Shell: done
-- [ ] Phase 08 - Design System and Public Shell: not-started
+- [x] Phase 08 - Design System and Public Shell: done
 - [ ] Phase 09 - Content, Media, and SEO: not-started
 - [ ] Phase 10 - Builder Kernel: not-started
 - [ ] Phase 11 - Visual Editor Adapter: not-started
@@ -50,20 +50,24 @@ Codex (GPT-5)
 
 ### Requested phase
 
-Phase 07 - Admin Dashboard Shell
+Phase 08 - Design System and Public Shell
 
 ### Files changed
 
-- `apps/web/src/lib/dashboard/types.ts` - dashboard route/nav shared types
-- `apps/web/src/lib/dashboard/navigation.ts` - centralized navigation registry with permission filtering
-- `apps/web/src/lib/dashboard/access.ts` - pure access decisions for dashboard routes and settings access
-- `apps/web/src/lib/dashboard/session.ts` - server-side current-user resolution through Payload auth
-- `apps/web/src/lib/dashboard/guards.ts` - server-side redirect guards for dashboard pages
-- `apps/web/src/lib/dashboard/access.test.ts` - route/nav permission tests
-- `apps/web/src/app/dashboard/layout.tsx` - server-first dashboard shell layout
-- `apps/web/src/app/dashboard/page.tsx` - overview placeholder page
-- `apps/web/src/app/dashboard/settings/page.tsx` - privileged settings placeholder page
-- `plans/phase-07-admin-dashboard-shell/review.md` - phase review
+- `.impeccable.md` - persisted design context for future UI work
+- `apps/web/src/app/layout.tsx` - generic root document shell metadata without public/admin coupling
+- `apps/web/src/app/globals.css` - global public-shell primitives and CSS-variable-aware utilities
+- `apps/web/src/app/(public)/layout.tsx` - dedicated public route-group layout
+- `apps/web/src/app/(public)/page.tsx` - production-ready public homepage shell
+- `apps/web/src/lib/design-system/tokens.ts` - centralized semantic theme tokens and CSS variable mapping
+- `apps/web/src/lib/design-system/tokens.test.ts` - token-to-CSS-variable tests
+- `apps/web/src/lib/public-shell/navigation.ts` - static public navigation and operator action links
+- `apps/web/src/lib/public-shell/content.ts` - public shell copy and placeholder section data
+- `apps/web/src/lib/public-shell/content.test.ts` - public shell structure tests
+- `apps/web/src/components/public/public-shell-frame.tsx` - shell frame with public header/footer
+- `apps/web/src/components/public/section-heading.tsx` - reusable section heading primitive
+- `apps/web/src/components/public/surface-card.tsx` - reusable public surface primitive
+- `plans/phase-08-design-system-public-shell/review.md` - phase review
 - `plans/context.md`
 - `plans/SESSION_LOG.md`
 
@@ -77,26 +81,27 @@ Phase 07 - Admin Dashboard Shell
 - `pnpm --dir apps/web lint`
 - `pnpm --dir apps/web typecheck`
 - `pnpm --dir apps/web test`
+- `pnpm --dir apps/web build`
 
 ### Test results
 
 - `pnpm install` - passed
 - `pnpm lint` - passed
 - `pnpm typecheck` - passed
-- `pnpm test` - passed (38/38 tests, 11 test files)
+- `pnpm test` - passed (43/43 tests, 13 test files)
 - `pnpm build` - passed
 - `pnpm --dir apps/web lint` - passed
 - `pnpm --dir apps/web typecheck` - passed
-- `pnpm --dir apps/web test` - passed
+- `pnpm --dir apps/web test` - passed (43/43 tests, 13 test files)
+- `pnpm --dir apps/web build` - passed
 
 ### Security notes
 
-- Dashboard access checks run server-side through Payload auth and centralized RBAC helpers
-- Anonymous users are redirected to `/admin`
-- Authenticated users without admin access are redirected away from `/dashboard`
-- Navigation is permission-aware but not used as a security boundary
-- The dashboard shell only renders safe identity fields and no runtime secrets
-- Payload admin at `/admin` remains intact
+- The new public shell does not import dashboard or Payload-admin helper modules
+- Public routes remain authentication-free and do not fetch users, audit logs, installation-state, or runtime secrets
+- Existing install, RBAC, and audit protections remain unchanged
+- Operator shortcuts to `/dashboard` and `/admin` are static links only; real access checks stay server-side
+- Theme tokens are server-safe constants and do not expose private runtime configuration
 
 ### Blockers
 
@@ -104,4 +109,4 @@ Phase 07 - Admin Dashboard Shell
 
 ### Next recommended prompt
 
-Start Phase 08 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and 03-phases/phase-08-design-system-public-shell/* before implementing.
+Start Phase 09 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and 03-phases/phase-09-content-media-seo/* before implementing.

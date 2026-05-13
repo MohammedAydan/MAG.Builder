@@ -295,3 +295,42 @@ Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-06-identity-rbac-a
 ### Resume instructions
 
 Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-07-admin-dashboard-shell/review.md`, then start Phase 08 only if explicitly requested.
+---
+## Session: 2026-05-14
+
+### What was done
+
+- Implemented Phase 08 design tokens and CSS-variable theme foundation for the public shell
+- Split the public homepage into a dedicated `(public)` route group with its own shell frame
+- Added reusable public surface and section-heading primitives
+- Verified focused app checks with `pnpm --dir apps/web lint`, `pnpm --dir apps/web typecheck`, `pnpm --dir apps/web test`, and `pnpm --dir apps/web build`
+
+### Decisions made
+
+- Scoped theme variables to the public route-group shell instead of the entire app - Reason: `/dashboard` and `/admin` must remain structurally separate while public theming evolves
+- Used semantic token groups for light and dark-ready modes without implementing full theme switching - Reason: Phase 08 needs a stable contract for future themes, not a full theming system yet
+- Kept public navigation static and safe, with operator shortcuts linking to protected routes rather than duplicating auth logic - Reason: the shell must stay public, minimal, and server-safe
+
+### Files changed
+
+- `.impeccable.md`
+- `apps/web/src/app/layout.tsx`
+- `apps/web/src/app/globals.css`
+- `apps/web/src/app/(public)/*`
+- `apps/web/src/lib/design-system/*`
+- `apps/web/src/lib/public-shell/*`
+- `apps/web/src/components/public/*`
+- `plans/context.md`
+- `plans/phase-08-design-system-public-shell/review.md`
+- `IMPLEMENTATION_STATUS.md`
+
+### State at end of session
+
+- Active feature: phase-08-design-system-public-shell
+- Last completed task: Phase 08 verification and review
+- Next task: wait for explicit instruction before starting Phase 09
+- Blockers: none
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-08-design-system-public-shell/review.md`, then start Phase 09 only if explicitly requested.
