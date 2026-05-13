@@ -11,6 +11,11 @@ export default defineConfig({
     environment: "node",
     include: [
       "src/**/*.test.ts"
-    ]
+    ],
+    env: {
+      NODE_ENV: "test",
+      PAYLOAD_SECRET: "vitest-test-secret",
+      DATABASE_URL: "postgres://localhost:5432/nexpress_test",
+    }
   }
 });
