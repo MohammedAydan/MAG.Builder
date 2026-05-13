@@ -24,12 +24,12 @@ export default async function HomePage() {
         <div className="space-y-6">
           <p className="public-kicker">Public Foundation</p>
           <h1 className="public-heading max-w-5xl text-[var(--type-hero)] text-[var(--color-ink)]">
-            A calm public shell for a serious self-hosted platform.
+            A calm public shell with a real CMS content foundation behind it.
           </h1>
           <p className="max-w-[var(--type-measure)] text-base leading-8 text-[var(--color-ink-muted)] sm:text-lg">
-            NexPress now has a project-owned front-of-house layer with semantic tokens, scoped
-            theme variables, and a reusable visual baseline that stays separate from admin and
-            editor surfaces.
+            NexPress now supports Pages, Posts, Media, Redirects, and SEO metadata as safe
+            CMS primitives, while the public renderer stays separate from admin and editor
+            surfaces.
           </p>
         </div>
 
@@ -66,7 +66,8 @@ export default async function HomePage() {
           title="Theme variables now define the public visual contract."
         >
           The system is intentionally light-first today, but the token shape already supports a
-          future dark mode and theme preset layer without baking one-off values into components.
+          future dark mode and theme preset layer without baking one-off values into components
+          as published content starts flowing through the public app.
         </SectionHeading>
 
         <div className="grid gap-4 lg:grid-cols-3">
@@ -110,9 +111,9 @@ export default async function HomePage() {
             </p>
           </div>
           <p className="text-sm leading-7 text-[var(--color-ink-muted)]">
-            Content collections, SEO systems, themes, templates, and builder-driven rendering stay
-            out of scope here. Phase 08 only establishes the shared surface language those features
-            will inherit.
+            The visual builder, themes, templates, and commerce systems still stay out of scope
+            here. Phase 09 adds only the first CMS, media, redirects, and SEO foundations those
+            later systems will inherit.
           </p>
           <div className="public-grid-line rounded-[var(--radius-lg)] border bg-[color-mix(in_oklab,var(--color-accent-soft)_72%,var(--color-surface))] px-4 py-4">
             <p className="text-sm font-semibold text-[var(--color-ink)]">Scope discipline</p>

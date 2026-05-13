@@ -16,7 +16,7 @@ export function PublicShellFrame({ children }: PublicShellFrameProps) {
             <Link className="inline-flex items-center gap-3" href="/">
               <span className="public-kicker">NexPress</span>
               <span className="text-sm text-[var(--color-ink-muted)]">
-                Design system and public shell foundation
+                Content, media, and public shell foundation
               </span>
             </Link>
           </div>
@@ -59,11 +59,11 @@ export function PublicShellFrame({ children }: PublicShellFrameProps) {
         <div className="mx-auto flex w-full max-w-[var(--layout-wide)] flex-col gap-4 px-[var(--space-gutter)] py-8 text-sm text-[var(--color-ink-muted)] md:flex-row md:items-end md:justify-between">
           <div className="space-y-1">
             <p className="public-kicker">Phase 08</p>
-            <p>Public shell, semantic tokens, and theme-variable groundwork for future templates.</p>
+            <p>Public shell, semantic tokens, and CMS-ready content foundations.</p>
           </div>
           <p className="max-w-xl">
-            This surface remains static and public-safe. Content models, SEO, media, themes, and
-            builder-driven rendering stay out of scope until later phases.
+            This surface remains public-safe while published pages, posts, media, redirects, and
+            SEO metadata are added server-first behind Payload access control.
           </p>
         </div>
       </footer>

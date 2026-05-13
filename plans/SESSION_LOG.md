@@ -334,3 +334,47 @@ Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-07-admin-dashb
 ### Resume instructions
 
 Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-08-design-system-public-shell/review.md`, then start Phase 09 only if explicitly requested.
+---
+## Session: 2026-05-14
+
+### What was done
+
+- Implemented Phase 09 collections for pages, posts, media, and redirects
+- Added centralized slug, publishing, SEO, redirect, and public-content query helpers
+- Added published public rendering for pages and posts plus redirect fallback behavior
+- Added `robots.txt` and `sitemap.xml` from published content only
+- Regenerated Payload types and verified focused app checks
+
+### Decisions made
+
+- Used Payload drafts with the built-in `_status` field instead of a custom status enum - Reason: it gives a production-safe draft/published model without duplicating state
+- Kept public reads enforced through collection access plus server-side `overrideAccess: false` queries - Reason: public rendering must respect the same authorization boundary as Payload APIs
+- Made media public-read by design for Phase 09 image assets while restricting all media writes to authenticated content roles - Reason: local uploaded files are intended for safe public use now, while private asset workflows remain out of scope
+
+### Files changed
+
+- `apps/web/src/collections/{Media,Pages,Posts,Redirects}.ts`
+- `apps/web/src/payload.config.ts`
+- `apps/web/src/payload-types.ts`
+- `apps/web/src/lib/auth/{permissions,access}.ts`
+- `apps/web/src/lib/audit/service.ts`
+- `apps/web/src/lib/content/*`
+- `apps/web/src/app/(public)/[slug]/page.tsx`
+- `apps/web/src/app/(public)/journal/[slug]/page.tsx`
+- `apps/web/src/app/{robots.txt,sitemap.xml}/route.ts`
+- `apps/web/src/app/(public)/page.tsx`
+- `apps/web/src/components/public/public-shell-frame.tsx`
+- `plans/context.md`
+- `plans/phase-09-content-media-seo/review.md`
+- `IMPLEMENTATION_STATUS.md`
+
+### State at end of session
+
+- Active feature: phase-09-content-media-seo
+- Last completed task: Phase 09 verification and review
+- Next task: wait for explicit instruction before starting Phase 10
+- Blockers: none
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-09-content-media-seo/review.md`, then start Phase 10 only if explicitly requested.

@@ -43,6 +43,10 @@ export function canAccessAdminPanel(user: AuthenticatedUserLike | null | undefin
   return hasPermission(user, 'admin:access');
 }
 
+export function canManageContent(user: AuthenticatedUserLike | null | undefined) {
+  return hasPermission(user, 'content:write');
+}
+
 export function canReadOwnUser(
   user: AuthenticatedUserLike | null | undefined,
   requestedID?: number | string | null,
@@ -123,6 +127,56 @@ export const auditLogsReadAccess: Access = ({ req }) =>
 
 export const installationStateReadAccess: Access = ({ req }) =>
   hasPermission(req.user as AuthenticatedUserLike | undefined, 'system:read');
+
+export function createPublishedOrPermissionWhere(
+  req: { user: AuthenticatedUserLike | null | undefined },
+  permission: AppPermission,
+): true | false | Where {
+  if (hasPermission(req.user as AuthenticatedUserLike | undefined, permission)) {
+    return true;
+  }
+
+  return {
+    _status: {
+      equals: 'published',
+    },
+  };
+}
+
+export const publishedContentReadAccess: Access = ({ req }) =>
+  createPublishedOrPermissionWhere(
+    { user: req.user as AuthenticatedUserLike | null | undefined },
+    'content:read',
+  );
+
+export const contentCreateAccess: Access = ({ req }) =>
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'content:write');
+
+export const contentUpdateAccess: Access = ({ req }) =>
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'content:write');
+
+export const contentDeleteAccess: Access = ({ req }) =>
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'content:delete');
+
+export const mediaReadAccess: Access = () => true;
+
+export const mediaManageAccess: Access = ({ req }) =>
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'media:manage');
+
+export const redirectsReadAccess: Access = ({ req }) => {
+  if (hasPermission(req.user as AuthenticatedUserLike | undefined, 'redirects:read')) {
+    return true;
+  }
+
+  return {
+    isActive: {
+      equals: true,
+    },
+  };
+};
+
+export const redirectsManageAccess: Access = ({ req }) =>
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'redirects:manage');
 
 export function getRoleOptions() {
   return APP_ROLES.map((role) => ({

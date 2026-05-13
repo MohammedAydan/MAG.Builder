@@ -6,7 +6,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 
 ## Current Status
 
-- Active feature: phase-08-design-system-public-shell
+- Active feature: phase-09-content-media-seo
 - Overall health: green
 - Last updated: 2026-05-14
 
@@ -29,6 +29,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - phase-06-identity-rbac-audit: done, typed role model, centralized permission helpers, protected user/admin access, hidden audit log collection, audited install and auth/user actions
 - phase-07-admin-dashboard-shell: done, project-owned `/dashboard` shell, server-side route guards, permission-aware navigation, overview page, privileged settings placeholder
 - phase-08-design-system-public-shell: done, centralized semantic tokens, scoped public route-group shell, reusable public primitives, and responsive homepage foundation
+- phase-09-content-media-seo: done, pages/posts/media/redirect collections, published-only public content helpers, SEO metadata helpers, and sitemap/robots handlers
 
 ## Known Issues / Tech Debt
 
