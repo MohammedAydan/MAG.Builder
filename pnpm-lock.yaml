@@ -1,0 +1,55 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .: {}
+
+  apps/web: {}
+
+  packages/api-contracts: {}
+
+  packages/auth: {}
+
+  packages/builder-core: {}
+
+  packages/builder-editor: {}
+
+  packages/cms: {}
+
+  packages/commerce: {}
+
+  packages/config: {}
+
+  packages/db: {}
+
+  packages/mcp-gateway: {}
+
+  packages/observability: {}
+
+  packages/plugins: {}
+
+  packages/security: {}
+
+  packages/shared: {}
+
+  packages/themes: {}
+
+  plugins/blog-pack: {}
+
+  plugins/commerce-pack: {}
+
+  plugins/forms-pack: {}
+
+  plugins/membership-pack: {}
+
+  plugins/seo-pack: {}
+
+  templates/blog-site: {}
+
+  templates/ecommerce-site: {}
+
+  templates/starter-site: {}

@@ -1,0 +1,17 @@
+{
+  "name": "nexpress",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.11.0",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "lint": "node ./tools/scripts/lint.mjs",
+    "typecheck": "node ./tools/scripts/typecheck.mjs",
+    "test": "node ./tools/scripts/test.mjs",
+    "build": "node ./tools/scripts/build.mjs",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+  }
+}
