@@ -2,10 +2,10 @@
 
 Project: NexPress
 Mode: Greenfield
-Current phase: 06-identity-rbac-audit
+Current phase: 07-admin-dashboard-shell
 Overall status: in-progress
 
-Only the platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, and identity/RBAC/audit foundation are implemented. Builder, commerce, plugin, theme, template, and MCP features remain out of scope for the current repository state.
+Only the platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, and admin dashboard shell are implemented. Design system, builder, commerce, plugin, theme, template, and MCP features remain out of scope for the current repository state.
 
 ## Phase tracker
 
@@ -16,7 +16,7 @@ Only the platform foundation, Payload CMS foundation, database/migration/seed la
 - [x] Phase 04 - Database, Migrations, and Seed: done
 - [x] Phase 05 - Install Wizard and Runtime Config: done
 - [x] Phase 06 - Identity, RBAC, and Audit: done
-- [ ] Phase 07 - Admin Dashboard Shell: not-started
+- [x] Phase 07 - Admin Dashboard Shell: done
 - [ ] Phase 08 - Design System and Public Shell: not-started
 - [ ] Phase 09 - Content, Media, and SEO: not-started
 - [ ] Phase 10 - Builder Kernel: not-started
@@ -50,24 +50,20 @@ Codex (GPT-5)
 
 ### Requested phase
 
-Phase 06 - Identity, RBAC, and Audit
+Phase 07 - Admin Dashboard Shell
 
 ### Files changed
 
-- `apps/web/src/lib/auth/roles.ts` - typed role definitions
-- `apps/web/src/lib/auth/permissions.ts` - centralized permission matrix
-- `apps/web/src/lib/auth/access.ts` - server-side permission and access helpers
-- `apps/web/src/lib/auth/access.test.ts` - permission helper tests
-- `apps/web/src/lib/audit/service.ts` - server-only audit logging service with metadata sanitization
-- `apps/web/src/lib/audit/service.test.ts` - audit sanitization and failure-policy tests
-- `apps/web/src/collections/AuditLogs.ts` - hidden audit log collection
-- `apps/web/src/collections/Users.ts` - role field, admin access rules, audit hooks
-- `apps/web/src/collections/InstallationState.ts` - restricted super-admin read access
-- `apps/web/src/lib/install/service.ts` - first-install super-admin assignment and install-completion audit
-- `apps/web/src/scripts/seed.ts` - seeded bootstrap user now created as `super-admin` with audit context
-- `apps/web/src/payload.config.ts` - registered the audit-log collection
-- `docs/runbooks/identity-rbac-audit.md` - identity/RBAC/audit runbook
-- `plans/phase-06-identity-rbac-audit/review.md` - phase review
+- `apps/web/src/lib/dashboard/types.ts` - dashboard route/nav shared types
+- `apps/web/src/lib/dashboard/navigation.ts` - centralized navigation registry with permission filtering
+- `apps/web/src/lib/dashboard/access.ts` - pure access decisions for dashboard routes and settings access
+- `apps/web/src/lib/dashboard/session.ts` - server-side current-user resolution through Payload auth
+- `apps/web/src/lib/dashboard/guards.ts` - server-side redirect guards for dashboard pages
+- `apps/web/src/lib/dashboard/access.test.ts` - route/nav permission tests
+- `apps/web/src/app/dashboard/layout.tsx` - server-first dashboard shell layout
+- `apps/web/src/app/dashboard/page.tsx` - overview placeholder page
+- `apps/web/src/app/dashboard/settings/page.tsx` - privileged settings placeholder page
+- `plans/phase-07-admin-dashboard-shell/review.md` - phase review
 - `plans/context.md`
 - `plans/SESSION_LOG.md`
 
@@ -87,7 +83,7 @@ Phase 06 - Identity, RBAC, and Audit
 - `pnpm install` - passed
 - `pnpm lint` - passed
 - `pnpm typecheck` - passed
-- `pnpm test` - passed (33/33 tests, 10 test files)
+- `pnpm test` - passed (38/38 tests, 11 test files)
 - `pnpm build` - passed
 - `pnpm --dir apps/web lint` - passed
 - `pnpm --dir apps/web typecheck` - passed
@@ -95,12 +91,12 @@ Phase 06 - Identity, RBAC, and Audit
 
 ### Security notes
 
-- Roles and permissions are explicit, typed, and centralized
-- Admin access is protected server-side through Payload `access.admin`
-- Only `super-admin` can manage users, roles, audit logs, and installation-state reads
-- Audit metadata is sanitized before persistence and does not store secrets, passwords, tokens, `DATABASE_URL`, or `PAYLOAD_SECRET`
-- Audit logging is server-only and does not expose permission internals to public APIs
-- Install protections from Phase 05 remain intact
+- Dashboard access checks run server-side through Payload auth and centralized RBAC helpers
+- Anonymous users are redirected to `/admin`
+- Authenticated users without admin access are redirected away from `/dashboard`
+- Navigation is permission-aware but not used as a security boundary
+- The dashboard shell only renders safe identity fields and no runtime secrets
+- Payload admin at `/admin` remains intact
 
 ### Blockers
 
@@ -108,4 +104,4 @@ Phase 06 - Identity, RBAC, and Audit
 
 ### Next recommended prompt
 
-Start Phase 07 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and 03-phases/phase-07-admin-dashboard-shell/* before implementing.
+Start Phase 08 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and 03-phases/phase-08-design-system-public-shell/* before implementing.
