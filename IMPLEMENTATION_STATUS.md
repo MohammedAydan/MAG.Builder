@@ -2,10 +2,10 @@
 
 Project: NexPress
 Mode: Greenfield
-Current phase: 04-database-migrations-seed
+Current phase: 05-install-wizard-runtime-config
 Overall status: in-progress
 
-Only the platform foundation, Payload CMS foundation, and database/migration/seed layer are implemented. Auth, builder, commerce, plugin, theme, template, and MCP features remain out of scope for the current repository state.
+Only the platform foundation, Payload CMS foundation, database/migration/seed layer, and install/runtime configuration foundation are implemented. Auth, builder, commerce, plugin, theme, template, and MCP features remain out of scope for the current repository state.
 
 ## Phase tracker
 
@@ -14,7 +14,7 @@ Only the platform foundation, Payload CMS foundation, and database/migration/see
 - [x] Phase 02 - Next.js Platform Foundation: done
 - [x] Phase 03 - Payload CMS Foundation: done
 - [x] Phase 04 - Database, Migrations, and Seed: done
-- [ ] Phase 05 - Install Wizard and Runtime Config: not-started
+- [x] Phase 05 - Install Wizard and Runtime Config: done
 - [ ] Phase 06 - Identity, RBAC, and Audit: not-started
 - [ ] Phase 07 - Admin Dashboard Shell: not-started
 - [ ] Phase 08 - Design System and Public Shell: not-started
@@ -46,47 +46,64 @@ Only the platform foundation, Payload CMS foundation, and database/migration/see
 
 ### Agent/tool
 
-Antigravity (Claude Sonnet)
+Codex (GPT-5)
 
 ### Requested phase
 
-Phase 04 - Database, Migrations, and Seed
+Phase 05 - Install Wizard and Runtime Config
 
 ### Files changed
 
-- `apps/web/src/payload.config.ts` — added explicit `migrationDir` pointing to `src/migrations`
-- `apps/web/src/migrations/.gitkeep` — created migrations directory
-- `apps/web/src/scripts/seed.ts` — idempotent admin-user seed script using Payload Local API
-- `apps/web/src/scripts/seed.test.ts` — 6 env-validation smoke tests
-- `apps/web/package.json` — added `migrate:create`, `migrate`, `migrate:status`, `migrate:fresh`, `seed` scripts; added `tsx` and `dotenv` deps
-- `apps/web/vitest.config.ts` — added `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD` to test env
-- `.env.example` — added `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD` placeholders
-- `docs/runbooks/migrations.md` — migration workflow and backup preconditions runbook
-- `plans/phase-04-database-migrations-seed/review.md` — phase review
+- `apps/web/src/collections/InstallationState.ts` - hidden installation state collection
+- `apps/web/src/lib/payload.ts` - cached server-side Payload client helper
+- `apps/web/src/lib/install/runtime-config.ts` - typed Phase 05 runtime config validation
+- `apps/web/src/lib/install/service.ts` - install status checks, bootstrap writes, reinstall guards
+- `apps/web/src/lib/install/security.ts` - same-origin protection for install POSTs
+- `apps/web/src/app/install/page.tsx` - first-run setup page
+- `apps/web/src/app/api/install/route.ts` - server-first install route
+- `apps/web/src/app/api/install/route.test.ts` - install route smoke tests
+- `apps/web/src/lib/install/runtime-config.test.ts` - runtime config tests
+- `apps/web/src/lib/install/security.test.ts` - same-origin protection tests
+- `apps/web/src/lib/install/service.test.ts` - install-state and bootstrap tests
+- `apps/web/src/app/page.tsx` - redirects fresh installs into `/install`
+- `apps/web/src/app/layout.tsx` - updated shell metadata and phase copy
+- `apps/web/src/payload.config.ts` - registered the installation-state collection
+- `apps/web/vitest.config.ts` - added Phase 05 test env vars
+- `.env.example` - added `NEXPRESS_INSTALLATION_MODE`, `NEXPRESS_DEFAULT_SITE_NAME`
+- `docs/runbooks/installation.md` - installation/runtime config runbook
+- `plans/phase-05-install-wizard-runtime-config/review.md` - phase review
+- `plans/context.md`
+- `plans/SESSION_LOG.md`
 
 ### Commands run
 
-- `pnpm add dotenv --filter @nexpress/web`
-- `pnpm add -D tsx --filter @nexpress/web`
-- `pnpm typecheck` (tsc --noEmit)
-- `pnpm lint` (eslint --max-warnings=0)
-- `pnpm test` (vitest run)
-- `pnpm build` (next build)
+- `pnpm install`
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm test`
+- `pnpm build`
+- `pnpm --dir apps/web lint`
+- `pnpm --dir apps/web typecheck`
+- `pnpm --dir apps/web test`
 
 ### Test results
 
-- `pnpm typecheck` — ✅ passed (exit 0)
-- `pnpm lint` — ✅ passed (exit 0, 0 warnings)
-- `pnpm test` — ✅ passed (12/12 tests, 4 test files including new seed smoke tests)
-- `pnpm build` — ✅ passed (exit 0)
+- `pnpm install` - passed
+- `pnpm lint` - passed
+- `pnpm typecheck` - passed
+- `pnpm test` - passed (25/25 tests, 8 test files)
+- `pnpm build` - passed
+- `pnpm --dir apps/web lint` - passed
+- `pnpm --dir apps/web typecheck` - passed
+- `pnpm --dir apps/web test` - passed
 
 ### Security notes
 
-- `DATABASE_URL` never exposed to client bundle; only accessed in server-only Payload config and seed script
-- Seed credentials come from env vars only; no hardcoded credentials
-- Seed does NOT use `overrideAccess`; standard Payload access rules apply
-- `migrate:fresh` is documented as dev-only in the runbook
-- Backup preconditions documented in `docs/runbooks/migrations.md`
+- `DATABASE_URL` and `PAYLOAD_SECRET` remain runtime-only validated and are not exposed to client components
+- Install POST uses same-origin validation to reduce CSRF risk during first-run bootstrap
+- Initial admin password is validated server-side for minimum length and character diversity
+- Reinstall is blocked when an installation record or existing admin user is present
+- Payload Local API uses `overrideAccess: true` only for initial bootstrap writes; this is documented in `docs/runbooks/installation.md`
 
 ### Blockers
 
@@ -94,5 +111,4 @@ Phase 04 - Database, Migrations, and Seed
 
 ### Next recommended prompt
 
-Start Phase 05 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and 03-phases/phase-05-install-wizard-runtime-config/* before implementing.
-
+Start Phase 06 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and 03-phases/phase-06-identity-rbac-audit/* before implementing.

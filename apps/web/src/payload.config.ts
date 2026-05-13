@@ -3,6 +3,7 @@ import { postgresAdapter } from '@payloadcms/db-postgres';
 import { lexicalEditor } from '@payloadcms/richtext-lexical';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { InstallationState } from './collections/InstallationState';
 import { Users } from './collections/Users';
 
 const filename = fileURLToPath(import.meta.url);
@@ -31,7 +32,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users],
+  collections: [Users, InstallationState],
   editor: lexicalEditor({}),
   secret: payloadSecret,
   typescript: {
@@ -44,4 +45,3 @@ export default buildConfig({
     migrationDir: migrationsDir,
   }),
 });
-

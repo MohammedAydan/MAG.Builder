@@ -5,7 +5,7 @@ import { env } from "@/lib/env";
 
 export const metadata: Metadata = {
   title: "NexPress",
-  description: "Phase 02 platform foundation for the NexPress monorepo."
+  description: "Phase 05 install and runtime configuration foundation for the NexPress monorepo."
 };
 
 type RootLayoutProps = Readonly<{
@@ -25,7 +25,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 <p className="text-sm font-semibold tracking-[0.24em] text-sky-700 uppercase">
                   NexPress
                 </p>
-                <p className="text-xs text-slate-500">Next.js 16 platform foundation</p>
+                <p className="text-xs text-slate-500">Install and runtime configuration foundation</p>
               </div>
               <p className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
                 {environment}

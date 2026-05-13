@@ -181,3 +181,40 @@ Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-02-nextjs-platform
 ### Resume instructions
 
 Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-04-database-migrations-seed/review.md`, and `apps/web/*`, then start Phase 05 only if explicitly requested.
+---
+## Session: 2026-05-13
+
+### What was done
+
+- Implemented Phase 05 install/runtime configuration foundation in `apps/web`
+- Added a hidden Payload `installation-state` collection and server-only install status service
+- Added `/install` and `/api/install` with strong password validation, same-origin protection, and reinstall blocking
+- Added Phase 05 runtime config parsing, install runbook, tests, and review notes
+- Verified `pnpm install`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`
+
+### Decisions made
+
+- Treat any existing admin user as effectively installed even if the installation record is missing - Reason: this safely blocks rerunning the bootstrap flow against a partially initialized or previously seeded database
+- Use Payload Local API with `overrideAccess: true` only for the first admin and installation-state writes - Reason: there is no authenticated admin yet during initial bootstrap, but the route is server-only and closed after install
+- Add `NEXPRESS_INSTALLATION_MODE` as a server-only runtime flag - Reason: operators need a simple way to lock the wizard without exposing config to clients
+
+### Files changed
+
+- `apps/web/src/{collections,lib,app}/**/*` for install/runtime config
+- `.env.example`
+- `docs/runbooks/installation.md`
+- `plans/context.md`
+- `plans/SESSION_LOG.md`
+- `plans/phase-05-install-wizard-runtime-config/review.md`
+- `IMPLEMENTATION_STATUS.md`
+
+### State at end of session
+
+- Active feature: phase-05-install-wizard-runtime-config
+- Last completed task: Phase 05 verification and review
+- Next task: wait for explicit instruction before starting Phase 06
+- Blockers: none
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-05-install-wizard-runtime-config/review.md`, and `docs/runbooks/installation.md`, then start Phase 06 only if explicitly requested.
