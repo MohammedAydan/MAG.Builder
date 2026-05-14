@@ -2,10 +2,10 @@
 
 Project: NexPress
 Mode: Greenfield
-Current phase: 09-content-media-seo
+Current phase: 10-builder-kernel
 Overall status: in-progress
 
-Only the platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, and first CMS content/media/SEO foundation are implemented. Builder, commerce, plugin, theme-template packaging, and MCP features remain out of scope for the current repository state.
+The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, and the first owned builder kernel are implemented. Visual editor adaptation, themes/templates, plugin loading, commerce, and MCP features remain out of scope for the current repository state.
 
 ## Phase tracker
 
@@ -19,7 +19,7 @@ Only the platform foundation, Payload CMS foundation, database/migration/seed la
 - [x] Phase 07 - Admin Dashboard Shell: done
 - [x] Phase 08 - Design System and Public Shell: done
 - [x] Phase 09 - Content, Media, and SEO: done
-- [ ] Phase 10 - Builder Kernel: not-started
+- [x] Phase 10 - Builder Kernel: done
 - [ ] Phase 11 - Visual Editor Adapter: not-started
 - [ ] Phase 12 - Themes and Templates: not-started
 - [ ] Phase 13 - Plugin and Module System: not-started
@@ -50,24 +50,22 @@ Codex (GPT-5)
 
 ### Requested phase
 
-Phase 09 - Content, Media, and SEO
+Phase 10 - Builder Kernel
 
 ### Files changed
 
-- `apps/web/src/collections/{Media,Pages,Posts,Redirects}.ts` - Phase 09 content/media/redirect collections
-- `apps/web/src/payload.config.ts` - registered new Phase 09 collections
-- `apps/web/src/payload-types.ts` - regenerated Payload collection types
-- `apps/web/src/lib/auth/{permissions,access}.ts` - content/media/redirect permission helpers and access filters
-- `apps/web/src/lib/audit/service.ts` - added content audit action names
-- `apps/web/src/lib/content/{audit,hooks,paths,public,publishing,seo,slug}.ts` - shared content, SEO, redirect, and published-query helpers
-- `apps/web/src/lib/content/{access,public}.test.ts` - content access and metadata tests
-- `apps/web/src/app/(public)/page.tsx` - updated public shell copy to reflect CMS foundation
-- `apps/web/src/app/(public)/[slug]/page.tsx` - published page rendering with SEO metadata and redirect fallback
-- `apps/web/src/app/(public)/journal/[slug]/page.tsx` - published post rendering with SEO metadata and redirect fallback
-- `apps/web/src/app/{robots.txt,sitemap.xml}/route.ts` - published-only robots and sitemap handlers
-- `apps/web/src/components/public/public-shell-frame.tsx` - updated public footer/header copy
-- `apps/web/src/lib/public-shell/navigation.ts` - kept public nav aligned with shell sections
-- `plans/phase-09-content-media-seo/review.md` - phase review
+- `packages/builder-core/{package.json,tsconfig.json,vitest.config.ts,README.md}` - activated the Phase 10 builder-core workspace package
+- `packages/builder-core/src/{types,schema,migrations,registry,renderer,url,index}.ts(x)` - versioned builder schema, migrations, registry, URL guards, and server-safe renderer
+- `packages/builder-core/src/blocks/core-blocks.tsx` - safe core section, heading, text, image, and button blocks
+- `packages/builder-core/src/*.test.ts(x)` - schema, migration, registry, and renderer unit tests
+- `apps/web/src/collections/Pages.ts` - optional validated builder JSON field while preserving the legacy body field
+- `apps/web/src/lib/builder/kernel.ts` - web-facing builder validation and public registry wiring
+- `apps/web/src/lib/content/{public,rendering}.ts` - published page builder support with legacy body fallback
+- `apps/web/src/lib/content/rendering.test.tsx` - public rendering compatibility tests
+- `apps/web/src/app/(public)/[slug]/page.tsx` - page route now renders validated builder content safely when present
+- `apps/web/src/payload-types.ts` - regenerated Payload collection types for the new page builder field
+- `apps/web/{package.json,next.config.ts,vitest.config.ts}` - workspace dependency, package transpilation, and test discovery updates
+- `plans/phase-10-builder-kernel/review.md` - phase review
 - `plans/context.md`
 - `plans/SESSION_LOG.md`
 
@@ -78,6 +76,10 @@ Phase 09 - Content, Media, and SEO
 - `pnpm typecheck`
 - `pnpm test`
 - `pnpm build`
+- `pnpm --dir packages/builder-core lint`
+- `pnpm --dir packages/builder-core typecheck`
+- `pnpm --dir packages/builder-core test`
+- `pnpm --dir packages/builder-core build`
 - `pnpm --dir apps/web lint`
 - `pnpm --dir apps/web typecheck`
 - `pnpm --dir apps/web test`
@@ -89,21 +91,25 @@ Phase 09 - Content, Media, and SEO
 - `pnpm install` - passed
 - `pnpm lint` - passed
 - `pnpm typecheck` - passed
-- `pnpm test` - passed (48/48 tests, 15 test files)
+- `pnpm test` - passed (60/60 tests, 20 test files across `apps/web` and `packages/builder-core`)
 - `pnpm build` - passed
+- `pnpm --dir packages/builder-core lint` - passed
+- `pnpm --dir packages/builder-core typecheck` - passed
+- `pnpm --dir packages/builder-core test` - passed (9/9 tests, 4 test files)
+- `pnpm --dir packages/builder-core build` - passed
 - `pnpm --dir apps/web lint` - passed
 - `pnpm --dir apps/web typecheck` - passed
-- `pnpm --dir apps/web test` - passed (48/48 tests, 15 test files)
+- `pnpm --dir apps/web test` - passed (51/51 tests, 16 test files)
 - `pnpm --dir apps/web build` - passed
 - `pnpm --dir apps/web generate:types` - passed
 
 ### Security notes
 
-- Public page and post reads are limited to published records through collection access control plus server-side published queries with `overrideAccess: false`
-- Redirect resolution only reads active redirect records and stays server-side
-- Media writes are limited to content-capable authenticated roles; public media reads are intentional and limited to public-safe image assets
-- Draft content, users, audit logs, installation-state, and runtime secrets remain out of the public surface
-- Existing install, RBAC, dashboard, and audit protections remain unchanged
+- Builder documents are versioned JSON only; no eval, dynamic imports, arbitrary code execution, or raw HTML rendering paths were added
+- Public page reads still use collection access control plus `overrideAccess: false`, so draft builder content remains private with the page draft
+- Unknown blocks and invalid block props render safe placeholders or fall back to the legacy body content rather than crashing public pages
+- Link and image block URLs are validated against safe relative/absolute protocols before rendering
+- Existing install, RBAC, dashboard, audit, content, redirect, and media protections remain unchanged
 
 ### Blockers
 
@@ -111,4 +117,4 @@ Phase 09 - Content, Media, and SEO
 
 ### Next recommended prompt
 
-Start Phase 10 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and 03-phases/phase-10-builder-kernel/* before implementing.
+Start Phase 11 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and 03-phases/phase-11-visual-editor-adapter/* before implementing.

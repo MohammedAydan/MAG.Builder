@@ -20,6 +20,7 @@ export type PublishedMedia = {
 
 export type PublishedPage = {
   body: string;
+  builder?: unknown | null;
   excerpt?: string | null;
   heroImage?: PublishedMedia | number | string | null;
   id: number | string;

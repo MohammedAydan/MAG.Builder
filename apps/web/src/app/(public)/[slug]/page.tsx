@@ -7,6 +7,7 @@ import {
   getPublishedPageBySlug,
   getPublishedRedirectByPath,
 } from '@/lib/content/public';
+import { renderPublishedPageContent } from '@/lib/content/rendering';
 
 type PublicContentPageProps = Readonly<{
   params: Promise<{
@@ -65,14 +66,7 @@ export default async function PublicContentPage({ params }: PublicContentPagePro
             </span>
           ) : null}
         </div>
-        <div className="space-y-5 text-base leading-8 text-[var(--color-ink)]">
-          {page.body
-            .split(/\n{2,}/)
-            .filter(Boolean)
-            .map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
-            ))}
-        </div>
+        {renderPublishedPageContent(page)}
       </SurfaceCard>
     </div>
   );

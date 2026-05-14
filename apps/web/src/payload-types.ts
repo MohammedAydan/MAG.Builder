@@ -226,6 +226,18 @@ export interface Page {
   excerpt?: string | null;
   heroImage?: (number | null) | Media;
   body: string;
+  /**
+   * Optional versioned NexPress builder document JSON. Public rendering falls back to body when omitted or invalid.
+   */
+  builder?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   seo?: {
     metaTitle?: string | null;
     metaDescription?: string | null;
@@ -451,6 +463,7 @@ export interface PagesSelect<T extends boolean = true> {
   excerpt?: T;
   heroImage?: T;
   body?: T;
+  builder?: T;
   seo?:
     | T
     | {

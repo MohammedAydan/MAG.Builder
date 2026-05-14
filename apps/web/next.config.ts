@@ -19,6 +19,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  transpilePackages: ['@nexpress/builder-core'],
   async headers() {
     return [
       {

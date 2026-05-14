@@ -1,6 +1,28 @@
 {
   "name": "@nexpress/builder-core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
-  "description": "Phase 00 placeholder package."
+  "type": "module",
+  "description": "Typed builder schema, validation, registry, migrations, and safe renderer for NexPress.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "tsc --noEmit --pretty false",
+    "typecheck": "tsc --noEmit --pretty false",
+    "test": "vitest run",
+    "build": "tsc --noEmit --pretty false"
+  },
+  "dependencies": {
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "25.7.0",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "typescript": "6.0.3",
+    "vitest": "4.1.6"
+  }
 }

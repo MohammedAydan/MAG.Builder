@@ -378,3 +378,43 @@ Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-08-design-syst
 ### Resume instructions
 
 Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-09-content-media-seo/review.md`, then start Phase 10 only if explicitly requested.
+---
+## Session: 2026-05-14
+
+### What was done
+
+- Implemented Phase 10 builder-kernel foundations in `packages/builder-core`
+- Added a versioned builder schema, deterministic legacy migration helper, centralized typed block registry, URL guards, and a safe server renderer with minimal core blocks
+- Added an optional validated `builder` JSON field to pages while preserving the existing `body` field and published-only access behavior
+- Regenerated Payload types and verified package, app, and root workspace quality gates
+
+### Decisions made
+
+- Kept the Phase 10 integration surface limited to `pages` only - Reason: the phase requires builder-kernel foundations, not a broad content-model rollout or post-editor implementation
+- Preserved the legacy page `body` field as the public fallback when builder JSON is absent or structurally invalid - Reason: existing public routes must remain stable and fail safely while the builder model is still maturing
+- Allowed structurally valid unknown blocks to survive validation and render as safe placeholders - Reason: future plugin or editor work may introduce blocks that are temporarily unavailable, and public rendering must degrade safely instead of crashing
+
+### Files changed
+
+- `packages/builder-core/*`
+- `apps/web/src/collections/Pages.ts`
+- `apps/web/src/lib/builder/kernel.ts`
+- `apps/web/src/lib/content/{public,rendering}.ts`
+- `apps/web/src/lib/content/rendering.test.tsx`
+- `apps/web/src/app/(public)/[slug]/page.tsx`
+- `apps/web/src/payload-types.ts`
+- `apps/web/{package.json,next.config.ts,vitest.config.ts}`
+- `plans/context.md`
+- `plans/phase-10-builder-kernel/review.md`
+- `IMPLEMENTATION_STATUS.md`
+
+### State at end of session
+
+- Active feature: phase-10-builder-kernel
+- Last completed task: Phase 10 verification and review
+- Next task: wait for explicit instruction before starting Phase 11
+- Blockers: none
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-10-builder-kernel/review.md`, then start Phase 11 only if explicitly requested.

@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload';
+import { validateBuilderFieldValue } from '@/lib/builder/kernel';
 import {
   contentCreateAccess,
   contentDeleteAccess,
@@ -73,6 +74,14 @@ export const Pages: CollectionConfig = {
       name: 'body',
       type: 'textarea',
       required: true,
+    },
+    {
+      name: 'builder',
+      type: 'json',
+      admin: {
+        description: 'Optional versioned NexPress builder document JSON. Public rendering falls back to body when omitted or invalid.',
+      },
+      validate: validateBuilderFieldValue,
     },
     ...createSeoFields(),
   ],

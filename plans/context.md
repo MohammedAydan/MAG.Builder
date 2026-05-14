@@ -6,7 +6,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 
 ## Current Status
 
-- Active feature: phase-09-content-media-seo
+- Active feature: phase-10-builder-kernel
 - Overall health: green
 - Last updated: 2026-05-14
 
@@ -30,13 +30,16 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - phase-07-admin-dashboard-shell: done, project-owned `/dashboard` shell, server-side route guards, permission-aware navigation, overview page, privileged settings placeholder
 - phase-08-design-system-public-shell: done, centralized semantic tokens, scoped public route-group shell, reusable public primitives, and responsive homepage foundation
 - phase-09-content-media-seo: done, pages/posts/media/redirect collections, published-only public content helpers, SEO metadata helpers, and sitemap/robots handlers
+- phase-10-builder-kernel: done, `packages/builder-core` now owns a versioned builder schema, runtime validation, block registry, migrations, safe renderer, and core public blocks, with optional page integration and legacy body fallback in `apps/web`
 
 ## Known Issues / Tech Debt
 
 - Dependency installation and real framework scaffolding are deferred to later phases
 - Root workspace quality gates now execute the real `apps/web` checks through Turbo
 - v1 scope is now frozen and any expansion requires an ADR update
-- Package placeholders outside `apps/web` remain intentionally unimplemented until their phases begin
+- Builder validation is fail-safe at render time: malformed documents fall back to the legacy page body, while unknown or invalid blocks render placeholders without crashing
+- No live DB-backed Payload migration file was generated for the new page builder field because migration generation still requires a live database
+- Package placeholders outside `apps/web` and `packages/builder-core` remain intentionally unimplemented until their phases begin
 
 ## Team / Ownership
 
