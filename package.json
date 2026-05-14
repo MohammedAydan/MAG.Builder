@@ -12,10 +12,10 @@
   },
   "scripts": {
     "dev": "pnpm --filter @nexpress/web dev",
-    "lint": "turbo run lint",
-    "typecheck": "turbo run typecheck",
-    "test": "turbo run test",
-    "build": "turbo run build",
+    "lint": "pnpm exec turbo run lint",
+    "typecheck": "pnpm exec turbo run typecheck",
+    "test": "pnpm exec turbo run test",
+    "build": "pnpm exec turbo run build",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   }
 }

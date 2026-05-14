@@ -7,8 +7,16 @@ export const DASHBOARD_NAV_ITEMS: readonly DashboardNavItem[] = [
     group: 'core',
     href: '/dashboard',
     kind: 'internal',
-    permission: 'admin:access',
+    permission: 'content:write',
     title: 'Overview',
+  },
+  {
+    description: 'Create draft pages and open the visual builder editor.',
+    group: 'core',
+    href: '/dashboard/pages',
+    kind: 'internal',
+    permission: 'content:write',
+    title: 'Pages',
   },
   {
     description: 'Open the existing Payload admin route for content operations.',

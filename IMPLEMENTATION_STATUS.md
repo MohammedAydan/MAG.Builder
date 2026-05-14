@@ -2,10 +2,10 @@
 
 Project: NexPress
 Mode: Greenfield
-Current phase: 10-builder-kernel
+Current phase: 11-visual-editor-adapter
 Overall status: in-progress
 
-The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, and the first owned builder kernel are implemented. Visual editor adaptation, themes/templates, plugin loading, commerce, and MCP features remain out of scope for the current repository state.
+The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, and first visual editor adapter are implemented. Themes/templates, plugin loading, commerce, and MCP features remain out of scope for the current repository state.
 
 ## Phase tracker
 
@@ -20,7 +20,7 @@ The platform foundation, Payload CMS foundation, database/migration/seed layer, 
 - [x] Phase 08 - Design System and Public Shell: done
 - [x] Phase 09 - Content, Media, and SEO: done
 - [x] Phase 10 - Builder Kernel: done
-- [ ] Phase 11 - Visual Editor Adapter: not-started
+- [x] Phase 11 - Visual Editor Adapter: done
 - [ ] Phase 12 - Themes and Templates: not-started
 - [ ] Phase 13 - Plugin and Module System: not-started
 - [ ] Phase 14 - Forms and Workflows: not-started
@@ -50,22 +50,22 @@ Codex (GPT-5)
 
 ### Requested phase
 
-Phase 10 - Builder Kernel
+Phase 11 - Visual Editor Adapter
 
 ### Files changed
 
-- `packages/builder-core/{package.json,tsconfig.json,vitest.config.ts,README.md}` - activated the Phase 10 builder-core workspace package
-- `packages/builder-core/src/{types,schema,migrations,registry,renderer,url,index}.ts(x)` - versioned builder schema, migrations, registry, URL guards, and server-safe renderer
-- `packages/builder-core/src/blocks/core-blocks.tsx` - safe core section, heading, text, image, and button blocks
-- `packages/builder-core/src/*.test.ts(x)` - schema, migration, registry, and renderer unit tests
-- `apps/web/src/collections/Pages.ts` - optional validated builder JSON field while preserving the legacy body field
-- `apps/web/src/lib/builder/kernel.ts` - web-facing builder validation and public registry wiring
-- `apps/web/src/lib/content/{public,rendering}.ts` - published page builder support with legacy body fallback
-- `apps/web/src/lib/content/rendering.test.tsx` - public rendering compatibility tests
-- `apps/web/src/app/(public)/[slug]/page.tsx` - page route now renders validated builder content safely when present
-- `apps/web/src/payload-types.ts` - regenerated Payload collection types for the new page builder field
-- `apps/web/{package.json,next.config.ts,vitest.config.ts}` - workspace dependency, package transpilation, and test discovery updates
-- `plans/phase-10-builder-kernel/review.md` - phase review
+- `package.json` - root quality-gate scripts now use `pnpm exec turbo` so the documented workspace verification commands work reliably on this Windows workspace
+- `packages/builder-editor/{package.json,tsconfig.json,vitest.config.ts,README.md}` - activated the Phase 11 builder-editor workspace package around a Puck-based adapter
+- `packages/builder-editor/src/{types,adapter,config,editor,index}.ts(x)` - typed editor data model, builder-core adapter, Puck config mapping, and client editor shell
+- `packages/builder-editor/src/*.test.ts(x)` - adapter and config tests
+- `packages/builder-core/src/index.ts` - exported `BuilderKnownBlock` for editor adapter typing
+- `apps/web/{package.json,next.config.ts}` - added the builder-editor workspace dependency, Puck package, and transpilation for editor packages
+- `apps/web/src/lib/builder/editor.ts` - server-side load, save, validation, conversion, and draft-page creation helpers for builder editing
+- `apps/web/src/lib/builder/editor.test.ts` - editor save payload and validation tests
+- `apps/web/src/lib/dashboard/{access,access.test,guards,navigation}.ts` - content-editor dashboard access, guards, and navigation entries
+- `apps/web/src/app/dashboard/page.tsx` - dashboard overview now links into the visual builder workflow
+- `apps/web/src/app/dashboard/pages/**` - protected pages list, builder route, save route, preview route, and Puck CSS bridge
+- `plans/phase-11-visual-editor-adapter/review.md` - phase review
 - `plans/context.md`
 - `plans/SESSION_LOG.md`
 
@@ -80,35 +80,41 @@ Phase 10 - Builder Kernel
 - `pnpm --dir packages/builder-core typecheck`
 - `pnpm --dir packages/builder-core test`
 - `pnpm --dir packages/builder-core build`
+- `pnpm --dir packages/builder-editor lint`
+- `pnpm --dir packages/builder-editor typecheck`
+- `pnpm --dir packages/builder-editor test`
+- `pnpm --dir packages/builder-editor build`
 - `pnpm --dir apps/web lint`
 - `pnpm --dir apps/web typecheck`
 - `pnpm --dir apps/web test`
 - `pnpm --dir apps/web build`
-- `pnpm --dir apps/web generate:types`
 
 ### Test results
 
 - `pnpm install` - passed
 - `pnpm lint` - passed
 - `pnpm typecheck` - passed
-- `pnpm test` - passed (60/60 tests, 20 test files across `apps/web` and `packages/builder-core`)
+- `pnpm test` - passed (68/68 tests, 23 test files across `apps/web`, `packages/builder-core`, and `packages/builder-editor`)
 - `pnpm build` - passed
 - `pnpm --dir packages/builder-core lint` - passed
 - `pnpm --dir packages/builder-core typecheck` - passed
 - `pnpm --dir packages/builder-core test` - passed (9/9 tests, 4 test files)
 - `pnpm --dir packages/builder-core build` - passed
+- `pnpm --dir packages/builder-editor lint` - passed
+- `pnpm --dir packages/builder-editor typecheck` - passed
+- `pnpm --dir packages/builder-editor test` - passed (4/4 tests, 2 test files)
+- `pnpm --dir packages/builder-editor build` - passed
 - `pnpm --dir apps/web lint` - passed
 - `pnpm --dir apps/web typecheck` - passed
-- `pnpm --dir apps/web test` - passed (51/51 tests, 16 test files)
+- `pnpm --dir apps/web test` - passed (55/55 tests, 17 test files)
 - `pnpm --dir apps/web build` - passed
-- `pnpm --dir apps/web generate:types` - passed
 
 ### Security notes
 
-- Builder documents are versioned JSON only; no eval, dynamic imports, arbitrary code execution, or raw HTML rendering paths were added
-- Public page reads still use collection access control plus `overrideAccess: false`, so draft builder content remains private with the page draft
-- Unknown blocks and invalid block props render safe placeholders or fall back to the legacy body content rather than crashing public pages
-- Link and image block URLs are validated against safe relative/absolute protocols before rendering
+- Puck is isolated to the editor adapter package and protected dashboard routes; public rendering still uses `@nexpress/builder-core`
+- Draft builder preview is protected server-side behind content-editor access and does not expose unpublished content anonymously
+- Builder save requests accept only editor document payloads, convert them back into builder-core schema, and validate block types and props server-side before persistence
+- Payload Local API reads and writes for editor load/save use authenticated `user` context with `overrideAccess: false`
 - Existing install, RBAC, dashboard, audit, content, redirect, and media protections remain unchanged
 
 ### Blockers
@@ -117,4 +123,4 @@ Phase 10 - Builder Kernel
 
 ### Next recommended prompt
 
-Start Phase 11 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and 03-phases/phase-11-visual-editor-adapter/* before implementing.
+Start Phase 12 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and 03-phases/phase-12-themes-and-templates/* before implementing.

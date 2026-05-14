@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  canAccessDashboardContent,
   canAccessDashboardSettings,
   resolveDashboardAccess,
 } from '@/lib/dashboard/access';
@@ -17,11 +18,8 @@ describe('dashboard access decisions', () => {
     });
   });
 
-  it('redirects authenticated non-admin users away from the dashboard shell', () => {
-    expect(resolveDashboardAccess(editor)).toEqual({
-      kind: 'redirect',
-      to: '/',
-    });
+  it('allows content-capable editors into the dashboard shell', () => {
+    expect(resolveDashboardAccess(editor)).toEqual({ kind: 'allow' });
   });
 
   it('allows admin-capable roles into the dashboard shell', () => {
@@ -33,6 +31,11 @@ describe('dashboard access decisions', () => {
     expect(canAccessDashboardSettings(superAdmin)).toBe(true);
     expect(canAccessDashboardSettings(admin)).toBe(false);
   });
+
+  it('limits content dashboard routes to content-capable roles', () => {
+    expect(canAccessDashboardContent(editor)).toBe(true);
+    expect(canAccessDashboardContent(null)).toBe(false);
+  });
 });
 
 describe('dashboard navigation', () => {
@@ -43,15 +46,20 @@ describe('dashboard navigation', () => {
   it('shows only allowed navigation items for each role', () => {
     expect(getDashboardNavigation(superAdmin).map((item) => item.title)).toEqual([
       'Overview',
+      'Pages',
       'Content Studio',
       'Settings',
     ]);
 
     expect(getDashboardNavigation(admin).map((item) => item.title)).toEqual([
       'Overview',
+      'Pages',
       'Content Studio',
     ]);
 
-    expect(getDashboardNavigation(editor)).toEqual([]);
+    expect(getDashboardNavigation(editor).map((item) => item.title)).toEqual([
+      'Overview',
+      'Pages',
+    ]);
   });
 });

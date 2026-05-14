@@ -5,8 +5,8 @@ export const dynamic = 'force-dynamic';
 
 const futureModuleCards = [
   {
-    description: 'The project-owned content shell will connect here while Payload admin remains available.',
-    title: 'Content Workflows',
+    description: 'Draft pages now open into the visual builder adapter while public rendering stays on the builder kernel.',
+    title: 'Visual Builder',
   },
   {
     description: 'Future module activation, plugin boundaries, and operational controls will anchor here.',
@@ -26,15 +26,15 @@ export default async function DashboardHomePage() {
     <div className="space-y-6">
       <section className="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur">
         <p className="text-sm font-semibold tracking-[0.2em] text-sky-700 uppercase">
-          Phase 07
+          Phase 11
         </p>
         <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
-          Project-owned admin dashboard shell
+          Dashboard shell with visual editing
         </h1>
         <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
-          This dashboard is separate from Payload admin. It gives NexPress a secure, server-first
-          control surface for future modules while reusing the current RBAC model and keeping
-          private data on the server.
+          This dashboard remains separate from Payload admin. It now hosts the first authenticated
+          visual page editing flow while keeping validation, save permissions, and public rendering
+          on the server-owned NexPress kernel.
         </p>
       </section>
 

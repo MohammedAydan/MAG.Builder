@@ -1,5 +1,6 @@
 import {
   canAccessAdminPanel,
+  canManageContent,
   hasPermission,
   type AuthenticatedUserLike,
 } from '@/lib/auth/access';
@@ -23,7 +24,7 @@ export function resolveDashboardAccess(
     };
   }
 
-  if (!canAccessAdminPanel(user)) {
+  if (!canAccessAdminPanel(user) && !canManageContent(user)) {
     return {
       kind: 'redirect',
       to: '/',
@@ -39,4 +40,10 @@ export function canAccessDashboardSettings(
   user: AuthenticatedUserLike | null | undefined,
 ) {
   return hasPermission(user, 'system:read');
+}
+
+export function canAccessDashboardContent(
+  user: AuthenticatedUserLike | null | undefined,
+) {
+  return canManageContent(user);
 }

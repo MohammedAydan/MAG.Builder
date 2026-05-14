@@ -418,3 +418,45 @@ Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-09-content-med
 ### Resume instructions
 
 Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-10-builder-kernel/review.md`, then start Phase 11 only if explicitly requested.
+---
+## Session: 2026-05-14
+
+### What was done
+
+- Implemented the Phase 11 visual editor adapter as a new `packages/builder-editor` workspace package on top of the existing builder kernel
+- Added protected dashboard routes for draft page listing, visual builder editing, draft save, and protected draft preview
+- Wired server-side builder load/save helpers that convert editor data back into builder-core documents and validate before persistence
+- Verified root, package, and app quality gates after adding the editor adapter and fixing the root Turbo wrapper scripts for this Windows workspace
+
+### Decisions made
+
+- Kept `@nexpress/builder-core` as the source of truth and used `@measured/puck` only as an editor adapter - Reason: the kernel must remain vendor-neutral and public rendering must stay independent from the editor library
+- Limited Phase 11 editing to the `pages` collection and draft builder content only - Reason: the phase requires the first authenticated visual editing experience without broadening into publishing workflow, posts, templates, or themes
+- Allowed `editor` users into the owned dashboard shell for content routes while keeping `/admin` and system settings restricted - Reason: content-capable roles need the visual builder, but Payload admin and system controls remain more privileged
+
+### Files changed
+
+- `package.json`
+- `packages/builder-editor/*`
+- `packages/builder-core/src/index.ts`
+- `apps/web/package.json`
+- `apps/web/next.config.ts`
+- `apps/web/src/lib/dashboard/{access,access.test,guards,navigation}.ts`
+- `apps/web/src/lib/builder/editor.ts`
+- `apps/web/src/lib/builder/editor.test.ts`
+- `apps/web/src/app/dashboard/page.tsx`
+- `apps/web/src/app/dashboard/pages/**/*`
+- `plans/context.md`
+- `plans/phase-11-visual-editor-adapter/review.md`
+- `IMPLEMENTATION_STATUS.md`
+
+### State at end of session
+
+- Active feature: phase-11-visual-editor-adapter
+- Last completed task: Phase 11 verification and review
+- Next task: wait for explicit instruction before starting Phase 12
+- Blockers: none
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-11-visual-editor-adapter/review.md`, then start Phase 12 only if explicitly requested.

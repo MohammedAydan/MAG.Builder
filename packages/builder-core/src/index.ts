@@ -8,6 +8,7 @@ export {
   type BuilderBlockRegistry,
   type BuilderBlockAvailability,
   type BuilderBlockDefinition,
+  type BuilderKnownBlock,
   type BuilderBlockInput,
   type BuilderDocumentInput,
   type BuilderMigrationResult,
