@@ -1,3 +1,3 @@
 # @nexpress/themes
 
-Phase 00 placeholder package.
+Typed Phase 12 theme registry, template manifest validation, and demo template assets for NexPress.

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { getPublicThemeVariables, publicThemeTokens } from '@/lib/design-system/tokens';
+import {
+  getPublicThemeVariables,
+  publicThemeId,
+  publicThemeRegistry,
+  publicThemeTokens,
+} from '@/lib/design-system/tokens';
 
 describe('public theme tokens', () => {
   it('keeps semantic color groups for both light and dark modes', () => {
@@ -17,6 +22,12 @@ describe('public theme tokens', () => {
     expect(variables['--color-canvas']).toBe(publicThemeTokens.colorModes.light.canvas);
     expect(variables['--layout-content']).toBe(publicThemeTokens.layout.content);
     expect(variables['--radius-panel']).toBe(publicThemeTokens.radius.panel);
+    expect(variables['--radius-surface']).toBe(publicThemeTokens.radius.panel);
+    expect(variables['--space-8']).toBe(publicThemeTokens.spacing.compact);
     expect(variables['--type-hero']).toBe(publicThemeTokens.typography.hero);
+  });
+
+  it('resolves the default public theme from the central registry', () => {
+    expect(publicThemeRegistry.get(publicThemeId)?.label).toBe('NexPress Default');
   });
 });

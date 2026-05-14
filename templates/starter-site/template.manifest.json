@@ -1,0 +1,113 @@
+{
+  "schema": "nexpress-template-manifest",
+  "version": 1,
+  "metadata": {
+    "id": "starter-site-demo",
+    "label": "Starter Site Demo",
+    "description": "Safe starter-site demo content for local Phase 12 template import testing.",
+    "demo": true,
+    "tags": [
+      "demo",
+      "starter",
+      "themes"
+    ]
+  },
+  "compatibility": {
+    "builderSchema": "nexpress-builder",
+    "builderVersion": 1
+  },
+  "theme": {
+    "id": "nexpress-default"
+  },
+  "requiredBlocks": [
+    "core.button",
+    "core.heading",
+    "core.section",
+    "core.text"
+  ],
+  "resources": {
+    "assetUrls": []
+  },
+  "content": {
+    "pages": [
+      {
+        "title": "Starter Demo Home",
+        "slug": "starter-demo-home",
+        "status": "published",
+        "excerpt": "Sample home page imported by the starter template.",
+        "body": "Starter demo home page. This sample content is imported explicitly and can be edited safely after import.",
+        "seo": {
+          "metaTitle": "Starter Demo Home",
+          "metaDescription": "Starter sample home page for the NexPress Phase 12 demo template."
+        },
+        "builder": {
+          "schema": "nexpress-builder",
+          "version": 1,
+          "blocks": [
+            {
+              "id": "starter-home-section",
+              "type": "core.section",
+              "props": {
+                "background": "surface",
+                "gap": "md",
+                "paddingY": "md",
+                "width": "content"
+              },
+              "children": [
+                {
+                  "id": "starter-home-heading",
+                  "type": "core.heading",
+                  "props": {
+                    "align": "left",
+                    "level": 1,
+                    "text": "Starter demo home page"
+                  }
+                },
+                {
+                  "id": "starter-home-text",
+                  "type": "core.text",
+                  "props": {
+                    "align": "left",
+                    "size": "lg",
+                    "text": "This sample page is imported by the Phase 12 demo template flow and remains fully validated through builder-core.",
+                    "tone": "default"
+                  }
+                },
+                {
+                  "id": "starter-home-button",
+                  "type": "core.button",
+                  "props": {
+                    "href": "/journal/starter-demo-post",
+                    "label": "Read the sample post",
+                    "variant": "primary"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "posts": [
+      {
+        "title": "Starter Demo Post",
+        "slug": "starter-demo-post",
+        "status": "published",
+        "excerpt": "Sample journal content imported from the starter template.",
+        "body": "This sample journal post is safe demo content created through the template importer.",
+        "seo": {
+          "metaTitle": "Starter Demo Post",
+          "metaDescription": "Starter sample journal post imported from the safe demo template."
+        }
+      }
+    ],
+    "redirects": [
+      {
+        "sourcePath": "/demo",
+        "destinationPath": "/starter-demo-home",
+        "type": "302",
+        "isActive": true
+      }
+    ]
+  }
+}

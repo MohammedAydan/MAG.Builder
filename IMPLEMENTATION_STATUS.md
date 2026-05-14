@@ -2,10 +2,10 @@
 
 Project: NexPress
 Mode: Greenfield
-Current phase: 11-visual-editor-adapter
+Current phase: 12-themes-and-templates
 Overall status: in-progress
 
-The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, and first visual editor adapter are implemented. Themes/templates, plugin loading, commerce, and MCP features remain out of scope for the current repository state.
+The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, first visual editor adapter, and the first safe themes/templates foundation are implemented. Plugin loading, commerce, and MCP features remain out of scope for the current repository state.
 
 ## Phase tracker
 
@@ -21,7 +21,7 @@ The platform foundation, Payload CMS foundation, database/migration/seed layer, 
 - [x] Phase 09 - Content, Media, and SEO: done
 - [x] Phase 10 - Builder Kernel: done
 - [x] Phase 11 - Visual Editor Adapter: done
-- [ ] Phase 12 - Themes and Templates: not-started
+- [x] Phase 12 - Themes and Templates: done
 - [ ] Phase 13 - Plugin and Module System: not-started
 - [ ] Phase 14 - Forms and Workflows: not-started
 - [ ] Phase 15 - Public Membership and Protected Routes: not-started
@@ -50,24 +50,25 @@ Codex (GPT-5)
 
 ### Requested phase
 
-Phase 11 - Visual Editor Adapter
+Phase 12 - Themes and Templates
 
 ### Files changed
 
-- `package.json` - root quality-gate scripts now use `pnpm exec turbo` so the documented workspace verification commands work reliably on this Windows workspace
-- `packages/builder-editor/{package.json,tsconfig.json,vitest.config.ts,README.md}` - activated the Phase 11 builder-editor workspace package around a Puck-based adapter
-- `packages/builder-editor/src/{types,adapter,config,editor,index}.ts(x)` - typed editor data model, builder-core adapter, Puck config mapping, and client editor shell
-- `packages/builder-editor/src/*.test.ts(x)` - adapter and config tests
-- `packages/builder-core/src/index.ts` - exported `BuilderKnownBlock` for editor adapter typing
-- `apps/web/{package.json,next.config.ts}` - added the builder-editor workspace dependency, Puck package, and transpilation for editor packages
-- `apps/web/src/lib/builder/editor.ts` - server-side load, save, validation, conversion, and draft-page creation helpers for builder editing
-- `apps/web/src/lib/builder/editor.test.ts` - editor save payload and validation tests
-- `apps/web/src/lib/dashboard/{access,access.test,guards,navigation}.ts` - content-editor dashboard access, guards, and navigation entries
-- `apps/web/src/app/dashboard/page.tsx` - dashboard overview now links into the visual builder workflow
-- `apps/web/src/app/dashboard/pages/**` - protected pages list, builder route, save route, preview route, and Puck CSS bridge
-- `plans/phase-11-visual-editor-adapter/review.md` - phase review
+- `packages/themes/{package.json,README.md,tsconfig.json,vitest.config.ts}` - activated the Phase 12 themes workspace package
+- `packages/themes/src/{types,registry,template-manifest,demo,index}.ts` - typed theme registry, safe CSS-variable resolution, template manifest schema, and starter demo manifest
+- `packages/themes/src/{registry,template-manifest}.test.ts` - theme registry and manifest validation tests
+- `apps/web/package.json` - added the `@nexpress/themes` workspace dependency
+- `apps/web/src/lib/design-system/{tokens,tokens.test}.ts` - moved the public shell to a registry-backed default theme
+- `apps/web/src/lib/audit/service.ts` - added template import/export/demo audit action ids
+- `apps/web/src/lib/templates/{service,service.test}.ts` - server-only template validation, allowlisted import/export, demo import, and safety tests
+- `apps/web/src/app/api/templates/**/*` - admin-only template import/export/demo route handlers
+- `templates/starter-site/{package.json,README.md,template.manifest.json}` - starter template manifest artifact
+- `docs/runbooks/themes-templates.md` - phase runbook
+- `plans/phase-12-themes-and-templates/review.md` - phase review
 - `plans/context.md`
 - `plans/SESSION_LOG.md`
+- `pnpm-lock.yaml`
+- `IMPLEMENTATION_STATUS.md`
 
 ### Commands run
 
@@ -76,6 +77,10 @@ Phase 11 - Visual Editor Adapter
 - `pnpm typecheck`
 - `pnpm test`
 - `pnpm build`
+- `pnpm --dir packages/themes lint`
+- `pnpm --dir packages/themes typecheck`
+- `pnpm --dir packages/themes test`
+- `pnpm --dir packages/themes build`
 - `pnpm --dir packages/builder-core lint`
 - `pnpm --dir packages/builder-core typecheck`
 - `pnpm --dir packages/builder-core test`
@@ -94,8 +99,12 @@ Phase 11 - Visual Editor Adapter
 - `pnpm install` - passed
 - `pnpm lint` - passed
 - `pnpm typecheck` - passed
-- `pnpm test` - passed (68/68 tests, 23 test files across `apps/web`, `packages/builder-core`, and `packages/builder-editor`)
+- `pnpm test` - passed (81/81 tests, 26 test files across `apps/web`, `packages/builder-core`, `packages/builder-editor`, and `packages/themes`)
 - `pnpm build` - passed
+- `pnpm --dir packages/themes lint` - passed
+- `pnpm --dir packages/themes typecheck` - passed
+- `pnpm --dir packages/themes test` - passed (7/7 tests, 2 test files)
+- `pnpm --dir packages/themes build` - passed
 - `pnpm --dir packages/builder-core lint` - passed
 - `pnpm --dir packages/builder-core typecheck` - passed
 - `pnpm --dir packages/builder-core test` - passed (9/9 tests, 4 test files)
@@ -111,11 +120,11 @@ Phase 11 - Visual Editor Adapter
 
 ### Security notes
 
-- Puck is isolated to the editor adapter package and protected dashboard routes; public rendering still uses `@nexpress/builder-core`
-- Draft builder preview is protected server-side behind content-editor access and does not expose unpublished content anonymously
-- Builder save requests accept only editor document payloads, convert them back into builder-core schema, and validate block types and props server-side before persistence
-- Payload Local API reads and writes for editor load/save use authenticated `user` context with `overrideAccess: false`
-- Existing install, RBAC, dashboard, audit, content, redirect, and media protections remain unchanged
+- Public theme application now resolves through a typed registry and semantic CSS variables only; no arbitrary script or remote code execution path was introduced
+- Template manifests are validated server-side, reject unsafe HTML/executable content markers, reject protected/sensitive keys, and validate builder documents through `@nexpress/builder-core`
+- Template import/export remains server-only and requires an authenticated admin-capable dashboard user; default export excludes drafts and draft export is restricted to `super-admin`
+- Payload Local API content writes for template import use `overrideAccess: false` with explicit collection and field allowlists
+- Existing install, RBAC, dashboard, audit, content, builder, editor, and public-route protections remain unchanged
 
 ### Blockers
 
@@ -123,4 +132,4 @@ Phase 11 - Visual Editor Adapter
 
 ### Next recommended prompt
 
-Start Phase 12 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and 03-phases/phase-12-themes-and-templates/* before implementing.
+Start Phase 13 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and 03-phases/phase-13-plugin-and-module-system/* before implementing.

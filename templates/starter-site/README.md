@@ -1,3 +1,3 @@
 # starter-site
 
-Phase 00 template placeholder.
+Safe Phase 12 starter-site template manifest and demo content reference.

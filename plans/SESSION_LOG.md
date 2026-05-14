@@ -460,3 +460,44 @@ Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-10-builder-ker
 ### Resume instructions
 
 Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-11-visual-editor-adapter/review.md`, then start Phase 12 only if explicitly requested.
+---
+## Session: 2026-05-14
+
+### What was done
+
+- Implemented Phase 12 themes/templates as a new `packages/themes` workspace package plus app-level server-only template services and route handlers
+- Replaced the app-local public token source with a registry-backed default theme while preserving the public-shell boundary
+- Added safe template manifest validation, admin-only import/export/demo endpoints, a starter demo manifest, runbook docs, and phase review notes
+- Verified root, package, and app quality gates including the new `@nexpress/themes` package
+
+### Decisions made
+
+- Activated `packages/themes` instead of embedding theme/template types inside `apps/web` - Reason: Phase 12 needs a reusable typed boundary that is future-ready for local extension without starting plugin loading
+- Kept template import/export limited to `pages`, `posts`, and `redirects`, with allowlisted field construction and `overrideAccess: false` writes - Reason: the phase requires safe content transfer without opening arbitrary Payload writes or bypassing RBAC
+- Kept public theme application on the default registered theme only - Reason: Phase 12 needs a safe registry and token application path, not a full persisted theme-selection UI or system config model
+
+### Files changed
+
+- `packages/themes/*`
+- `apps/web/package.json`
+- `apps/web/src/lib/design-system/{tokens,tokens.test}.ts`
+- `apps/web/src/lib/audit/service.ts`
+- `apps/web/src/lib/templates/{service,service.test}.ts`
+- `apps/web/src/app/api/templates/**/*`
+- `templates/starter-site/{package.json,README.md,template.manifest.json}`
+- `docs/runbooks/themes-templates.md`
+- `plans/context.md`
+- `plans/SESSION_LOG.md`
+- `plans/phase-12-themes-and-templates/review.md`
+- `IMPLEMENTATION_STATUS.md`
+
+### State at end of session
+
+- Active feature: phase-12-themes-and-templates
+- Last completed task: Phase 12 verification and review
+- Next task: wait for explicit instruction before starting Phase 13
+- Blockers: none
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-12-themes-and-templates/review.md`, and `docs/runbooks/themes-templates.md`, then start Phase 13 only if explicitly requested.
