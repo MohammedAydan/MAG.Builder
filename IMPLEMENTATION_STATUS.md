@@ -2,10 +2,10 @@
 
 Project: NexPress
 Mode: Greenfield
-Current phase: 12-themes-and-templates
+Current phase: 13-plugin-module-system
 Overall status: in-progress
 
-The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, first visual editor adapter, and the first safe themes/templates foundation are implemented. Plugin loading, commerce, and MCP features remain out of scope for the current repository state.
+The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, visual editor adapter, themes/templates foundation, and the first safe local plugin/module system are implemented. Commerce, APIs beyond current routes, and MCP features remain out of scope for the current repository state.
 
 ## Phase tracker
 
@@ -22,7 +22,7 @@ The platform foundation, Payload CMS foundation, database/migration/seed layer, 
 - [x] Phase 10 - Builder Kernel: done
 - [x] Phase 11 - Visual Editor Adapter: done
 - [x] Phase 12 - Themes and Templates: done
-- [ ] Phase 13 - Plugin and Module System: not-started
+- [x] Phase 13 - Plugin and Module System: done
 - [ ] Phase 14 - Forms and Workflows: not-started
 - [ ] Phase 15 - Public Membership and Protected Routes: not-started
 - [ ] Phase 16 - Commerce Service Spike: not-started
@@ -42,7 +42,7 @@ The platform foundation, Payload CMS foundation, database/migration/seed layer, 
 
 ### Date
 
-2026-05-14
+2026-05-15
 
 ### Agent/tool
 
@@ -50,21 +50,23 @@ Codex (GPT-5)
 
 ### Requested phase
 
-Phase 12 - Themes and Templates
+Phase 13 - Plugin and Module System
 
 ### Files changed
 
-- `packages/themes/{package.json,README.md,tsconfig.json,vitest.config.ts}` - activated the Phase 12 themes workspace package
-- `packages/themes/src/{types,registry,template-manifest,demo,index}.ts` - typed theme registry, safe CSS-variable resolution, template manifest schema, and starter demo manifest
-- `packages/themes/src/{registry,template-manifest}.test.ts` - theme registry and manifest validation tests
-- `apps/web/package.json` - added the `@nexpress/themes` workspace dependency
-- `apps/web/src/lib/design-system/{tokens,tokens.test}.ts` - moved the public shell to a registry-backed default theme
-- `apps/web/src/lib/audit/service.ts` - added template import/export/demo audit action ids
-- `apps/web/src/lib/templates/{service,service.test}.ts` - server-only template validation, allowlisted import/export, demo import, and safety tests
-- `apps/web/src/app/api/templates/**/*` - admin-only template import/export/demo route handlers
-- `templates/starter-site/{package.json,README.md,template.manifest.json}` - starter template manifest artifact
-- `docs/runbooks/themes-templates.md` - phase runbook
-- `plans/phase-12-themes-and-templates/review.md` - phase review
+- `packages/plugins/{package.json,README.md,tsconfig.json,vitest.config.ts}` - activated the Phase 13 plugins workspace package
+- `packages/plugins/src/{types,manifest,registry,local-plugins,index}.ts` - versioned plugin manifest schema, typed capabilities, local allowlisted definitions, registry, dependency/conflict validation, and migration planning helpers
+- `packages/plugins/src/{manifest,registry}.test.ts` - manifest and registry safety tests
+- `apps/web/package.json` - added the `@nexpress/plugins` workspace dependency
+- `apps/web/src/collections/PluginStates.ts` - protected hidden plugin activation and migration state collection
+- `apps/web/src/lib/auth/{permissions,access}.ts` - centralized plugin read/manage permissions and collection access helpers
+- `apps/web/src/lib/audit/service.ts` - added plugin activation/deactivation and migration audit action ids
+- `apps/web/src/lib/plugins/{service,service.test}.ts` - server-only plugin activation, deactivation, migration planning/execution, capability checks, and tests
+- `apps/web/src/app/api/plugins/**/*` - admin-capable plugin management route handlers
+- `apps/web/src/payload.config.ts`
+- `apps/web/src/payload-types.ts`
+- `docs/runbooks/plugins-modules.md`
+- `plans/phase-13-plugin-module-system/review.md`
 - `plans/context.md`
 - `plans/SESSION_LOG.md`
 - `pnpm-lock.yaml`
@@ -72,64 +74,76 @@ Phase 12 - Themes and Templates
 
 ### Commands run
 
-- `pnpm install`
-- `pnpm lint`
-- `pnpm typecheck`
-- `pnpm test`
-- `pnpm build`
-- `pnpm --dir packages/themes lint`
-- `pnpm --dir packages/themes typecheck`
-- `pnpm --dir packages/themes test`
-- `pnpm --dir packages/themes build`
-- `pnpm --dir packages/builder-core lint`
-- `pnpm --dir packages/builder-core typecheck`
-- `pnpm --dir packages/builder-core test`
-- `pnpm --dir packages/builder-core build`
-- `pnpm --dir packages/builder-editor lint`
-- `pnpm --dir packages/builder-editor typecheck`
-- `pnpm --dir packages/builder-editor test`
-- `pnpm --dir packages/builder-editor build`
-- `pnpm --dir apps/web lint`
-- `pnpm --dir apps/web typecheck`
-- `pnpm --dir apps/web test`
-- `pnpm --dir apps/web build`
+- `pnpm.cmd install`
+- `pnpm.cmd lint`
+- `pnpm.cmd typecheck`
+- `pnpm.cmd test`
+- `pnpm.cmd build`
+- `pnpm.cmd --dir packages/plugins lint`
+- `pnpm.cmd --dir packages/plugins typecheck`
+- `pnpm.cmd --dir packages/plugins test`
+- `pnpm.cmd --dir packages/plugins build`
+- `pnpm.cmd --dir packages/builder-core lint`
+- `pnpm.cmd --dir packages/builder-core typecheck`
+- `pnpm.cmd --dir packages/builder-core test`
+- `pnpm.cmd --dir packages/builder-core build`
+- `pnpm.cmd --dir packages/builder-editor lint`
+- `pnpm.cmd --dir packages/builder-editor typecheck`
+- `pnpm.cmd --dir packages/builder-editor test`
+- `pnpm.cmd --dir packages/builder-editor build`
+- `pnpm.cmd --dir packages/themes lint`
+- `pnpm.cmd --dir packages/themes typecheck`
+- `pnpm.cmd --dir packages/themes test`
+- `pnpm.cmd --dir packages/themes build`
+- `pnpm.cmd --dir apps/web lint`
+- `pnpm.cmd --dir apps/web typecheck`
+- `pnpm.cmd --dir apps/web test`
+- `pnpm.cmd --dir apps/web build`
+- `pnpm.cmd --dir apps/web generate:types`
 
 ### Test results
 
-- `pnpm install` - passed
-- `pnpm lint` - passed
-- `pnpm typecheck` - passed
-- `pnpm test` - passed (81/81 tests, 26 test files across `apps/web`, `packages/builder-core`, `packages/builder-editor`, and `packages/themes`)
-- `pnpm build` - passed
-- `pnpm --dir packages/themes lint` - passed
-- `pnpm --dir packages/themes typecheck` - passed
-- `pnpm --dir packages/themes test` - passed (7/7 tests, 2 test files)
-- `pnpm --dir packages/themes build` - passed
-- `pnpm --dir packages/builder-core lint` - passed
-- `pnpm --dir packages/builder-core typecheck` - passed
-- `pnpm --dir packages/builder-core test` - passed (9/9 tests, 4 test files)
-- `pnpm --dir packages/builder-core build` - passed
-- `pnpm --dir packages/builder-editor lint` - passed
-- `pnpm --dir packages/builder-editor typecheck` - passed
-- `pnpm --dir packages/builder-editor test` - passed (4/4 tests, 2 test files)
-- `pnpm --dir packages/builder-editor build` - passed
-- `pnpm --dir apps/web lint` - passed
-- `pnpm --dir apps/web typecheck` - passed
-- `pnpm --dir apps/web test` - passed (55/55 tests, 17 test files)
-- `pnpm --dir apps/web build` - passed
+- `pnpm.cmd install` - passed
+- `pnpm.cmd lint` - passed
+- `pnpm.cmd typecheck` - passed
+- `pnpm.cmd test` - passed (95/95 tests, 29 test files across `apps/web`, `packages/builder-core`, `packages/builder-editor`, `packages/themes`, and `packages/plugins`)
+- `pnpm.cmd build` - passed
+- `pnpm.cmd --dir packages/plugins lint` - passed
+- `pnpm.cmd --dir packages/plugins typecheck` - passed
+- `pnpm.cmd --dir packages/plugins test` - passed (9/9 tests, 2 test files)
+- `pnpm.cmd --dir packages/plugins build` - passed
+- `pnpm.cmd --dir packages/builder-core lint` - passed
+- `pnpm.cmd --dir packages/builder-core typecheck` - passed
+- `pnpm.cmd --dir packages/builder-core test` - passed (9/9 tests, 4 test files)
+- `pnpm.cmd --dir packages/builder-core build` - passed
+- `pnpm.cmd --dir packages/builder-editor lint` - passed
+- `pnpm.cmd --dir packages/builder-editor typecheck` - passed
+- `pnpm.cmd --dir packages/builder-editor test` - passed (4/4 tests, 2 test files)
+- `pnpm.cmd --dir packages/builder-editor build` - passed
+- `pnpm.cmd --dir packages/themes lint` - passed
+- `pnpm.cmd --dir packages/themes typecheck` - passed
+- `pnpm.cmd --dir packages/themes test` - passed (7/7 tests, 2 test files)
+- `pnpm.cmd --dir packages/themes build` - passed
+- `pnpm.cmd --dir apps/web lint` - passed
+- `pnpm.cmd --dir apps/web typecheck` - passed
+- `pnpm.cmd --dir apps/web test` - passed (66/66 tests, 19 test files)
+- `pnpm.cmd --dir apps/web build` - passed
+- `pnpm.cmd --dir apps/web generate:types` - passed
 
 ### Security notes
 
-- Public theme application now resolves through a typed registry and semantic CSS variables only; no arbitrary script or remote code execution path was introduced
-- Template manifests are validated server-side, reject unsafe HTML/executable content markers, reject protected/sensitive keys, and validate builder documents through `@nexpress/builder-core`
-- Template import/export remains server-only and requires an authenticated admin-capable dashboard user; default export excludes drafts and draft export is restricted to `super-admin`
-- Payload Local API content writes for template import use `overrideAccess: false` with explicit collection and field allowlists
-- Existing install, RBAC, dashboard, audit, content, builder, editor, and public-route protections remain unchanged
+- Only local allowlisted plugin definitions are registered in Phase 13; no remote loading, uploaded executable plugins, `eval`, `new Function`, or dynamic script execution paths were introduced
+- Plugin manifests are versioned, validated with Zod, reject protected keys and unsafe HTML or executable markers, reject unknown capabilities, and require safe namespaced extension metadata
+- Activation, deactivation, and migration execution remain server-side only and use Payload Local API writes with `overrideAccess: false` plus the authenticated dashboard user so RBAC is preserved
+- Plugin state is stored in a hidden protected collection with admin-capable read/manage access only; public routes do not expose plugin internals
+- Internal capability checks use a server-only fail-closed read path and do not return plugin state to clients
+- Existing install, RBAC, dashboard, audit, content, builder, editor, theme, template, and public-route protections remain unchanged
 
 ### Blockers
 
-- none
+- No live database-backed Payload migration file was generated for the new `plugin-states` collection because migration generation still requires a live database connection
+- No dedicated dashboard UI exists yet for plugin management; Phase 13 ships server-only APIs and service functions only
 
 ### Next recommended prompt
 
-Start Phase 13 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and 03-phases/phase-13-plugin-and-module-system/* before implementing.
+Start Phase 14 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and `03-phases/phase-14-*` before implementing.

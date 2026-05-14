@@ -1,3 +1,3 @@
 # @nexpress/plugins
 
-Phase 00 placeholder package.
+Typed local plugin manifest validation, registry, capability gating, and migration planning for NexPress Phase 13.

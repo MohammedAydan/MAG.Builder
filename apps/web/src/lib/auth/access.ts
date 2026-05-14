@@ -128,6 +128,12 @@ export const auditLogsReadAccess: Access = ({ req }) =>
 export const installationStateReadAccess: Access = ({ req }) =>
   hasPermission(req.user as AuthenticatedUserLike | undefined, 'system:read');
 
+export const pluginStatesReadAccess: Access = ({ req }) =>
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'plugins:read');
+
+export const pluginStatesManageAccess: Access = ({ req }) =>
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'plugins:manage');
+
 export function createPublishedOrPermissionWhere(
   req: { user: AuthenticatedUserLike | null | undefined },
   permission: AppPermission,

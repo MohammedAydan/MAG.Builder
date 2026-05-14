@@ -7,6 +7,7 @@ import { AuditLogs } from './collections/AuditLogs';
 import { InstallationState } from './collections/InstallationState';
 import { Media } from './collections/Media';
 import { Pages } from './collections/Pages';
+import { PluginStates } from './collections/PluginStates';
 import { Posts } from './collections/Posts';
 import { Redirects } from './collections/Redirects';
 import { Users } from './collections/Users';
@@ -36,7 +37,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, InstallationState, AuditLogs, Media, Pages, Posts, Redirects],
+  collections: [Users, InstallationState, AuditLogs, PluginStates, Media, Pages, Posts, Redirects],
   editor: lexicalEditor({}),
   secret: payloadSecret,
   typescript: {

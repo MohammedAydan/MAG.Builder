@@ -6,9 +6,9 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 
 ## Current Status
 
-- Active feature: phase-12-themes-and-templates
+- Active feature: phase-13-plugin-module-system
 - Overall health: green
-- Last updated: 2026-05-14
+- Last updated: 2026-05-15
 
 ## Critical Constraints
 
@@ -33,6 +33,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - phase-10-builder-kernel: done, `packages/builder-core` now owns a versioned builder schema, runtime validation, block registry, migrations, safe renderer, and core public blocks, with optional page integration and legacy body fallback in `apps/web`
 - phase-11-visual-editor-adapter: done, `packages/builder-editor` now adapts the builder kernel into a protected Puck-based visual editor for page drafts, with server-side validation, autosave, and protected draft preview routes in `apps/web`
 - phase-12-themes-and-templates: done, `packages/themes` now owns the typed public theme registry, safe template manifest validation, starter demo manifest, and `apps/web` now exposes server-only admin template import/export/demo flows with strict collection allowlists
+- phase-13-plugin-module-system: done, `packages/plugins` now owns versioned plugin manifest validation, deterministic local registry behavior, typed capability and migration metadata, and `apps/web` now persists protected activation state with audited server-only plugin APIs
 
 ## Known Issues / Tech Debt
 
@@ -40,13 +41,13 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - Root workspace quality gates now execute the real `apps/web` checks through Turbo
 - v1 scope is now frozen and any expansion requires an ADR update
 - Builder validation is fail-safe at render time: malformed documents fall back to the legacy page body, while unknown or invalid blocks render placeholders without crashing
-- Visual editing is still draft-only after Phase 12: editor saves validate through builder-core, and public rendering still serves published content only
-- No live DB-backed Payload migration file was generated for the new page builder field because migration generation still requires a live database
-- Phase 12 keeps the public shell on the default registered theme; no persisted site-wide theme selector exists yet
-- Template manifests package safe content references only; media binaries and relation-backed builder media imports remain out of scope
-- Template import/export currently ships as server-only APIs and services without a dedicated dashboard UI
-- `@measured/puck@0.20.2` is currently the editor adapter dependency even though the package is marked deprecated upstream; the kernel remains vendor-neutral and Phase 12+ can revisit the adapter choice if needed
-- Package placeholders outside `apps/web`, `packages/builder-core`, `packages/builder-editor`, and `packages/themes` remain intentionally unimplemented until their phases begin
+- Visual editing is still draft-only after Phase 13: editor saves validate through builder-core, and public rendering still serves published content only
+- No live DB-backed Payload migration file was generated for the `pages.builder` field or the new `plugin-states` collection because migration generation still requires a live database
+- Phase 13 ships server-only plugin APIs and services without a dedicated dashboard UI
+- Local plugin definitions are metadata-only placeholders; no runtime commerce, forms, membership, or SEO feature code was introduced yet
+- Internal plugin capability checks use a narrow server-only read path and fail closed; future phases can layer stronger system settings surfaces on top if needed
+- `@measured/puck@0.20.2` is currently the editor adapter dependency even though the package is marked deprecated upstream; the kernel remains vendor-neutral and Phase 13+ can revisit the adapter choice if needed
+- Package placeholders outside `apps/web`, `packages/builder-core`, `packages/builder-editor`, `packages/themes`, and `packages/plugins` remain intentionally unimplemented until their phases begin
 
 ## Team / Ownership
 

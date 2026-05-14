@@ -70,6 +70,7 @@ export interface Config {
     users: User;
     'installation-state': InstallationState;
     'audit-logs': AuditLog;
+    'plugin-states': PluginState;
     media: Media;
     pages: Page;
     posts: Post;
@@ -84,6 +85,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     'installation-state': InstallationStateSelect<false> | InstallationStateSelect<true>;
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
+    'plugin-states': PluginStatesSelect<false> | PluginStatesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
@@ -191,6 +193,40 @@ export interface AuditLog {
     | boolean
     | null;
   occurredAt: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "plugin-states".
+ */
+export interface PluginState {
+  id: number;
+  pluginId: string;
+  pluginVersion: string;
+  enabled: boolean;
+  enabledModules?:
+    | {
+        moduleId: string;
+        id?: string | null;
+      }[]
+    | null;
+  activatedAt?: string | null;
+  activatedBy?: (number | null) | User;
+  deactivatedAt?: string | null;
+  deactivatedBy?: (number | null) | User;
+  migrations?:
+    | {
+        migrationId: string;
+        version: string;
+        name: string;
+        description: string;
+        destructive: boolean;
+        status: 'pending' | 'applied';
+        executedAt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -322,6 +358,10 @@ export interface PayloadLockedDocument {
         value: number | AuditLog;
       } | null)
     | ({
+        relationTo: 'plugin-states';
+        value: number | PluginState;
+      } | null)
+    | ({
         relationTo: 'media';
         value: number | Media;
       } | null)
@@ -430,6 +470,39 @@ export interface AuditLogsSelect<T extends boolean = true> {
   result?: T;
   metadata?: T;
   occurredAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "plugin-states_select".
+ */
+export interface PluginStatesSelect<T extends boolean = true> {
+  pluginId?: T;
+  pluginVersion?: T;
+  enabled?: T;
+  enabledModules?:
+    | T
+    | {
+        moduleId?: T;
+        id?: T;
+      };
+  activatedAt?: T;
+  activatedBy?: T;
+  deactivatedAt?: T;
+  deactivatedBy?: T;
+  migrations?:
+    | T
+    | {
+        migrationId?: T;
+        version?: T;
+        name?: T;
+        description?: T;
+        destructive?: T;
+        status?: T;
+        executedAt?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }

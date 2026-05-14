@@ -501,3 +501,46 @@ Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-11-visual-edit
 ### Resume instructions
 
 Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-12-themes-and-templates/review.md`, and `docs/runbooks/themes-templates.md`, then start Phase 13 only if explicitly requested.
+---
+## Session: 2026-05-15
+
+### What was done
+
+- Implemented Phase 13 as a new `packages/plugins` workspace package plus app-level protected plugin state, server-only services, and admin-capable plugin route handlers
+- Added versioned plugin manifest validation, deterministic local registry behavior, capability resolution, dependency/conflict checks, and migration planning helpers
+- Added a hidden `plugin-states` collection, audited activation/deactivation/migration flows, Payload type regeneration, and a plugin/module operations runbook
+- Verified root, package, and app quality gates including the new `@nexpress/plugins` package
+
+### Decisions made
+
+- Keep Phase 13 limited to local allowlisted metadata-only plugin definitions - Reason: v1 explicitly forbids remote loading and arbitrary runtime plugin execution
+- Persist plugin activation and migration status in a hidden Payload collection with normal RBAC-respecting writes - Reason: plugin operations should remain auditable and should not casually bypass access control
+- Allow server-only internal capability checks to read plugin state through a narrow fail-closed path - Reason: feature gating needs a central runtime answer without exposing hidden plugin state to clients
+
+### Files changed
+
+- `packages/plugins/*`
+- `apps/web/package.json`
+- `apps/web/src/collections/PluginStates.ts`
+- `apps/web/src/lib/auth/{permissions,access}.ts`
+- `apps/web/src/lib/audit/service.ts`
+- `apps/web/src/lib/plugins/{service,service.test}.ts`
+- `apps/web/src/app/api/plugins/**/*`
+- `apps/web/src/payload.config.ts`
+- `apps/web/src/payload-types.ts`
+- `docs/runbooks/plugins-modules.md`
+- `plans/context.md`
+- `plans/phase-13-plugin-module-system/review.md`
+- `IMPLEMENTATION_STATUS.md`
+- `pnpm-lock.yaml`
+
+### State at end of session
+
+- Active feature: phase-13-plugin-module-system
+- Last completed task: Phase 13 verification and review
+- Next task: wait for explicit instruction before starting Phase 14
+- Blockers: none
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-13-plugin-module-system/review.md`, and `docs/runbooks/plugins-modules.md`, then start Phase 14 only if explicitly requested.
