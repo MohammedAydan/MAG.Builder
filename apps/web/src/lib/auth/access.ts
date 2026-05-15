@@ -157,6 +157,12 @@ export const pluginStatesReadAccess: Access = ({ req }) =>
 export const pluginStatesManageAccess: Access = ({ req }) =>
   hasPermission(req.user as AuthenticatedUserLike | undefined, 'plugins:manage');
 
+export const commerceReadAccess: Access = ({ req }) =>
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'commerce:read');
+
+export const commerceManageAccess: Access = ({ req }) =>
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'commerce:manage');
+
 export function createPublishedOrPermissionWhere(
   req: { user: AuthenticatedUserLike | null | undefined },
   permission: AppPermission,

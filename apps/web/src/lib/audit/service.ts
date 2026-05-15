@@ -5,6 +5,9 @@ export const AUDIT_CONTEXT_KEY = 'nexpressAudit';
 export const AUDIT_ACTIONS = {
   authLoginSucceeded: 'auth.login.succeeded',
   authLogoutSucceeded: 'auth.logout.succeeded',
+  commerceCheckoutSucceeded: 'commerce.checkout.succeeded',
+  commerceCustomerMapped: 'commerce.customer.mapped',
+  commerceOrderRecorded: 'commerce.order.recorded',
   contentCreated: 'content.created',
   contentDeleted: 'content.deleted',
   contentUpdated: 'content.updated',

@@ -73,6 +73,8 @@ export interface Config {
     'installation-state': InstallationState;
     'audit-logs': AuditLog;
     'plugin-states': PluginState;
+    'commerce-customers': CommerceCustomer;
+    'commerce-orders': CommerceOrder;
     forms: Form;
     'form-submissions': FormSubmission;
     media: Media;
@@ -91,6 +93,8 @@ export interface Config {
     'installation-state': InstallationStateSelect<false> | InstallationStateSelect<true>;
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
     'plugin-states': PluginStatesSelect<false> | PluginStatesSelect<true>;
+    'commerce-customers': CommerceCustomersSelect<false> | CommerceCustomersSelect<true>;
+    'commerce-orders': CommerceOrdersSelect<false> | CommerceOrdersSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -276,6 +280,55 @@ export interface PluginState {
         destructive: boolean;
         status: 'pending' | 'applied';
         executedAt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "commerce-customers".
+ */
+export interface CommerceCustomer {
+  id: number;
+  provider: 'medusa';
+  member: number | Member;
+  email: string;
+  externalCustomerId: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "commerce-orders".
+ */
+export interface CommerceOrder {
+  id: number;
+  provider: 'medusa';
+  externalOrderId: string;
+  externalCartId?: string | null;
+  member?: (number | null) | Member;
+  customerEmail: string;
+  externalCustomerId?: string | null;
+  status: 'draft' | 'open' | 'placed' | 'fulfilled';
+  currencyCode: string;
+  subtotalAmount: number;
+  totalAmount: number;
+  paymentMode: 'test';
+  placedAt: string;
+  /**
+   * Safe order snapshot recorded at test checkout time.
+   */
+  lineItems?:
+    | {
+        productExternalId: string;
+        variantExternalId: string;
+        title: string;
+        quantity: number;
+        unitAmount: number;
+        totalAmount: number;
+        currencyCode: string;
         id?: string | null;
       }[]
     | null;
@@ -525,6 +578,14 @@ export interface PayloadLockedDocument {
         value: number | PluginState;
       } | null)
     | ({
+        relationTo: 'commerce-customers';
+        value: number | CommerceCustomer;
+      } | null)
+    | ({
+        relationTo: 'commerce-orders';
+        value: number | CommerceOrder;
+      } | null)
+    | ({
         relationTo: 'forms';
         value: number | Form;
       } | null)
@@ -706,6 +767,50 @@ export interface PluginStatesSelect<T extends boolean = true> {
         destructive?: T;
         status?: T;
         executedAt?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "commerce-customers_select".
+ */
+export interface CommerceCustomersSelect<T extends boolean = true> {
+  provider?: T;
+  member?: T;
+  email?: T;
+  externalCustomerId?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "commerce-orders_select".
+ */
+export interface CommerceOrdersSelect<T extends boolean = true> {
+  provider?: T;
+  externalOrderId?: T;
+  externalCartId?: T;
+  member?: T;
+  customerEmail?: T;
+  externalCustomerId?: T;
+  status?: T;
+  currencyCode?: T;
+  subtotalAmount?: T;
+  totalAmount?: T;
+  paymentMode?: T;
+  placedAt?: T;
+  lineItems?:
+    | T
+    | {
+        productExternalId?: T;
+        variantExternalId?: T;
+        title?: T;
+        quantity?: T;
+        unitAmount?: T;
+        totalAmount?: T;
+        currencyCode?: T;
         id?: T;
       };
   updatedAt?: T;

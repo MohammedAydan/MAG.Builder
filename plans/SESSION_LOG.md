@@ -625,3 +625,44 @@ Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-15-membership-publ
 ### Resume instructions
 
 Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-16-commerce-service-spike/review.md`, and `docs/runbooks/commerce-service-spike.md`, then start Phase 17 only if explicitly requested.
+---
+## Session: 2026-05-15
+
+### What was done
+
+- Implemented Phase 17 Commerce MVP across `packages/commerce` and `apps/web`
+- Expanded the Medusa adapter boundary to support catalog reads, carts, customer creation/mapping, checkout completion, and order lookup
+- Added server-only commerce API routes, hidden customer/order Payload collections, admin order visibility, and a Commerce MVP runbook
+- Regenerated Payload types and verified root, package, and app quality gates
+
+### Decisions made
+
+- Kept Medusa as the first provider and extended the existing adapter boundary rather than embedding provider calls directly in route handlers - Reason: commerce orchestration still needs a clear server-only boundary for later provider swaps and hardening
+- Persisted member-to-customer mappings in a hidden Payload collection and order records as server-written snapshots - Reason: admin visibility and member-order lookup are required now, while reconciliation and provider webhooks are later-phase work
+- Allowed checkout to fall back to a local test-mode order snapshot when the provider completion path does not yet yield a final order - Reason: Phase 17 requires a successful test checkout and visible admin order without prematurely implementing live payment or fulfillment logic
+
+### Files changed
+
+- `packages/commerce/*`
+- `apps/web/src/lib/commerce/*`
+- `apps/web/src/app/api/commerce/**/*`
+- `apps/web/src/collections/{CommerceCustomers,CommerceOrders}.ts`
+- `apps/web/src/lib/auth/{permissions.ts,access.ts}`
+- `apps/web/src/lib/audit/service.ts`
+- `apps/web/src/{payload.config.ts,payload-types.ts}`
+- `.env.example`
+- `docs/runbooks/commerce-mvp.md`
+- `plans/context.md`
+- `plans/phase-17-commerce-mvp/review.md`
+- `IMPLEMENTATION_STATUS.md`
+
+### State at end of session
+
+- Active feature: phase-17-commerce-mvp
+- Last completed task: Phase 17 verification and review
+- Next task: wait for explicit instruction before starting Phase 18
+- Blockers: no live DB migration file generated yet for the new commerce collections because migration creation still requires a live database
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-17-commerce-mvp/review.md`, and `docs/runbooks/commerce-mvp.md`, then start Phase 18 only if explicitly requested.

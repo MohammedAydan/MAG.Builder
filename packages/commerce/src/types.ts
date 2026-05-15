@@ -7,6 +7,14 @@ export type CommerceMoney = Readonly<{
   currencyCode: string;
 }>;
 
+export type CommerceProductVariantSummary = Readonly<{
+  externalId: string;
+  price: CommerceMoney;
+  productExternalId: string;
+  sku?: string;
+  title: string;
+}>;
+
 export type CommerceProductSummary = Readonly<{
   externalId: string;
   handle: string;
@@ -16,13 +24,25 @@ export type CommerceProductSummary = Readonly<{
     min: CommerceMoney;
   }>;
   title: string;
+  variants: readonly CommerceProductVariantSummary[];
 }>;
 
 export type CommercePrice = Readonly<{
   amount: CommerceMoney;
   externalId: string;
   productExternalId: string;
+  variantExternalId?: string;
   type: 'list' | 'sale';
+}>;
+
+export type CommerceCartItem = Readonly<{
+  externalId: string;
+  productExternalId: string;
+  quantity: number;
+  title: string;
+  total: CommerceMoney;
+  unitPrice: CommerceMoney;
+  variantExternalId: string;
 }>;
 
 export type CommerceCartSummary = Readonly<{
@@ -30,22 +50,55 @@ export type CommerceCartSummary = Readonly<{
   customerExternalId?: string;
   externalId: string;
   itemCount: number;
+  items: readonly CommerceCartItem[];
   subtotal: CommerceMoney;
+  total: CommerceMoney;
+}>;
+
+export type CommerceCustomerCreateInput = Readonly<{
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  memberId?: string;
 }>;
 
 export type CommerceCustomerRecord = Readonly<{
   email?: string;
   externalId: string;
+  firstName?: string;
+  lastName?: string;
   memberId?: string;
+}>;
+
+export type CommerceOrderItemSummary = Readonly<{
+  productExternalId: string;
+  quantity: number;
+  title: string;
+  total: CommerceMoney;
+  unitPrice: CommerceMoney;
+  variantExternalId: string;
 }>;
 
 export type CommerceOrderSummary = Readonly<{
   currencyCode: string;
   customerExternalId?: string;
+  externalCartId?: string;
   externalId: string;
-  status: 'draft' | 'fulfilled' | 'open';
+  items: readonly CommerceOrderItemSummary[];
+  status: 'draft' | 'fulfilled' | 'open' | 'placed';
   total: CommerceMoney;
 }>;
+
+export type CommerceCheckoutResult =
+  | Readonly<{
+      order: CommerceOrderSummary;
+      type: 'order';
+    }>
+  | Readonly<{
+      cart: CommerceCartSummary;
+      error?: string;
+      type: 'cart';
+    }>;
 
 export type CommerceHealthCheckResult = Readonly<{
   checkedAt: string;
@@ -58,9 +111,10 @@ export type CommerceHealthCheckResult = Readonly<{
 
 export type MedusaCommerceRuntimeConfig = Readonly<{
   backendUrl: string;
+  defaultRegionId: string;
   healthPath: string;
   provider: 'medusa';
-  publishableKey?: string;
+  publishableKey: string;
   requestTimeoutMs: number;
   serverToken?: string;
 }>;
@@ -84,22 +138,38 @@ export type CommerceRuntimeSelection =
   | EnabledCommerceSelection;
 
 export type CommerceProductsPort = Readonly<{
+  getByHandle: (handle: string) => Promise<CommerceProductSummary | null>;
   getById: (externalId: string) => Promise<CommerceProductSummary | null>;
-  listCatalog: () => Promise<readonly CommerceProductSummary[]>;
+  getVariantById: (externalId: string) => Promise<CommerceProductVariantSummary | null>;
+  listCatalog: (input?: { limit?: number }) => Promise<readonly CommerceProductSummary[]>;
 }>;
 
 export type CommercePricesPort = Readonly<{
   listForProduct: (productExternalId: string) => Promise<readonly CommercePrice[]>;
 }>;
 
+export type CommerceCartCreateInput = Readonly<{
+  customerExternalId?: string;
+  email?: string;
+  regionId: string;
+}>;
+
+export type CommerceCartAddItemInput = Readonly<{
+  cartExternalId: string;
+  quantity: number;
+  variantExternalId: string;
+}>;
+
 export type CommerceCartsPort = Readonly<{
-  create: (input: { currencyCode: string; customerExternalId?: string }) => Promise<CommerceCartSummary>;
+  addLineItem: (input: CommerceCartAddItemInput) => Promise<CommerceCartSummary>;
+  complete: (cartExternalId: string) => Promise<CommerceCheckoutResult>;
+  create: (input: CommerceCartCreateInput) => Promise<CommerceCartSummary>;
   getById: (externalId: string) => Promise<CommerceCartSummary | null>;
 }>;
 
 export type CommerceCustomersPort = Readonly<{
+  create: (input: CommerceCustomerCreateInput) => Promise<CommerceCustomerRecord>;
   getByExternalId: (externalId: string) => Promise<CommerceCustomerRecord | null>;
-  getByMemberId: (memberId: string) => Promise<CommerceCustomerRecord | null>;
 }>;
 
 export type CommerceOrdersPort = Readonly<{

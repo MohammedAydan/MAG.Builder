@@ -3,6 +3,8 @@ import type { AppRole } from '@/lib/auth/roles';
 export const APP_PERMISSIONS = [
   'admin:access',
   'audit:read',
+  'commerce:manage',
+  'commerce:read',
   'content:delete',
   'content:read',
   'content:write',
@@ -28,6 +30,8 @@ const ROLE_PERMISSIONS: Record<AppRole, readonly AppPermission[]> = {
   'super-admin': APP_PERMISSIONS,
   admin: [
     'admin:access',
+    'commerce:manage',
+    'commerce:read',
     'content:delete',
     'content:read',
     'content:write',

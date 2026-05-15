@@ -2,10 +2,10 @@
 
 Project: NexPress
 Mode: Greenfield
-Current phase: 16-commerce-service-spike
+Current phase: 17-commerce-mvp
 Overall status: in-progress
 
-The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, visual editor adapter, themes/templates foundation, plugin/module system, forms/workflows foundation, public membership/protected-route foundation, and the commerce service spike are implemented. Commerce MVP, storefront commerce features, APIs beyond current routes, and MCP features remain out of scope for the current repository state.
+The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, visual editor adapter, themes/templates foundation, plugin/module system, forms/workflows foundation, public membership/protected-route foundation, the commerce service spike, and the first commerce MVP slice are implemented. Storefront commerce blocks, broader API platform work, and MCP features remain out of scope for the current repository state.
 
 ## Phase tracker
 
@@ -26,7 +26,7 @@ The platform foundation, Payload CMS foundation, database/migration/seed layer, 
 - [x] Phase 14 - Forms and Workflows: done
 - [x] Phase 15 - Public Membership and Protected Routes: done
 - [x] Phase 16 - Commerce Service Spike: done
-- [ ] Phase 17 - Commerce MVP: not-started
+- [x] Phase 17 - Commerce MVP: done
 - [ ] Phase 18 - Storefront Commerce Blocks: not-started
 - [ ] Phase 19 - API Platform and OpenAPI: not-started
 - [ ] Phase 20 - Webhooks and Integrations: not-started
@@ -50,17 +50,19 @@ Codex (GPT-5)
 
 ### Requested phase
 
-Phase 16 - Commerce Service Spike
+Phase 17 - Commerce MVP
 
 ### Files changed
 
-- `packages/commerce/**/*` - replaced the placeholder with typed contracts, runtime config parsing, a Medusa spike adapter, a mock adapter, and package tests
-- `apps/web/package.json` - added the `@nexpress/commerce` workspace dependency
-- `apps/web/src/lib/commerce/{service.ts,service.test.ts}` - added server-only commerce capability gating, lazy runtime config access, and fail-closed service tests
-- `.env.example` - added placeholder commerce environment variables only
-- `docs/decisions/{README.md,0004-commerce-service-spike.md}` - recorded the provider and boundary decision
-- `docs/runbooks/commerce-service-spike.md`
-- `plans/phase-16-commerce-service-spike/review.md`
+- `packages/commerce/src/{types.ts,index.ts,config.ts,config.test.ts,medusa.ts,medusa.test.ts,mock.ts,mock.test.ts}` - expanded the adapter contract to cover catalog, variants, carts, customers, checkout, and orders; implemented Medusa-backed and mock flows
+- `apps/web/src/lib/commerce/{service.ts,service.test.ts}` - added member-aware commerce orchestration, customer mapping persistence, cart checkout flow, order snapshot persistence, and safe error handling
+- `apps/web/src/app/api/commerce/**/*` - added server-side catalog, cart, checkout, and member-order route handlers
+- `apps/web/src/collections/{CommerceCustomers.ts,CommerceOrders.ts}` - added hidden customer mapping storage and admin-visible order snapshots
+- `apps/web/src/lib/{auth/permissions.ts,auth/access.ts,audit/service.ts}` - added commerce RBAC permissions, collection access helpers, and commerce audit actions
+- `apps/web/src/{payload.config.ts,payload-types.ts}` - registered commerce collections and regenerated Payload types
+- `.env.example` - added the required Medusa region and publishable-key variables for Commerce MVP
+- `docs/runbooks/commerce-mvp.md`
+- `plans/phase-17-commerce-mvp/review.md`
 - `plans/context.md`
 - `plans/SESSION_LOG.md`
 - `IMPLEMENTATION_STATUS.md`
@@ -72,6 +74,7 @@ Phase 16 - Commerce Service Spike
 - `pnpm.cmd typecheck`
 - `pnpm.cmd test`
 - `pnpm.cmd build`
+- `pnpm.cmd --dir apps/web generate:types`
 - `pnpm.cmd --dir packages/commerce lint`
 - `pnpm.cmd --dir packages/commerce typecheck`
 - `pnpm.cmd --dir packages/commerce test`
@@ -108,9 +111,10 @@ Phase 16 - Commerce Service Spike
 - `pnpm.cmd typecheck` - passed
 - `pnpm.cmd test` - passed
 - `pnpm.cmd build` - passed
+- `pnpm.cmd --dir apps/web generate:types` - passed
 - `pnpm.cmd --dir packages/commerce lint` - passed
 - `pnpm.cmd --dir packages/commerce typecheck` - passed
-- `pnpm.cmd --dir packages/commerce test` - passed (9/9 tests, 3 test files)
+- `pnpm.cmd --dir packages/commerce test` - passed (11/11 tests, 3 test files)
 - `pnpm.cmd --dir packages/commerce build` - passed
 - `pnpm.cmd --dir packages/forms lint` - passed
 - `pnpm.cmd --dir packages/forms typecheck` - passed
@@ -134,25 +138,28 @@ Phase 16 - Commerce Service Spike
 - `pnpm.cmd --dir packages/themes build` - passed
 - `pnpm.cmd --dir apps/web lint` - passed
 - `pnpm.cmd --dir apps/web typecheck` - passed
-- `pnpm.cmd --dir apps/web test` - passed (85/85 tests, 22 test files)
+- `pnpm.cmd --dir apps/web test` - passed (89/89 tests, 22 test files)
 - `pnpm.cmd --dir apps/web build` - passed
 
 ### Security notes
 
-- Commerce access is gated server-side through `commerce-pack` capability checks and fails closed when the plugin is disabled
-- Commerce runtime configuration is validated lazily inside server-only helpers; static builds do not eagerly require `MEDUSA_*` values
+- Commerce access remains gated server-side through `commerce-pack` capability checks and fails closed when the plugin is disabled
+- Catalog routes are public-safe, while cart, checkout, and member-order flows require authenticated members and server-side validation
+- Commerce runtime configuration is validated lazily inside server-side helpers; static builds do not eagerly require `MEDUSA_*` values
 - `NEXT_PUBLIC_MEDUSA_SERVER_TOKEN` is rejected explicitly so provider server secrets cannot leak to the browser
-- No checkout, payment, tax, shipping, inventory, or order-creation flow was introduced in Phase 16
-- Existing install, RBAC, dashboard, audit, content, builder, editor, theme, template, plugin, forms, and membership protections remain unchanged
+- Customer mappings are persisted in a hidden collection and order snapshots are written server-side only with `overrideAccess: true`
+- Commerce RBAC is explicit: only `admin` and `super-admin` can read commerce orders in admin surfaces, and direct collection mutations remain blocked
+- Checkout is limited to a test-mode snapshot path only; no payment capture, tax, shipping, coupon, or inventory-sensitive logic is exposed yet
 
 ### Blockers
 
-- No live database-backed Payload migration file was generated because Phase 16 added no new Payload collections or fields
-- Medusa data operations remain adapter stubs only; catalog, cart, checkout, customer sync, and order flows are deferred to later phases
+- No live database-backed Payload migration file was generated for the new commerce collections because migration generation still requires a live database connection
+- Checkout currently persists a server-side test-mode order snapshot even if the provider cannot complete a real order
+- Guest carts, storefront blocks, real payment capture, shipping, taxes, coupons, inventory sync, and webhook reconciliation remain deferred
 
 ### Next recommended prompt
 
-Start Phase 17 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and `03-phases/phase-17-*` before implementing.
+Start Phase 18 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and `03-phases/phase-18-*` before implementing.
 
 ---
 

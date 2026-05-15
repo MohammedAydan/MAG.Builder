@@ -16,6 +16,8 @@ describe('resolveCommerceRuntimeConfig', () => {
   it('parses a valid Medusa configuration lazily', () => {
     const result = resolveCommerceRuntimeConfig({
       MEDUSA_BACKEND_URL: 'http://127.0.0.1:9000/',
+      MEDUSA_DEFAULT_REGION_ID: 'reg_test',
+      MEDUSA_PUBLISHABLE_KEY: 'pk_test_value',
       MEDUSA_REQUEST_TIMEOUT_MS: '7000',
       NEXPRESS_COMMERCE_PROVIDER: 'medusa',
     });
@@ -25,8 +27,10 @@ describe('resolveCommerceRuntimeConfig', () => {
     if (result.enabled) {
       expect(result.config).toEqual({
         backendUrl: 'http://127.0.0.1:9000',
+        defaultRegionId: 'reg_test',
         healthPath: '/health',
         provider: 'medusa',
+        publishableKey: 'pk_test_value',
         requestTimeoutMs: 7000,
       });
     }
@@ -36,6 +40,8 @@ describe('resolveCommerceRuntimeConfig', () => {
     expect(() =>
       resolveCommerceRuntimeConfig({
         MEDUSA_BACKEND_URL: 'http://127.0.0.1:9000',
+        MEDUSA_DEFAULT_REGION_ID: 'reg_test',
+        MEDUSA_PUBLISHABLE_KEY: 'pk_test_value',
         NEXT_PUBLIC_MEDUSA_SERVER_TOKEN: 'leak',
         NEXPRESS_COMMERCE_PROVIDER: 'medusa',
       }),
@@ -46,6 +52,8 @@ describe('resolveCommerceRuntimeConfig', () => {
     expect(() =>
       resolveCommerceRuntimeConfig({
         MEDUSA_BACKEND_URL: 'http://example.com:9000',
+        MEDUSA_DEFAULT_REGION_ID: 'reg_test',
+        MEDUSA_PUBLISHABLE_KEY: 'pk_test_value',
         NEXPRESS_COMMERCE_PROVIDER: 'medusa',
       }),
     ).toThrowError(/https outside local development/);

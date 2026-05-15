@@ -5,8 +5,9 @@ const commerceProviderSchema = z.enum(['disabled', 'medusa']).optional();
 
 const medusaRuntimeSchema = z.object({
   MEDUSA_BACKEND_URL: z.string().trim().min(1, 'MEDUSA_BACKEND_URL is required'),
+  MEDUSA_DEFAULT_REGION_ID: z.string().trim().min(1, 'MEDUSA_DEFAULT_REGION_ID is required'),
   MEDUSA_HEALTH_PATH: z.string().trim().optional(),
-  MEDUSA_PUBLISHABLE_KEY: z.string().trim().min(1).optional(),
+  MEDUSA_PUBLISHABLE_KEY: z.string().trim().min(1, 'MEDUSA_PUBLISHABLE_KEY is required'),
   MEDUSA_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().max(30000).optional(),
   MEDUSA_SERVER_TOKEN: z.string().trim().min(1).optional(),
   NEXT_PUBLIC_MEDUSA_SERVER_TOKEN: z.string().trim().optional(),
@@ -75,6 +76,7 @@ function parseMedusaRuntimeConfig(
 ): MedusaCommerceRuntimeConfig {
   const parsed = medusaRuntimeSchema.safeParse({
     MEDUSA_BACKEND_URL: source.MEDUSA_BACKEND_URL,
+    MEDUSA_DEFAULT_REGION_ID: source.MEDUSA_DEFAULT_REGION_ID,
     MEDUSA_HEALTH_PATH: source.MEDUSA_HEALTH_PATH,
     MEDUSA_PUBLISHABLE_KEY: source.MEDUSA_PUBLISHABLE_KEY,
     MEDUSA_REQUEST_TIMEOUT_MS: source.MEDUSA_REQUEST_TIMEOUT_MS,
@@ -97,11 +99,10 @@ function parseMedusaRuntimeConfig(
 
   return {
     backendUrl: normalizeBackendUrl(parsed.data.MEDUSA_BACKEND_URL),
+    defaultRegionId: parsed.data.MEDUSA_DEFAULT_REGION_ID,
     healthPath: normalizeHealthPath(parsed.data.MEDUSA_HEALTH_PATH),
     provider: 'medusa',
-    ...(parsed.data.MEDUSA_PUBLISHABLE_KEY
-      ? { publishableKey: parsed.data.MEDUSA_PUBLISHABLE_KEY }
-      : {}),
+    publishableKey: parsed.data.MEDUSA_PUBLISHABLE_KEY,
     requestTimeoutMs: parsed.data.MEDUSA_REQUEST_TIMEOUT_MS ?? 5000,
     ...(parsed.data.MEDUSA_SERVER_TOKEN
       ? { serverToken: parsed.data.MEDUSA_SERVER_TOKEN }
