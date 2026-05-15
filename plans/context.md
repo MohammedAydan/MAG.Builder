@@ -6,7 +6,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 
 ## Current Status
 
-- Active feature: phase-21-mcp-native-gateway
+- Active feature: phase-23-multisite-saas-readiness
 - Overall health: green
 - Last updated: 2026-05-15
 
@@ -42,6 +42,8 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - phase-19-api-platform-openapi: done, `packages/api` now provides core response, rate-limit, and scope foundations, while `apps/web` exposes a static OpenAPI 3.1.1 specification document
 - phase-20-webhooks-integrations: done, `packages/webhooks` now owns the typed event registry, url validation, and signature verification, while `apps/web` exposes admin-only webhook/integration collections, outbound delivery foundation, and an inbound signature verification API
 - phase-21-mcp-native-gateway: done, `packages/mcp-gateway` now owns JSON-RPC routing, tool registry, and safe abstractions, while `apps/web` exposes a protected Next.js API route requiring server-side Payload authentication, strict capability/scope checks, and tool audit logs
+- phase-22-search-analytics-automation: done, `packages/search`, `packages/analytics`, and `packages/automation` now provide bounded search, privacy-safe analytics contracts, and allowlisted automation flows, while `apps/web` exposes public search and admin analytics summary endpoints
+- phase-23-multisite-saas-readiness: done, `apps/web` now has a hidden `sites` collection, server-side hostname resolution, default-site fallback behavior, and site-aware filtering across content, forms, members, commerce, search, analytics, and automation metadata
 
 ## Known Issues / Tech Debt
 
@@ -65,6 +67,9 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - Storefront catalog, product-detail, cart, and collection-list blocks now exist, but collection links are curated manually and not provider-synced
 - Commerce storefront interactivity stores only a local cart id pointer in the browser; guest carts are still out of scope
 - Real taxes/shipping/coupons/inventory flows and webhook-based order reconciliation remain out of scope until later phases
+- Phase 23 adds the `sites` collection and site relationships, but no live DB-backed migration/backfill file is committed because Payload migration generation still requires a live database
+- Default-site reads intentionally treat legacy null-site records as belonging to the default site until a live backfill is executed
+- Webhook subscriptions, integrations, and plugin activation remain global in Phase 23 rather than site-scoped
 - `@measured/puck@0.20.2` is currently the editor adapter dependency even though the package is marked deprecated upstream; the kernel remains vendor-neutral and Phase 13+ can revisit the adapter choice if needed
 - Package placeholders outside `apps/web`, `packages/builder-core`, `packages/builder-editor`, `packages/themes`, `packages/plugins`, `packages/forms`, and `packages/commerce` remain intentionally unimplemented until their phases begin
 

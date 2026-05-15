@@ -15,18 +15,26 @@ import type { SearchAdapter, SearchDocument, SearchQuery, SearchResult } from '.
 export class InMemorySearchAdapter implements SearchAdapter {
   private index: Map<string, SearchDocument> = new Map();
 
+  private toIndexKey(doc: Pick<SearchDocument, 'id' | 'siteId' | 'type'>) {
+    return `${doc.siteId}:${doc.type}:${doc.id}`;
+  }
+
   async indexDocument(doc: SearchDocument): Promise<void> {
-    this.index.set(doc.id, doc);
+    this.index.set(this.toIndexKey(doc), doc);
   }
 
   async removeDocument(id: string): Promise<void> {
-    this.index.delete(id);
+    for (const [key, doc] of this.index.entries()) {
+      if (doc.id === id) {
+        this.index.delete(key);
+      }
+    }
   }
 
   async reindex(docs: SearchDocument[]): Promise<void> {
     this.index.clear();
     for (const doc of docs) {
-      this.index.set(doc.id, doc);
+      this.index.set(this.toIndexKey(doc), doc);
     }
   }
 

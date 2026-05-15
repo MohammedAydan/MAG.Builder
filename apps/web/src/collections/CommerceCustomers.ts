@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload';
+import { createSiteRelationshipField } from '@/lib/sites/fields';
 
 export const CommerceCustomers: CollectionConfig = {
   slug: 'commerce-customers',
@@ -13,6 +14,7 @@ export const CommerceCustomers: CollectionConfig = {
     update: () => false,
   },
   fields: [
+    createSiteRelationshipField(),
     {
       name: 'provider',
       type: 'select',

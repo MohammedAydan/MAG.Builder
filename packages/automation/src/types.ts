@@ -56,12 +56,16 @@ export const FormSubmittedTriggerPayloadSchema = z.object({
   formId: z.string().max(128),
   formSlug: z.string().max(200).optional(),
   outcome: z.enum(['success', 'failure', 'rate_limited']),
+  siteId: z.string().max(128).optional(),
+  siteSlug: z.string().max(128).optional(),
 });
 
 export const ContentPublishedTriggerPayloadSchema = z.object({
   contentType: z.enum(['page', 'post']),
   contentId: z.string().max(128),
   slug: z.string().max(200),
+  siteId: z.string().max(128).optional(),
+  siteSlug: z.string().max(128).optional(),
   title: z.string().max(500),
   accessLevel: z.enum(['public', 'members-only']).optional(),
 });
@@ -69,12 +73,15 @@ export const ContentPublishedTriggerPayloadSchema = z.object({
 export const ContentUnpublishedTriggerPayloadSchema = z.object({
   contentType: z.enum(['page', 'post']),
   contentId: z.string().max(128),
+  siteId: z.string().max(128).optional(),
 });
 
 export const CommerceOrderCreatedTriggerPayloadSchema = z.object({
   orderRef: z.string().max(128),
   currency: z.string().max(10).optional(),
   itemCount: z.number().int().min(0).optional(),
+  siteId: z.string().max(128).optional(),
+  siteSlug: z.string().max(128).optional(),
 });
 
 // Discriminated union for all trigger payloads

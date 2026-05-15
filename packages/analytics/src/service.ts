@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import type { AnalyticsAdapter, StoredAnalyticsEvent } from './types';
+import type { AnalyticsAdapter, AnalyticsAggregateOptions, StoredAnalyticsEvent } from './types';
 import { AnalyticsEventSchema, hasSensitiveFields } from './types';
 
 /**
@@ -65,9 +65,9 @@ export class AnalyticsService {
    * Get aggregated event counts — admin-only endpoint helper.
    * Returns safe summary data; never raw events.
    */
-  async getAggregateCounts(since?: string): Promise<Record<string, number>> {
+  async getAggregateCounts(options?: AnalyticsAggregateOptions): Promise<Record<string, number>> {
     try {
-      return await this.adapter.getAggregateCounts(since);
+      return await this.adapter.getAggregateCounts(options);
     } catch {
       return {};
     }

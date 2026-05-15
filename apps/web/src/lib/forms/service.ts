@@ -31,6 +31,7 @@ import {
 } from '@nexpress/forms';
 import { AUDIT_ACTIONS, writeAuditEntry } from '@/lib/audit/service';
 import { getPayloadClient } from '@/lib/payload';
+import { createSiteScopeWhere, type ResolvedSite } from '@/lib/sites/service';
 
 /** Payload-shaped form field entry. */
 type PayloadFormFieldEntry = {
@@ -57,6 +58,7 @@ type PayloadFormDoc = {
   description?: string | null;
   fields?: PayloadFormFieldEntry[] | null;
   id: number | string;
+  site?: number | { id: number | string } | string | null;
   slug: string;
   title: string;
 };
@@ -167,6 +169,7 @@ function mapPayloadDocToWorkflowActions(doc: PayloadFormDoc): WorkflowAction[] {
  */
 export async function getPublicFormDefinition(
   slug: string,
+  site: ResolvedSite,
 ): Promise<PublicFormDefinition | null> {
   const payload = await getPayloadClient();
 
@@ -175,7 +178,12 @@ export async function getPublicFormDefinition(
     limit: 1,
     overrideAccess: true,
     pagination: false,
-    where: { slug: { equals: slug } },
+    where: {
+      and: [
+        { slug: { equals: slug } },
+        createSiteScopeWhere(site),
+      ],
+    },
   });
 
   const doc = (result as PayloadFindResult<PayloadFormDoc>).docs[0];
@@ -209,6 +217,7 @@ export async function getPublicFormDefinition(
 export async function processFormSubmission(
   formSlug: string,
   rawPayload: unknown,
+  site: ResolvedSite,
 ): Promise<{ submissionId: number | string; success: true } | { errors: string[]; success: false }> {
   const payload = await getPayloadClient();
   const payloadClient = payload as unknown as FormsPayloadClient;
@@ -219,7 +228,12 @@ export async function processFormSubmission(
     limit: 1,
     overrideAccess: true,
     pagination: false,
-    where: { slug: { equals: formSlug } },
+    where: {
+      and: [
+        { slug: { equals: formSlug } },
+        createSiteScopeWhere(site),
+      ],
+    },
   });
 
   const doc = (result as PayloadFindResult<PayloadFormDoc>).docs[0];
@@ -252,6 +266,7 @@ export async function processFormSubmission(
     data: {
       fields: validated.fields,
       formSlug,
+      site: site.id,
       status: 'received',
       submittedAt,
     },
@@ -312,6 +327,7 @@ export async function processFormSubmission(
     metadata: {
       fieldCount: Object.keys(validated.fields).length,
       formSlug,
+      siteId: site.siteId,
     },
     result: 'success',
     targetCollection: 'form-submissions',

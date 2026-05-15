@@ -22,14 +22,14 @@ describe('content access helpers', () => {
     expect(redirectsManageAccess(editorReq as never)).toBe(false);
   });
 
-  it('restricts anonymous content reads to published content and active redirects', () => {
+  it('restricts anonymous content reads to published content and active redirects', async () => {
     expect(createPublishedOrPermissionWhere({ user: null }, 'content:read')).toEqual({
       _status: {
         equals: 'published',
       },
     });
 
-    expect(redirectsReadAccess(anonymousReq as never)).toEqual({
+    await expect(redirectsReadAccess(anonymousReq as never)).resolves.toEqual({
       isActive: {
         equals: true,
       },

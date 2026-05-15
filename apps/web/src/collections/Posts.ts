@@ -11,6 +11,7 @@ import { populateSlugFromSiblingData } from '@/lib/content/hooks';
 import { createPublishedAtField, syncPublishedAt } from '@/lib/content/publishing';
 import { createSeoFields } from '@/lib/content/seo';
 import { isSafeSlugSegment } from '@/lib/content/slug';
+import { createSiteRelationshipField } from '@/lib/sites/fields';
 
 export const Posts: CollectionConfig = {
   slug: 'posts',
@@ -43,7 +44,6 @@ export const Posts: CollectionConfig = {
       name: 'slug',
       type: 'text',
       required: true,
-      unique: true,
       index: true,
       admin: {
         position: 'sidebar',
@@ -70,6 +70,7 @@ export const Posts: CollectionConfig = {
       type: 'upload',
       relationTo: 'media',
     },
+    createSiteRelationshipField(),
     createContentAccessField(),
     {
       name: 'body',

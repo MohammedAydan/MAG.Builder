@@ -38,6 +38,8 @@ export const ANALYTICS_SCHEMA_VERSION = '1';
 // ---------------------------------------------------------------------------
 
 const SafeSessionMetaSchema = z.object({
+  siteId: z.string().max(128).optional(),
+  siteSlug: z.string().max(128).optional(),
   /**
    * Opaque session token — must be a non-identifying token, not a user ID.
    * Callers must hash or anonymize this before passing it in.
@@ -206,6 +208,11 @@ export interface StoredAnalyticsEvent {
   occurredAt: string;
 }
 
+export interface AnalyticsAggregateOptions {
+  since?: string;
+  siteId?: string;
+}
+
 // ---------------------------------------------------------------------------
 // Analytics adapter interface — replaceable
 // ---------------------------------------------------------------------------
@@ -228,7 +235,7 @@ export interface AnalyticsAdapter {
    * Get aggregated event counts by name.
    * Admin-only. Must never return raw event data.
    */
-  getAggregateCounts(since?: string): Promise<Record<string, number>>;
+  getAggregateCounts(options?: AnalyticsAggregateOptions): Promise<Record<string, number>>;
 }
 
 // ---------------------------------------------------------------------------

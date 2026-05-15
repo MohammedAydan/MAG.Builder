@@ -50,7 +50,14 @@ describe('public content metadata', () => {
 
     mocks.getPayloadClient.mockResolvedValue(payload);
 
-    await expect(resolvePublishedPageAccessBySlug('members-only')).resolves.toEqual({
+    await expect(resolvePublishedPageAccessBySlug('members-only', undefined, {
+      id: 'site-1',
+      isDefault: true,
+      name: 'Default Site',
+      primaryHostname: null,
+      siteId: 'default',
+      slug: 'default',
+    })).resolves.toEqual({
       kind: 'login-required',
       loginPath: '/login?next=%2Fmembers-only',
     });
@@ -77,6 +84,13 @@ describe('public content metadata', () => {
         collection: 'members',
         email: 'member@example.com',
         id: '1',
+      }, {
+        id: 'site-1',
+        isDefault: true,
+        name: 'Default Site',
+        primaryHostname: null,
+        siteId: 'default',
+        slug: 'default',
       }),
     ).resolves.toEqual({
       document: {
@@ -86,6 +100,12 @@ describe('public content metadata', () => {
         title: 'Members Only',
       },
       kind: 'granted',
+    });
+  });
+
+  it('fails closed when the active site cannot be resolved', async () => {
+    await expect(resolvePublishedPageAccessBySlug('missing', undefined, null)).resolves.toEqual({
+      kind: 'not-found',
     });
   });
 });

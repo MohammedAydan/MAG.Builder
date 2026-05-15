@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { createAuditContext, AUDIT_ACTIONS, writeAuditEntry } from '@/lib/audit/service';
 import { getPayloadClient } from '@/lib/payload';
 import type { AuthenticatedMemberLike } from '@/lib/auth/access';
+import { extractSiteRelationshipId, isResolvedSiteMatch, resolveSiteFromHeaders } from '@/lib/sites/service';
 
 const MEMBER_COOKIE_NAME = 'nexpress-member-token';
 const MEMBER_PASSWORD_MIN_LENGTH = 12;
@@ -19,11 +20,12 @@ type MemberLoginResult = {
     firstName?: string | null;
     id: number | string;
     lastName?: string | null;
+    site?: number | string | { id: number | string } | null;
   };
 };
 
 type MemberPayloadClient = {
-  auth: (args: { headers: Headers }) => Promise<{ user?: { collection?: string | null; email?: string | null; firstName?: string | null; id: number | string; lastName?: string | null } | null }>;
+  auth: (args: { headers: Headers }) => Promise<{ user?: { collection?: string | null; email?: string | null; firstName?: string | null; id: number | string; lastName?: string | null; site?: number | string | { id: number | string } | null } | null }>;
   create: (args: Record<string, unknown>) => Promise<unknown>;
   login: (args: Record<string, unknown>) => Promise<MemberLoginResult>;
   update: (args: Record<string, unknown>) => Promise<unknown>;
@@ -173,6 +175,7 @@ function mapMember(user: {
   firstName?: string | null;
   id: number | string;
   lastName?: string | null;
+  site?: number | string | { id: number | string } | null;
 }): AuthenticatedMemberLike {
   return {
     collection: 'members',
@@ -180,6 +183,7 @@ function mapMember(user: {
     firstName: user.firstName ?? null,
     id: user.id,
     lastName: user.lastName ?? null,
+    siteId: extractSiteRelationshipId(user.site),
   };
 }
 
@@ -190,6 +194,11 @@ async function getPayload() {
 export async function registerMember(input: unknown) {
   const payload = await getPayload();
   const parsed = parseSignupInput(input);
+  const site = await resolveSiteFromHeaders(await getMemberAwareHeaders());
+
+  if (!site) {
+    throw new MemberAuthError('This site is unavailable.', 'invalid-session', 404);
+  }
 
   try {
     const member = await payload.create({
@@ -206,6 +215,7 @@ export async function registerMember(input: unknown) {
         firstName: parsed.firstName,
         lastName: parsed.lastName,
         password: parsed.password,
+        site: site.id,
       },
       overrideAccess: true,
     });
@@ -229,6 +239,11 @@ export async function registerMember(input: unknown) {
 export async function loginMember(input: unknown) {
   const payload = await getPayload();
   const parsed = parseLoginInput(input);
+  const site = await resolveSiteFromHeaders(await getMemberAwareHeaders());
+
+  if (!site) {
+    throw new MemberAuthError('Invalid email or password.', 'login-failed', 401);
+  }
 
   try {
     const result = await payload.login({
@@ -241,6 +256,11 @@ export async function loginMember(input: unknown) {
     });
 
     if (!result.token || !result.user) {
+      throw new MemberAuthError('Invalid email or password.', 'login-failed', 401);
+    }
+
+    if (!isResolvedSiteMatch(site, result.user.site)) {
+      await clearMemberSession();
       throw new MemberAuthError('Invalid email or password.', 'login-failed', 401);
     }
 
@@ -314,6 +334,13 @@ export async function getAuthenticatedMember() {
   });
 
   if (!authResult.user || authResult.user.collection !== 'members') {
+    return null;
+  }
+
+  const site = await resolveSiteFromHeaders(await getMemberAwareHeaders());
+
+  if (!site || !isResolvedSiteMatch(site, authResult.user.site)) {
+    await clearMemberSession();
     return null;
   }
 

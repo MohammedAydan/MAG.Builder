@@ -14,6 +14,7 @@ import { getPayload } from 'payload';
 import configPromise from '@/payload.config';
 import { hasPermission } from '@/lib/auth/access';
 import type { AuthenticatedUserLike } from '@/lib/auth/access';
+import { resolveSiteFromHeaders } from '@/lib/sites/service';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,12 +35,27 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   // Optional `since` param (ISO 8601 date)
   const since = request.nextUrl.searchParams.get('since') ?? undefined;
+  const scope = request.nextUrl.searchParams.get('scope');
+  const site = await resolveSiteFromHeaders(request.headers);
 
-  const counts = await analyticsService.getAggregateCounts(since);
+  if (!site && scope !== 'global') {
+    return NextResponse.json({ error: 'Site not found.' }, { status: 404 });
+  }
+
+  const allowGlobal = scope === 'global' && hasPermission(user, 'analytics:admin');
+
+  const counts = await analyticsService.getAggregateCounts({
+    ...(since ? { since } : {}),
+    ...(allowGlobal ? {} : site?.siteId ? { siteId: site.siteId } : {}),
+  });
 
   return NextResponse.json({
     success: true,
     data: counts,
-    meta: { since: since ?? null },
+    meta: {
+      scope: allowGlobal ? 'global' : 'site',
+      since: since ?? null,
+      siteId: allowGlobal ? null : site?.siteId ?? null,
+    },
   });
 }

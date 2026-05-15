@@ -47,6 +47,12 @@ automationEngine.registerActionHandler('analytics.emit_event', async (config, tr
   const accepted = await analyticsService.capture({
     schemaVersion: ANALYTICS_SCHEMA_VERSION,
     name: eventName as 'form.submitted' | 'content.viewed' | 'commerce.order_created',
+    meta: {
+      ...(triggerPayload.payload.siteId ? { siteId: triggerPayload.payload.siteId } : {}),
+      ...('siteSlug' in triggerPayload.payload && triggerPayload.payload.siteSlug
+        ? { siteSlug: triggerPayload.payload.siteSlug }
+        : {}),
+    },
     payload: payload as Parameters<typeof analyticsService.capture>[0] extends { payload: infer P } ? P : never,
   });
 

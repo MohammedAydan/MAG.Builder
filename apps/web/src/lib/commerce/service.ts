@@ -15,6 +15,7 @@ import type { AuthenticatedMemberLike } from '@/lib/auth/access';
 import { getAuthenticatedMember } from '@/lib/members/service';
 import { getPayloadClient } from '@/lib/payload';
 import { hasActivePluginCapability } from '@/lib/plugins/service';
+import { createSiteScopeWhere, type ResolvedSite } from '@/lib/sites/service';
 
 const productHandleSchema = z
   .string()
@@ -49,6 +50,7 @@ type PayloadCommerceCustomerDoc = {
   id: number | string;
   member?: number | { id: number | string } | null;
   provider: 'medusa';
+  site?: number | { id: number | string } | string | null;
 };
 
 type PayloadCommerceOrderDoc = {
@@ -71,6 +73,7 @@ type PayloadCommerceOrderDoc = {
     | null;
   paymentMode: 'test';
   placedAt: string;
+  site?: number | { id: number | string } | string | null;
   status: 'draft' | 'fulfilled' | 'open' | 'placed';
   totalAmount: number;
 };
@@ -327,6 +330,7 @@ export async function ensureCommerceCustomerForMemberWithPayload(
   payload: CommerceServicePayloadClient,
   adapter: CommerceAdapter,
   member: AuthenticatedMemberLike,
+  site: ResolvedSite,
 ) {
   const existing = await payload.find({
     collection: 'commerce-customers',
@@ -334,9 +338,14 @@ export async function ensureCommerceCustomerForMemberWithPayload(
     overrideAccess: true,
     pagination: false,
     where: {
-      member: {
-        equals: member.id,
-      },
+      and: [
+        {
+          member: {
+            equals: member.id,
+          },
+        },
+        createSiteScopeWhere(site),
+      ],
     },
   });
 
@@ -359,14 +368,15 @@ export async function ensureCommerceCustomerForMemberWithPayload(
 
   await payload.create({
     collection: 'commerce-customers',
-    data: {
-      email: created.email ?? assertMemberEmail(member),
-      externalCustomerId: created.externalId,
-      member: member.id,
-      provider: adapter.provider,
-    },
-    overrideAccess: true,
-  });
+      data: {
+        email: created.email ?? assertMemberEmail(member),
+        externalCustomerId: created.externalId,
+        member: member.id,
+        provider: adapter.provider,
+        site: site.id,
+      },
+      overrideAccess: true,
+    });
 
   await writeAuditEntry(payload, {
     action: AUDIT_ACTIONS.commerceCustomerMapped,
@@ -374,6 +384,7 @@ export async function ensureCommerceCustomerForMemberWithPayload(
     metadata: {
       externalCustomerId: created.externalId,
       provider: adapter.provider,
+      siteId: site.siteId,
     },
     result: 'success',
     targetCollection: 'commerce-customers',
@@ -387,8 +398,9 @@ export async function createCommerceCartForMemberWithDeps(
   payload: CommerceServicePayloadClient,
   adapter: CommerceAdapter,
   member: AuthenticatedMemberLike,
+  site: ResolvedSite,
 ) {
-  const customer = await ensureCommerceCustomerForMemberWithPayload(payload, adapter, member);
+  const customer = await ensureCommerceCustomerForMemberWithPayload(payload, adapter, member, site);
 
   return adapter.carts.create({
     customerExternalId: customer.externalId,
@@ -422,10 +434,11 @@ export async function checkoutCommerceCartWithDeps(
   payload: CommerceServicePayloadClient,
   adapter: CommerceAdapter,
   member: AuthenticatedMemberLike,
+  site: ResolvedSite,
   cartId: string,
 ) {
   const cartExternalId = parseCommerceExternalId(cartId, 'cart');
-  const customer = await ensureCommerceCustomerForMemberWithPayload(payload, adapter, member);
+  const customer = await ensureCommerceCustomerForMemberWithPayload(payload, adapter, member, site);
   const cart = await adapter.carts.getById(cartExternalId);
 
   if (!cart) {
@@ -466,6 +479,7 @@ export async function checkoutCommerceCartWithDeps(
       paymentMode: 'test',
       placedAt: new Date().toISOString(),
       provider: adapter.provider,
+      site: site.id,
       status: order.status,
       subtotalAmount: cart.subtotal.amount,
       totalAmount: order.total.amount,
@@ -482,6 +496,7 @@ export async function checkoutCommerceCartWithDeps(
       itemCount: order.items.length,
       mode: 'test',
       provider: adapter.provider,
+      siteId: site.siteId,
       totalAmount: order.total.amount,
     },
     result: 'success',
@@ -496,6 +511,7 @@ export async function checkoutCommerceCartWithDeps(
       externalCartId: order.externalCartId ?? cart.externalId,
       externalOrderId: order.externalId,
       mode: 'test',
+      siteId: site.siteId,
     },
     result: 'success',
     targetCollection: 'commerce-orders',
@@ -508,6 +524,7 @@ export async function checkoutCommerceCartWithDeps(
 export async function listMemberOrdersWithPayload(
   payload: CommerceServicePayloadClient,
   member: AuthenticatedMemberLike,
+  site: ResolvedSite,
 ) {
   const result = await payload.find({
     collection: 'commerce-orders',
@@ -515,9 +532,14 @@ export async function listMemberOrdersWithPayload(
     overrideAccess: true,
     pagination: false,
     where: {
-      member: {
-        equals: member.id,
-      },
+      and: [
+        {
+          member: {
+            equals: member.id,
+          },
+        },
+        createSiteScopeWhere(site),
+      ],
     },
   });
 
@@ -568,8 +590,20 @@ export async function createCommerceCartForCurrentMember() {
       throw new CommerceServiceError('You must be signed in.', 'not-authenticated', 401);
     }
 
+    if (!member.siteId) {
+      throw new CommerceServiceError('This member is not assigned to a site.', 'not-authenticated', 403);
+    }
+
+    const site = {
+      id: member.siteId,
+      isDefault: false,
+      name: 'Member site',
+      primaryHostname: null,
+      siteId: String(member.siteId),
+      slug: String(member.siteId),
+    } satisfies ResolvedSite;
     const [payload, adapter] = await Promise.all([getPayload(), getCommerceAdapter()]);
-    return createCommerceCartForMemberWithDeps(payload, adapter, member);
+    return createCommerceCartForMemberWithDeps(payload, adapter, member, site);
   } catch (error) {
     throw normalizeCommerceError(error);
   }
@@ -613,8 +647,20 @@ export async function checkoutCommerceCart(cartId: string) {
       throw new CommerceServiceError('You must be signed in.', 'not-authenticated', 401);
     }
 
+    if (!member.siteId) {
+      throw new CommerceServiceError('This member is not assigned to a site.', 'not-authenticated', 403);
+    }
+
+    const site = {
+      id: member.siteId,
+      isDefault: false,
+      name: 'Member site',
+      primaryHostname: null,
+      siteId: String(member.siteId),
+      slug: String(member.siteId),
+    } satisfies ResolvedSite;
     const [payload, adapter] = await Promise.all([getPayload(), getCommerceAdapter()]);
-    return checkoutCommerceCartWithDeps(payload, adapter, member, cartId);
+    return checkoutCommerceCartWithDeps(payload, adapter, member, site, cartId);
   } catch (error) {
     throw normalizeCommerceError(error);
   }
@@ -628,8 +674,20 @@ export async function listMemberOrders() {
       throw new CommerceServiceError('You must be signed in.', 'not-authenticated', 401);
     }
 
+    if (!member.siteId) {
+      throw new CommerceServiceError('This member is not assigned to a site.', 'not-authenticated', 403);
+    }
+
+    const site = {
+      id: member.siteId,
+      isDefault: false,
+      name: 'Member site',
+      primaryHostname: null,
+      siteId: String(member.siteId),
+      slug: String(member.siteId),
+    } satisfies ResolvedSite;
     const payload = await getPayload();
-    return listMemberOrdersWithPayload(payload, member);
+    return listMemberOrdersWithPayload(payload, member, site);
   } catch (error) {
     throw normalizeCommerceError(error);
   }

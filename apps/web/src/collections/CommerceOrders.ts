@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload';
 import { commerceReadAccess } from '@/lib/auth/access';
+import { createSiteRelationshipField } from '@/lib/sites/fields';
 
 const orderStatusOptions = [
   {
@@ -34,6 +35,7 @@ export const CommerceOrders: CollectionConfig = {
     update: () => false,
   },
   fields: [
+    createSiteRelationshipField(),
     {
       name: 'provider',
       type: 'select',

@@ -6,6 +6,7 @@ import {
   parseProfileInput,
   parseSignupInput,
 } from '@/lib/members/service';
+import { isResolvedSiteMatch } from '@/lib/sites/service';
 
 describe('member service validation', () => {
   it('normalizes signup email addresses and rejects weak passwords', () => {
@@ -52,5 +53,20 @@ describe('member service validation', () => {
     expect(buildMemberLoginPath('/account')).toBe('/login?next=%2Faccount');
     expect(buildMemberLoginPath('https://evil.example')).toBe('/login');
     expect(getMemberCookieName()).toBe('nexpress-member-token');
+  });
+
+  it('treats missing or mismatched site assignments as cross-site access', () => {
+    const site = {
+      id: 'site-1',
+      isDefault: false,
+      name: 'Site One',
+      primaryHostname: 'site-one.example.com',
+      siteId: 'site-one',
+      slug: 'site-one',
+    } as const;
+
+    expect(isResolvedSiteMatch(site, 'site-1')).toBe(true);
+    expect(isResolvedSiteMatch(site, 'site-2')).toBe(false);
+    expect(isResolvedSiteMatch(site, null)).toBe(false);
   });
 });

@@ -22,6 +22,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { defaultFormRateLimiter, buildRateLimitKey } from '@nexpress/forms';
 import { processFormSubmission } from '@/lib/forms/service';
+import { resolveSiteFromHeaders } from '@/lib/sites/service';
 
 const CONTENT_TYPE_JSON = 'application/json';
 
@@ -53,6 +54,12 @@ export async function POST(
     // Validate formId format (matches form slug pattern)
     if (!formId || typeof formId !== 'string' || !/^[a-z0-9-]{1,80}$/.test(formId)) {
       return NextResponse.json({ error: 'Invalid form id.' }, { status: 400 });
+    }
+
+    const site = await resolveSiteFromHeaders(req.headers);
+
+    if (!site) {
+      return NextResponse.json({ error: 'Site not found.' }, { status: 404 });
     }
 
     // Validate Content-Type
@@ -102,7 +109,7 @@ export async function POST(
     );
 
     // Process the submission (load form, validate, persist, run workflows)
-    const result = await processFormSubmission(formId, submissionPayload);
+    const result = await processFormSubmission(formId, submissionPayload, site);
 
     if (!result.success) {
       return NextResponse.json({ errors: result.errors }, { status: 422 });

@@ -6,6 +6,7 @@ import type { SearchDocument } from './types';
 const sampleDocs: SearchDocument[] = [
   {
     id: '1',
+    siteId: 'default',
     type: 'page',
     title: 'About Us',
     slug: 'about',
@@ -15,6 +16,7 @@ const sampleDocs: SearchDocument[] = [
   },
   {
     id: '2',
+    siteId: 'default',
     type: 'post',
     title: 'Members Only Post',
     slug: 'members-post',
@@ -24,6 +26,7 @@ const sampleDocs: SearchDocument[] = [
   },
   {
     id: '3',
+    siteId: 'default',
     type: 'page',
     title: 'Privacy Policy',
     slug: 'privacy',
@@ -32,6 +35,7 @@ const sampleDocs: SearchDocument[] = [
   },
   {
     id: '4',
+    siteId: 'other-site',
     type: 'post',
     title: 'Getting Started',
     slug: 'getting-started',
@@ -99,6 +103,7 @@ describe('InMemorySearchAdapter', () => {
   it('indexes a new document', async () => {
     await adapter.indexDocument({
       id: '5',
+      siteId: 'default',
       type: 'page',
       title: 'New Page',
       slug: 'new-page',
@@ -126,25 +131,30 @@ describe('SearchService - access level filtering', () => {
   });
 
   it('anonymous users only see public documents', async () => {
-    const result = await service.search({ page: '1', limit: '50' }, false);
+    const result = await service.search({ page: '1', limit: '50' }, { isMember: false, siteId: 'default' });
     expect(result.docs.every((d) => d.accessLevel === 'public')).toBe(true);
     expect(result.docs.find((d) => d.id === '2')).toBeUndefined();
   });
 
   it('members see all documents including members-only', async () => {
-    const result = await service.search({ page: '1', limit: '50' }, true);
+    const result = await service.search({ page: '1', limit: '50' }, { isMember: true, siteId: 'default' });
     expect(result.docs.find((d) => d.id === '2')).toBeDefined();
   });
 
+  it('rejects documents from other sites even when they match the query', async () => {
+    const result = await service.search({ q: 'Getting', page: '1', limit: '50' }, { isMember: true, siteId: 'default' });
+    expect(result.docs).toHaveLength(0);
+  });
+
   it('rejects invalid query parameters and returns empty result', async () => {
-    const result = await service.search({ limit: '999999' }, false);
+    const result = await service.search({ limit: '999999' }, { isMember: false, siteId: 'default' });
     // Limit is bounded by schema to 50; invalid > 50 would fail parse
     expect(result.docs).toBeDefined();
   });
 
   it('query longer than max is rejected and returns empty', async () => {
     const longQuery = 'a'.repeat(201);
-    const result = await service.search({ q: longQuery }, false);
+    const result = await service.search({ q: longQuery }, { isMember: false, siteId: 'default' });
     expect(result.docs).toHaveLength(0);
   });
 
@@ -156,7 +166,7 @@ describe('SearchService - access level filtering', () => {
       search: async () => { throw new Error('adapter error'); },
     };
     const brokenService = new SearchService(brokenAdapter);
-    const result = await brokenService.search({ page: '1', limit: '10' }, false);
+    const result = await brokenService.search({ page: '1', limit: '10' }, { isMember: false, siteId: 'default' });
     expect(result.docs).toHaveLength(0);
     expect(result.total).toBe(0);
   });
@@ -174,25 +184,27 @@ describe('SearchService - indexDocument / removeDocument', () => {
   it('indexes a document and finds it via search', async () => {
     await service.indexDocument({
       id: 'x1',
+      siteId: 'default',
       type: 'page',
       title: 'Indexed Page',
       slug: 'indexed',
       accessLevel: 'public',
     });
-    const result = await service.search({ q: 'Indexed' }, false);
+    const result = await service.search({ q: 'Indexed' }, { isMember: false, siteId: 'default' });
     expect(result.docs[0]?.id).toBe('x1');
   });
 
   it('removes a document and it disappears from search', async () => {
     await service.indexDocument({
       id: 'x2',
+      siteId: 'default',
       type: 'post',
       title: 'Gone Post',
       slug: 'gone',
       accessLevel: 'public',
     });
     await service.removeDocument('x2');
-    const result = await service.search({ q: 'Gone' }, false);
+    const result = await service.search({ q: 'Gone' }, { isMember: false, siteId: 'default' });
     expect(result.docs).toHaveLength(0);
   });
 });

@@ -1,4 +1,4 @@
-import type { SearchAdapter, SearchDocument, SearchQuery, SearchResult } from './types';
+import type { SearchAdapter, SearchAudienceContext, SearchDocument, SearchQuery, SearchResult } from './types';
 import { SearchQuerySchema } from './types';
 
 /**
@@ -22,7 +22,7 @@ export class SearchService {
    * @param isMember - Whether the requesting user is an authenticated member
    * @returns A bounded, safe SearchResult
    */
-  async search(rawQuery: Record<string, unknown>, isMember: boolean): Promise<SearchResult> {
+  async search(rawQuery: Record<string, unknown>, audience: SearchAudienceContext): Promise<SearchResult> {
     // Validate and parse the incoming query
     const parsed = SearchQuerySchema.safeParse(rawQuery);
     if (!parsed.success) {
@@ -41,9 +41,10 @@ export class SearchService {
 
     // Enforce access-level filtering
     // Anonymous users only see public documents; members see all published docs
-    const filteredDocs = isMember
-      ? result.docs
-      : result.docs.filter((doc) => doc.accessLevel === 'public');
+    const siteScopedDocs = result.docs.filter((doc) => doc.siteId === audience.siteId);
+    const filteredDocs = audience.isMember
+      ? siteScopedDocs
+      : siteScopedDocs.filter((doc) => doc.accessLevel === 'public');
 
     return {
       ...result,

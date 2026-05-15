@@ -9,6 +9,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { getPublicFormDefinition } from '@/lib/forms/service';
+import { resolveSiteFromHeaders } from '@/lib/sites/service';
 
 export async function GET(
   _req: NextRequest,
@@ -21,7 +22,13 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid form id.' }, { status: 400 });
     }
 
-    const form = await getPublicFormDefinition(formId);
+    const site = await resolveSiteFromHeaders(_req.headers);
+
+    if (!site) {
+      return NextResponse.json({ error: 'Site not found.' }, { status: 404 });
+    }
+
+    const form = await getPublicFormDefinition(formId, site);
 
     if (!form) {
       return NextResponse.json({ error: 'Form not found.' }, { status: 404 });

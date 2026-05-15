@@ -19,6 +19,8 @@ import { z } from 'zod';
 export const SearchDocumentSchema = z.object({
   /** Stable document ID */
   id: z.string(),
+  /** Stable site identifier used for tenant isolation */
+  siteId: z.string(),
   /** Content type discriminator */
   type: z.enum(['page', 'post']),
   /** Display title */
@@ -62,6 +64,11 @@ export const SearchQuerySchema = z.object({
 });
 
 export type SearchQuery = z.infer<typeof SearchQuerySchema>;
+
+export interface SearchAudienceContext {
+  isMember: boolean;
+  siteId: string;
+}
 
 // ---------------------------------------------------------------------------
 // Search result

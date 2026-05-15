@@ -13,6 +13,8 @@ import { SearchService, defaultSearchAdapter } from '@nexpress/search';
 import type { SearchDocument } from '@nexpress/search';
 import { getPayload } from 'payload';
 import configPromise from '@/payload.config';
+import { DEFAULT_SITE_ID } from '@/lib/sites/model';
+import { extractSiteRelationshipId } from '@/lib/sites/service';
 
 export const searchService = new SearchService(defaultSearchAdapter);
 
@@ -34,6 +36,7 @@ function buildDocFromRecord(
     publishedAt?: string | null;
     accessLevel?: string | null;
     _status?: string | null;
+    site?: number | string | { id: number | string } | null;
   },
   type: 'page' | 'post',
 ): SearchDocument | null {
@@ -43,12 +46,13 @@ function buildDocFromRecord(
 
   return {
     id: String(record.id),
+    siteId: String(extractSiteRelationshipId(record.site) ?? DEFAULT_SITE_ID),
     type,
     title: record.title,
     slug: record.slug,
     excerpt: record.excerpt ?? undefined,
     publishedAt: record.publishedAt ?? undefined,
-    accessLevel: record.accessLevel === 'members-only' ? 'members-only' : 'public',
+    accessLevel: record.accessLevel === 'members' || record.accessLevel === 'members-only' ? 'members-only' : 'public',
   };
 }
 

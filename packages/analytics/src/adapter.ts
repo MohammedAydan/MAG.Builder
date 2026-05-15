@@ -1,4 +1,4 @@
-import type { AnalyticsAdapter, StoredAnalyticsEvent } from './types';
+import type { AnalyticsAdapter, AnalyticsAggregateOptions, StoredAnalyticsEvent } from './types';
 
 /**
  * No-op analytics adapter.
@@ -17,7 +17,7 @@ export class NoopAnalyticsAdapter implements AnalyticsAdapter {
     }
   }
 
-  async getAggregateCounts(_since?: string): Promise<Record<string, number>> {
+  async getAggregateCounts(_options?: AnalyticsAggregateOptions): Promise<Record<string, number>> {
     return {};
   }
 }

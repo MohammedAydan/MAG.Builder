@@ -1,11 +1,17 @@
 import { INSTALLATION_STATE_KEY, InstallationState } from '@/collections/InstallationState';
 import { Users } from '@/collections/Users';
+import { vi } from 'vitest';
+
+vi.mock('@/lib/payload', () => ({
+  getPayloadClient: vi.fn(),
+}));
+
 import {
   type InstallInput,
   getInstallStatusFromPayload,
   installSystemWithPayload,
 } from '@/lib/install/service';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 const runtimeConfig = {
   NEXPRESS_INSTALLATION_MODE: 'wizard' as const,
@@ -113,7 +119,7 @@ describe('installSystemWithPayload', () => {
 
     await installSystemWithPayload(payload, runtimeConfig, input);
 
-    expect(payload.create).toHaveBeenCalledTimes(3);
+    expect(payload.create).toHaveBeenCalledTimes(4);
     expect(payload.create).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
@@ -141,6 +147,20 @@ describe('installSystemWithPayload', () => {
     );
     expect(payload.create).toHaveBeenNthCalledWith(
       3,
+      expect.objectContaining({
+        collection: 'sites',
+        data: expect.objectContaining({
+          isDefault: true,
+          name: 'NexPress',
+          siteId: 'default',
+          slug: 'default',
+          status: 'active',
+        }),
+        overrideAccess: true,
+      }),
+    );
+    expect(payload.create).toHaveBeenNthCalledWith(
+      4,
       expect.objectContaining({
         collection: 'audit-logs',
         data: expect.objectContaining({

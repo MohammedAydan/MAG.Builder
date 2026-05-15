@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload';
 import { contentCreateAccess, contentDeleteAccess, contentUpdateAccess } from '@/lib/auth/access';
 import { formDefinitionsAdminReadAccess } from '@/lib/auth/access';
+import { createSiteRelationshipField } from '@/lib/sites/fields';
 
 /**
  * Forms collection — stores form definitions.
@@ -39,7 +40,6 @@ export const Forms: CollectionConfig = {
       name: 'slug',
       type: 'text',
       required: true,
-      unique: true,
       index: true,
       admin: {
         position: 'sidebar',
@@ -57,6 +57,7 @@ export const Forms: CollectionConfig = {
         return true;
       },
     },
+    createSiteRelationshipField(),
     {
       name: 'description',
       type: 'textarea',

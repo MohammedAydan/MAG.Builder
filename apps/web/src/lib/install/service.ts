@@ -6,6 +6,7 @@ import {
   getInstallRuntimeConfig,
   type InstallRuntimeConfig,
 } from '@/lib/install/runtime-config';
+import { DEFAULT_SITE_ID, DEFAULT_SITE_SLUG } from '@/lib/sites/model';
 import { z } from 'zod';
 
 type FindResult<T> = {
@@ -239,6 +240,19 @@ export async function installSystemWithPayload(
     },
     overrideAccess: true,
   })) as InstallationRecord;
+
+  await payload.create({
+    collection: 'sites',
+    data: {
+      domains: [],
+      isDefault: true,
+      name: input.siteName,
+      siteId: DEFAULT_SITE_ID,
+      slug: DEFAULT_SITE_SLUG,
+      status: 'active',
+    },
+    overrideAccess: true,
+  });
 
   await writeAuditEntry(payload, {
     action: AUDIT_ACTIONS.installCompleted,

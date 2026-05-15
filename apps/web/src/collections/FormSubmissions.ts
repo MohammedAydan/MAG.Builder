@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload';
 import { hasPermission, type AuthenticatedUserLike } from '@/lib/auth/access';
+import { createSiteRelationshipField } from '@/lib/sites/fields';
 import type { Access } from 'payload';
 
 /**
@@ -90,5 +91,6 @@ export const FormSubmissions: CollectionConfig = {
         readOnly: true,
       },
     },
+    createSiteRelationshipField(),
   ],
 };

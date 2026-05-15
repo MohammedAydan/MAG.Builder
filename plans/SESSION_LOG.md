@@ -1,5 +1,48 @@
 # Session Log
 
+## Session: 2026-05-15
+
+### What was done
+
+- Implemented Phase 23 multi-site and SaaS-readiness foundations in `apps/web`
+- Added a hidden `sites` collection, server-side hostname resolution, default-site bootstrap/fallback logic, and a reusable site relationship field helper
+- Made content, forms, members, commerce, search, analytics, and automation metadata site-aware without adding billing, tenant UI, or Phase 24 work
+- Regenerated Payload types and verified the requested root, package, and app command matrix
+
+### Decisions made
+
+- Keep Phase 23 focused on safe multi-site boundaries only and defer billing/subscriptions and tenant-management UI - Reason: the phase prompt explicitly requires readiness foundations, not SaaS product features
+- Use a default-site fallback for legacy null-site records while failing closed for unknown mapped production hosts - Reason: existing single-site content must keep working now without weakening isolation once real host mappings exist
+- Trust `x-forwarded-host` only behind an explicit env flag - Reason: forwarded host headers are untrusted by default and must not become an implicit security boundary
+
+### Files changed
+
+- `apps/web/src/collections/{Sites,Pages,Posts,Redirects,Forms,FormSubmissions,Members,CommerceCustomers,CommerceOrders}.ts`
+- `apps/web/src/lib/sites/*`
+- `apps/web/src/lib/{auth,content,forms,install,members,commerce,search,automation}/*`
+- `apps/web/src/app/api/{forms,search,analytics}/**/*`
+- `apps/web/src/payload.config.ts`
+- `apps/web/src/payload-types.ts`
+- `packages/search/src/*`
+- `packages/analytics/src/*`
+- `packages/automation/src/types.ts`
+- `.env.example`
+- `docs/runbooks/multisite-saas-readiness.md`
+- `plans/context.md`
+- `plans/phase-23-multisite-saas-readiness/review.md`
+- `IMPLEMENTATION_STATUS.md`
+
+### State at end of session
+
+- Active feature: phase-23-multisite-saas-readiness
+- Last completed task: Phase 23 verification and review
+- Next task: wait for explicit instruction before starting Phase 24
+- Blockers: no live DB migration/backfill file was committed because Payload migration generation still requires a live database
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-23-multisite-saas-readiness/review.md`, and `docs/runbooks/multisite-saas-readiness.md`, then start Phase 24 only if explicitly requested.
+
 ## Session: 2026-05-13
 
 ### What was done

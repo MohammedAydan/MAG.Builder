@@ -1,4 +1,17 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('@/lib/install/service', () => ({
+  InstallFlowError: class InstallFlowError extends Error {
+    constructor(
+      message: string,
+      readonly code: string,
+      readonly status: number,
+    ) {
+      super(message);
+    }
+  },
+}));
+
 import { assertSameOriginInstallRequest } from '@/lib/install/security';
 
 describe('assertSameOriginInstallRequest', () => {

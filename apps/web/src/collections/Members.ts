@@ -5,6 +5,7 @@ import {
   membersUnlockAccess,
   membersUpdateAccess,
 } from '@/lib/auth/access';
+import { createSiteRelationshipField } from '@/lib/sites/fields';
 import {
   AUDIT_ACTIONS,
   getAuditActorFromRequest,
@@ -74,6 +75,7 @@ export const Members: CollectionConfig = {
     afterLogin: [auditMemberLogin],
   },
   fields: [
+    createSiteRelationshipField(),
     {
       name: 'firstName',
       type: 'text',

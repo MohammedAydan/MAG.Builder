@@ -3,6 +3,7 @@ import { redirectsManageAccess, redirectsReadAccess } from '@/lib/auth/access';
 import { createAuditedAfterChangeHook, createAuditedAfterDeleteHook } from '@/lib/content/audit';
 import { normalizePathField } from '@/lib/content/hooks';
 import { isSafeRedirectDestination } from '@/lib/content/paths';
+import { createSiteRelationshipField } from '@/lib/sites/fields';
 
 export const Redirects: CollectionConfig = {
   slug: 'redirects',
@@ -26,7 +27,6 @@ export const Redirects: CollectionConfig = {
       name: 'sourcePath',
       type: 'text',
       required: true,
-      unique: true,
       hooks: {
         beforeValidate: [normalizePathField],
       },
@@ -74,5 +74,6 @@ export const Redirects: CollectionConfig = {
       type: 'checkbox',
       defaultValue: true,
     },
+    createSiteRelationshipField(),
   ],
 };

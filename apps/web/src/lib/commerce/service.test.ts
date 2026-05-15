@@ -51,12 +51,20 @@ function createPayloadMock(): CommerceServicePayloadClient & {
     }),
     find: vi.fn(async (args: Record<string, unknown>) => {
       const collection = String(args.collection);
-      const where = (args.where ?? {}) as Record<string, { equals?: number | string }>;
+      const where = (args.where ?? {}) as {
+        and?: Array<Record<string, { equals?: number | string }>>;
+        member?: { equals?: number | string };
+        site?: { equals?: number | string; exists?: boolean };
+      };
+      const memberClause = where.and?.find((entry) => 'member' in entry)?.member ?? where.member;
+      const siteClause = where.and?.find((entry) => 'site' in entry)?.site ?? where.site;
 
       if (collection === 'commerce-customers') {
-        const memberId = String(where.member?.equals ?? '');
+        const memberId = String(memberClause?.equals ?? '');
         const record = [...customerRecords.values()].find(
-          (entry) => String(entry.member) === memberId,
+          (entry) =>
+            String(entry.member) === memberId &&
+            (!siteClause?.equals || String(entry.site) === String(siteClause.equals)),
         );
 
         return {
@@ -65,9 +73,11 @@ function createPayloadMock(): CommerceServicePayloadClient & {
       }
 
       if (collection === 'commerce-orders') {
-        const memberId = String(where.member?.equals ?? '');
+        const memberId = String(memberClause?.equals ?? '');
         const docs = [...orderRecords.values()].filter(
-          (entry) => String(entry.member) === memberId,
+          (entry) =>
+            String(entry.member) === memberId &&
+            (!siteClause?.equals || String(entry.site) === String(siteClause.equals)),
         );
 
         return {
@@ -89,6 +99,16 @@ const member = {
   firstName: 'Member',
   id: 1,
   lastName: 'User',
+  siteId: 'site-1',
+} as const;
+
+const site = {
+  id: 'site-1',
+  isDefault: false,
+  name: 'Site One',
+  primaryHostname: 'site-one.example.com',
+  siteId: 'site-one',
+  slug: 'site-one',
 } as const;
 
 describe('commerce service', () => {
@@ -161,8 +181,8 @@ describe('commerce service', () => {
     const payload = createPayloadMock();
     const adapter = createMockCommerceAdapter();
 
-    const first = await ensureCommerceCustomerForMemberWithPayload(payload, adapter, member);
-    const second = await ensureCommerceCustomerForMemberWithPayload(payload, adapter, member);
+    const first = await ensureCommerceCustomerForMemberWithPayload(payload, adapter, member, site);
+    const second = await ensureCommerceCustomerForMemberWithPayload(payload, adapter, member, site);
 
     expect(first.externalId).toBe(second.externalId);
     expect(payload.create).toHaveBeenCalledTimes(2);
@@ -172,7 +192,7 @@ describe('commerce service', () => {
     const payload = createPayloadMock();
     const adapter = createMockCommerceAdapter();
 
-    const cart = await createCommerceCartForMemberWithDeps(payload, adapter, member);
+    const cart = await createCommerceCartForMemberWithDeps(payload, adapter, member, site);
 
     expect(cart.itemCount).toBe(0);
     expect(cart.externalId).toContain('mock-cart');
@@ -218,13 +238,13 @@ describe('commerce service', () => {
       ],
     });
 
-    const cart = await createCommerceCartForMemberWithDeps(payload, adapter, member);
+    const cart = await createCommerceCartForMemberWithDeps(payload, adapter, member, site);
     await addItemToCommerceCartWithAdapter(adapter, cart.externalId, {
       quantity: 2,
       variantId: 'variant_1',
     });
-    const order = await checkoutCommerceCartWithDeps(payload, adapter, member, cart.externalId);
-    const orders = await listMemberOrdersWithPayload(payload, member);
+    const order = await checkoutCommerceCartWithDeps(payload, adapter, member, site, cart.externalId);
+    const orders = await listMemberOrdersWithPayload(payload, member, site);
 
     expect(order.externalId).toContain('mock-order');
     expect(order.total.amount).toBe(5000);

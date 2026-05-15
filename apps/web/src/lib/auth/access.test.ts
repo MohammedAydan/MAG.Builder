@@ -15,7 +15,7 @@ describe('auth access helpers', () => {
   const superAdmin = { id: '1', role: 'super-admin' };
   const admin = { id: '2', role: 'admin' };
   const editor = { id: '3', role: 'editor' };
-  const member = { collection: 'members', email: 'member@example.com', id: '4' };
+  const member = { collection: 'members', email: 'member@example.com', id: '4', siteId: 'site-1' };
 
   it('parses explicit typed roles', () => {
     expect(getUserRole(superAdmin)).toBe('super-admin');

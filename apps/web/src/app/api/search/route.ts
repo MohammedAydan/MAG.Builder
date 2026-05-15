@@ -17,12 +17,19 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { searchService } from '@/lib/search/service';
+import { resolveSiteFromHeaders } from '@/lib/sites/service';
 import { getPayload } from 'payload';
 import configPromise from '@/payload.config';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
+  const site = await resolveSiteFromHeaders(request.headers);
+
+  if (!site) {
+    return NextResponse.json({ error: 'Site not found.' }, { status: 404 });
+  }
+
   // Parse query parameters
   const searchParams = request.nextUrl.searchParams;
   const rawQuery: Record<string, unknown> = {
@@ -46,7 +53,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   // Execute the search with access-level enforcement
-  const result = await searchService.search(rawQuery, isMember);
+  const result = await searchService.search(rawQuery, {
+    isMember,
+    siteId: site.siteId,
+  });
 
   return NextResponse.json({
     success: true,

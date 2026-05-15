@@ -6,6 +6,7 @@ import { buildSeoMetadata, type SeoFieldValue } from '@/lib/content/seo';
 import { normalizeContentPath } from '@/lib/content/paths';
 import { buildMemberLoginPath } from '@/lib/members/service';
 import { getPayloadClient } from '@/lib/payload';
+import { createSiteScopeWhere, resolveCurrentSite, type ResolvedSite } from '@/lib/sites/service';
 
 type PayloadFindResult<T> = {
   docs: T[];
@@ -31,6 +32,7 @@ export type PublishedPage = {
   id: number | string;
   publishedAt?: string | null;
   seo?: SeoFieldValue | null;
+  site?: number | { id: number | string } | string | null;
   slug: string;
   title: string;
 };
@@ -43,6 +45,7 @@ export type PublishedPost = {
   id: number | string;
   publishedAt?: string | null;
   seo?: SeoFieldValue | null;
+  site?: number | { id: number | string } | string | null;
   slug: string;
   title: string;
 };
@@ -51,6 +54,7 @@ export type PublishedRedirect = {
   destinationPath: string;
   id: number | string;
   isActive: boolean;
+  site?: number | { id: number | string } | string | null;
   sourcePath: string;
   type: '301' | '302';
 };
@@ -87,7 +91,11 @@ function createMemberAwareReq(member: AuthenticatedMemberLike | null | undefined
   } as PayloadRequest;
 }
 
-function createMemberAwareWhere(slug: string, member: AuthenticatedMemberLike | null | undefined): Where {
+function createMemberAwareWhere(
+  slug: string,
+  member: AuthenticatedMemberLike | null | undefined,
+  site: ResolvedSite,
+): Where {
   const slugClause = {
     slug: {
       equals: slug,
@@ -101,7 +109,7 @@ function createMemberAwareWhere(slug: string, member: AuthenticatedMemberLike | 
 
   if (member) {
     return {
-      and: [slugClause, publishedClause],
+      and: [slugClause, publishedClause, createSiteScopeWhere(site)],
     };
   }
 
@@ -109,6 +117,7 @@ function createMemberAwareWhere(slug: string, member: AuthenticatedMemberLike | 
     and: [
       slugClause,
       publishedClause,
+      createSiteScopeWhere(site),
       {
         or: [
           {
@@ -130,6 +139,7 @@ function createMemberAwareWhere(slug: string, member: AuthenticatedMemberLike | 
 async function findFirstPublishedBySlug<T>(
   collection: 'pages' | 'posts',
   slug: string,
+  site: ResolvedSite,
   member?: AuthenticatedMemberLike | null,
 ) {
   const payload = await getPublicReader();
@@ -140,13 +150,13 @@ async function findFirstPublishedBySlug<T>(
     overrideAccess: false,
     pagination: false,
     ...(member ? { req: createMemberAwareReq(member) } : {}),
-    where: createMemberAwareWhere(slug, member),
+    where: createMemberAwareWhere(slug, member, site),
   });
 
   return result.docs[0] ?? null;
 }
 
-async function findProtectedDocumentBySlug<T>(collection: 'pages' | 'posts', slug: string) {
+async function findProtectedDocumentBySlug<T>(collection: 'pages' | 'posts', slug: string, site: ResolvedSite) {
   const payload = await getPublicReader();
   const result = await payload.find<T>({
     collection,
@@ -166,6 +176,7 @@ async function findProtectedDocumentBySlug<T>(collection: 'pages' | 'posts', slu
             equals: 'published',
           },
         },
+        createSiteScopeWhere(site),
       ],
     },
   });
@@ -176,8 +187,17 @@ async function findProtectedDocumentBySlug<T>(collection: 'pages' | 'posts', slu
 export async function resolvePublishedPageAccessBySlug(
   slug: string,
   member?: AuthenticatedMemberLike | null,
+  siteArg?: ResolvedSite | null,
 ): Promise<ProtectedContentAccessResult<PublishedPage>> {
-  const page = await findFirstPublishedBySlug<PublishedPage>('pages', slug, member);
+  const site = siteArg === undefined ? await resolveCurrentSite() : siteArg;
+
+  if (!site) {
+    return {
+      kind: 'not-found',
+    };
+  }
+
+  const page = await findFirstPublishedBySlug<PublishedPage>('pages', slug, site, member);
 
   if (page) {
     return {
@@ -186,7 +206,7 @@ export async function resolvePublishedPageAccessBySlug(
     };
   }
 
-  const protectedPage = await findProtectedDocumentBySlug<PublishedPage>('pages', slug);
+  const protectedPage = await findProtectedDocumentBySlug<PublishedPage>('pages', slug, site);
 
   if (protectedPage?.accessLevel === 'members' && !member) {
     return {
@@ -203,8 +223,17 @@ export async function resolvePublishedPageAccessBySlug(
 export async function resolvePublishedPostAccessBySlug(
   slug: string,
   member?: AuthenticatedMemberLike | null,
+  siteArg?: ResolvedSite | null,
 ): Promise<ProtectedContentAccessResult<PublishedPost>> {
-  const post = await findFirstPublishedBySlug<PublishedPost>('posts', slug, member);
+  const site = siteArg === undefined ? await resolveCurrentSite() : siteArg;
+
+  if (!site) {
+    return {
+      kind: 'not-found',
+    };
+  }
+
+  const post = await findFirstPublishedBySlug<PublishedPost>('posts', slug, site, member);
 
   if (post) {
     return {
@@ -213,7 +242,7 @@ export async function resolvePublishedPostAccessBySlug(
     };
   }
 
-  const protectedPost = await findProtectedDocumentBySlug<PublishedPost>('posts', slug);
+  const protectedPost = await findProtectedDocumentBySlug<PublishedPost>('posts', slug, site);
 
   if (protectedPost?.accessLevel === 'members' && !member) {
     return {
@@ -227,7 +256,13 @@ export async function resolvePublishedPostAccessBySlug(
   };
 }
 
-export async function getPublishedRedirectByPath(pathname: string) {
+export async function getPublishedRedirectByPath(pathname: string, siteArg?: ResolvedSite | null) {
+  const site = siteArg === undefined ? await resolveCurrentSite() : siteArg;
+
+  if (!site) {
+    return null;
+  }
+
   const payload = await getPublicReader();
   const normalized = normalizeContentPath(pathname);
   const result = await payload.find<PublishedRedirect>({
@@ -247,6 +282,7 @@ export async function getPublishedRedirectByPath(pathname: string) {
             equals: true,
           },
         },
+        createSiteScopeWhere(site),
       ],
     },
   });
@@ -256,6 +292,7 @@ export async function getPublishedRedirectByPath(pathname: string) {
 
 async function getPublishedCollectionEntries<T extends { publishedAt?: string | null; slug: string }>(
   collection: 'pages' | 'posts',
+  site: ResolvedSite,
   prefix = '',
 ) {
   const payload = await getPublicReader();
@@ -272,6 +309,7 @@ async function getPublishedCollectionEntries<T extends { publishedAt?: string | 
             equals: 'published',
           },
         },
+        createSiteScopeWhere(site),
         {
           or: [
             {
@@ -296,10 +334,16 @@ async function getPublishedCollectionEntries<T extends { publishedAt?: string | 
   }));
 }
 
-export async function getPublishedSitemapEntries() {
+export async function getPublishedSitemapEntries(siteArg?: ResolvedSite | null) {
+  const site = siteArg === undefined ? await resolveCurrentSite() : siteArg;
+
+  if (!site) {
+    return [];
+  }
+
   const [pages, posts] = await Promise.all([
-    getPublishedCollectionEntries<PublishedPage>('pages'),
-    getPublishedCollectionEntries<PublishedPost>('posts', '/journal'),
+    getPublishedCollectionEntries<PublishedPage>('pages', site),
+    getPublishedCollectionEntries<PublishedPost>('posts', site, '/journal'),
   ]);
 
   return [...pages, ...posts];
@@ -315,14 +359,14 @@ export function buildContentMetadata(
   });
 }
 
-export async function getPublishedPageBySlug(slug: string, member?: AuthenticatedMemberLike | null) {
-  const result = await resolvePublishedPageAccessBySlug(slug, member);
+export async function getPublishedPageBySlug(slug: string, member?: AuthenticatedMemberLike | null, siteArg?: ResolvedSite | null) {
+  const result = await resolvePublishedPageAccessBySlug(slug, member, siteArg);
 
   return result.kind === 'granted' ? result.document : null;
 }
 
-export async function getPublishedPostBySlug(slug: string, member?: AuthenticatedMemberLike | null) {
-  const result = await resolvePublishedPostAccessBySlug(slug, member);
+export async function getPublishedPostBySlug(slug: string, member?: AuthenticatedMemberLike | null, siteArg?: ResolvedSite | null) {
+  const result = await resolvePublishedPostAccessBySlug(slug, member, siteArg);
 
   return result.kind === 'granted' ? result.document : null;
 }

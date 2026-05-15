@@ -186,7 +186,7 @@ describe('AnalyticsService.capture', () => {
 
   it('returns empty aggregates from noop adapter', async () => {
     const service = new AnalyticsService(new NoopAnalyticsAdapter());
-    const counts = await service.getAggregateCounts();
+    const counts = await service.getAggregateCounts({ siteId: 'default' });
     expect(counts).toEqual({});
   });
 });

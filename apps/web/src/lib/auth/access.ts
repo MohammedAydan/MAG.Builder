@@ -1,5 +1,6 @@
 import { APP_ROLES, type AppRole, isAppRole } from '@/lib/auth/roles';
 import { type AppPermission, getRolePermissions } from '@/lib/auth/permissions';
+import { createSiteScopeWhere, resolveSiteFromHeaders } from '@/lib/sites/service';
 import type { Access, PayloadRequest, Where } from 'payload';
 
 export type AuthenticatedUserLike = {
@@ -15,6 +16,7 @@ export type AuthenticatedMemberLike = {
   firstName?: string | null;
   id: number | string;
   lastName?: string | null;
+  siteId?: number | string | null;
 };
 
 export class AuthorizationError extends Error {
@@ -178,8 +180,36 @@ export function createPublishedOrPermissionWhere(
   };
 }
 
-export const publishedContentReadAccess: Access = ({ req }) =>
-  createPublishedContentAccessWhere(req.user as AuthenticatedUserLike | AuthenticatedMemberLike | null | undefined);
+export const publishedContentReadAccess: Access = async ({ req }) => {
+  const user = req.user as AuthenticatedUserLike | AuthenticatedMemberLike | null | undefined;
+
+  if (hasPermission(user as AuthenticatedUserLike | undefined, 'content:read')) {
+    return true;
+  }
+
+  if (!req.headers || !req.payload) {
+    return createPublishedContentAccessWhere(user);
+  }
+
+  const site = await resolveSiteFromHeaders(
+    req.headers instanceof Headers ? req.headers : new Headers(req.headers as HeadersInit),
+    req.payload as unknown as Parameters<typeof resolveSiteFromHeaders>[1],
+  );
+
+  if (!site) {
+    return false;
+  }
+
+  const baseWhere = createPublishedContentAccessWhere(user);
+
+  if (baseWhere === true || baseWhere === false) {
+    return baseWhere;
+  }
+
+  return {
+    and: [baseWhere, createSiteScopeWhere(site)],
+  };
+};
 
 export function createPublishedContentAccessWhere(
   user: AuthenticatedUserLike | AuthenticatedMemberLike | null | undefined,
@@ -235,15 +265,37 @@ export const mediaReadAccess: Access = () => true;
 export const mediaManageAccess: Access = ({ req }) =>
   hasPermission(req.user as AuthenticatedUserLike | undefined, 'media:manage');
 
-export const redirectsReadAccess: Access = ({ req }) => {
+export const redirectsReadAccess: Access = async ({ req }) => {
   if (hasPermission(req.user as AuthenticatedUserLike | undefined, 'redirects:read')) {
     return true;
   }
 
+  if (!req.headers || !req.payload) {
+    return {
+      isActive: {
+        equals: true,
+      },
+    };
+  }
+
+  const site = await resolveSiteFromHeaders(
+    req.headers instanceof Headers ? req.headers : new Headers(req.headers as HeadersInit),
+    req.payload as unknown as Parameters<typeof resolveSiteFromHeaders>[1],
+  );
+
+  if (!site) {
+    return false;
+  }
+
   return {
-    isActive: {
-      equals: true,
-    },
+    and: [
+      {
+        isActive: {
+          equals: true,
+        },
+      },
+      createSiteScopeWhere(site),
+    ],
   };
 };
 

@@ -1,6 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
+  InstallFlowError: class InstallFlowError extends Error {
+    constructor(
+      message: string,
+      readonly code: string,
+      readonly status: number,
+    ) {
+      super(message);
+    }
+  },
   assertSameOriginInstallRequest: vi.fn(),
   installSystem: vi.fn(),
   parseInstallInput: vi.fn(),
@@ -10,20 +19,16 @@ vi.mock('@/lib/install/security', () => ({
   assertSameOriginInstallRequest: mocks.assertSameOriginInstallRequest,
 }));
 
-vi.mock('@/lib/install/service', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/install/service')>(
-    '@/lib/install/service',
-  );
-
+vi.mock('@/lib/install/service', () => {
   return {
-    ...actual,
+    InstallFlowError: mocks.InstallFlowError,
     installSystem: mocks.installSystem,
     parseInstallInput: mocks.parseInstallInput,
   };
 });
 
 import { POST } from '@/app/api/install/route';
-import { InstallFlowError } from '@/lib/install/service';
+const InstallFlowError = mocks.InstallFlowError;
 
 describe('POST /api/install', () => {
   beforeEach(() => {

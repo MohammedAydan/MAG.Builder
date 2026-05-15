@@ -70,6 +70,7 @@ export interface Config {
   collections: {
     users: User;
     members: Member;
+    sites: Site;
     'installation-state': InstallationState;
     'audit-logs': AuditLog;
     'plugin-states': PluginState;
@@ -93,6 +94,7 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     members: MembersSelect<false> | MembersSelect<true>;
+    sites: SitesSelect<false> | SitesSelect<true>;
     'installation-state': InstallationStateSelect<false> | InstallationStateSelect<true>;
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
     'plugin-states': PluginStatesSelect<false> | PluginStatesSelect<true>;
@@ -196,6 +198,10 @@ export interface User {
  */
 export interface Member {
   id: number;
+  /**
+   * Tenant/site boundary. Defaults to the default site for existing single-site data.
+   */
+  site?: (number | null) | Site;
   firstName: string;
   lastName?: string | null;
   updatedAt: string;
@@ -216,6 +222,28 @@ export interface Member {
     | null;
   password?: string | null;
   collection: 'members';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sites".
+ */
+export interface Site {
+  id: number;
+  siteId: string;
+  slug: string;
+  name: string;
+  status: 'active' | 'suspended';
+  isDefault?: boolean | null;
+  domains?:
+    | {
+        hostname: string;
+        primary?: boolean | null;
+        developmentOnly?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -298,6 +326,10 @@ export interface PluginState {
  */
 export interface CommerceCustomer {
   id: number;
+  /**
+   * Tenant/site boundary. Defaults to the default site for existing single-site data.
+   */
+  site?: (number | null) | Site;
   provider: 'medusa';
   member: number | Member;
   email: string;
@@ -311,6 +343,10 @@ export interface CommerceCustomer {
  */
 export interface CommerceOrder {
   id: number;
+  /**
+   * Tenant/site boundary. Defaults to the default site for existing single-site data.
+   */
+  site?: (number | null) | Site;
   provider: 'medusa';
   externalOrderId: string;
   externalCartId?: string | null;
@@ -352,6 +388,10 @@ export interface Form {
    * Lowercase alphanumeric and hyphens only. Used to embed this form in pages.
    */
   slug: string;
+  /**
+   * Tenant/site boundary. Defaults to the default site for existing single-site data.
+   */
+  site?: (number | null) | Site;
   description?: string | null;
   /**
    * Define the form fields. Field IDs must be unique and lowercase.
@@ -437,6 +477,10 @@ export interface FormSubmission {
     | number
     | boolean
     | null;
+  /**
+   * Tenant/site boundary. Defaults to the default site for existing single-site data.
+   */
+  site?: (number | null) | Site;
   updatedAt: string;
   createdAt: string;
 }
@@ -471,6 +515,10 @@ export interface Page {
   publishedAt?: string | null;
   excerpt?: string | null;
   heroImage?: (number | null) | Media;
+  /**
+   * Tenant/site boundary. Defaults to the default site for existing single-site data.
+   */
+  site?: (number | null) | Site;
   /**
    * Public content is anonymous-safe. Members-only content requires a signed-in member session.
    */
@@ -511,6 +559,10 @@ export interface Post {
   excerpt?: string | null;
   featuredImage?: (number | null) | Media;
   /**
+   * Tenant/site boundary. Defaults to the default site for existing single-site data.
+   */
+  site?: (number | null) | Site;
+  /**
    * Public content is anonymous-safe. Members-only content requires a signed-in member session.
    */
   accessLevel: 'public' | 'members';
@@ -536,6 +588,10 @@ export interface Redirect {
   destinationPath: string;
   type: '301' | '302';
   isActive?: boolean | null;
+  /**
+   * Tenant/site boundary. Defaults to the default site for existing single-site data.
+   */
+  site?: (number | null) | Site;
   updatedAt: string;
   createdAt: string;
 }
@@ -638,6 +694,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'members';
         value: number | Member;
+      } | null)
+    | ({
+        relationTo: 'sites';
+        value: number | Site;
       } | null)
     | ({
         relationTo: 'installation-state';
@@ -775,6 +835,7 @@ export interface UsersSelect<T extends boolean = true> {
  * via the `definition` "members_select".
  */
 export interface MembersSelect<T extends boolean = true> {
+  site?: T;
   firstName?: T;
   lastName?: T;
   updatedAt?: T;
@@ -793,6 +854,27 @@ export interface MembersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sites_select".
+ */
+export interface SitesSelect<T extends boolean = true> {
+  siteId?: T;
+  slug?: T;
+  name?: T;
+  status?: T;
+  isDefault?: T;
+  domains?:
+    | T
+    | {
+        hostname?: T;
+        primary?: T;
+        developmentOnly?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -863,6 +945,7 @@ export interface PluginStatesSelect<T extends boolean = true> {
  * via the `definition` "commerce-customers_select".
  */
 export interface CommerceCustomersSelect<T extends boolean = true> {
+  site?: T;
   provider?: T;
   member?: T;
   email?: T;
@@ -875,6 +958,7 @@ export interface CommerceCustomersSelect<T extends boolean = true> {
  * via the `definition` "commerce-orders_select".
  */
 export interface CommerceOrdersSelect<T extends boolean = true> {
+  site?: T;
   provider?: T;
   externalOrderId?: T;
   externalCartId?: T;
@@ -909,6 +993,7 @@ export interface CommerceOrdersSelect<T extends boolean = true> {
 export interface FormsSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
+  site?: T;
   description?: T;
   fields?:
     | T
@@ -949,6 +1034,7 @@ export interface FormSubmissionsSelect<T extends boolean = true> {
   submittedAt?: T;
   status?: T;
   workflowResults?: T;
+  site?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -981,6 +1067,7 @@ export interface PagesSelect<T extends boolean = true> {
   publishedAt?: T;
   excerpt?: T;
   heroImage?: T;
+  site?: T;
   accessLevel?: T;
   body?: T;
   builder?: T;
@@ -1007,6 +1094,7 @@ export interface PostsSelect<T extends boolean = true> {
   publishedAt?: T;
   excerpt?: T;
   featuredImage?: T;
+  site?: T;
   accessLevel?: T;
   body?: T;
   seo?:
@@ -1031,6 +1119,7 @@ export interface RedirectsSelect<T extends boolean = true> {
   destinationPath?: T;
   type?: T;
   isActive?: T;
+  site?: T;
   updatedAt?: T;
   createdAt?: T;
 }
