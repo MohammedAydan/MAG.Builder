@@ -782,3 +782,42 @@ Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-19-api-platfor
 ### Resume instructions
 
 Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-20-webhooks-integrations/review.md`, then start Phase 21 only if explicitly requested.
+---
+## Session: 2026-05-15
+
+### What was done
+
+- Implemented Phase 21 MCP Native Gateway
+- Created `@nexpress/mcp-gateway` with JSON-RPC routing, typed tool registry, and safe abstractions
+- Added a protected Next.js API route `apps/web/src/app/api/mcp/route.ts` requiring server-side Payload authentication
+- Added strict capability/scope checks parsed from Payload user roles
+- Implemented read-only initial tools (`platform.health.read`, `content.published.list`)
+- Added comprehensive tool audit logs using `system.mcp.tool_called`
+
+### Decisions made
+
+- Kept the MCP endpoint HTTP-only and read-only for Phase 21 - Reason: this fulfills the requirement for a basic foundation without exposing arbitrary mutation capability
+- Used Payload's `auth()` headers for authentication instead of custom MCP API keys - Reason: it provides secure integration out-of-the-box using the existing identity system
+- Audited all requests, both successes and failures, safely stripping out raw internal stack traces or secrets - Reason: traceability is a core architectural requirement
+
+### Files changed
+
+- `packages/mcp-gateway/*`
+- `apps/web/package.json`
+- `apps/web/src/lib/mcp.ts`
+- `apps/web/src/app/api/mcp/route.ts`
+- `apps/web/src/lib/audit/service.ts`
+- `plans/context.md`
+- `plans/phase-21-mcp-native-gateway/review.md`
+- `IMPLEMENTATION_STATUS.md`
+
+### State at end of session
+
+- Active feature: phase-21-mcp-native-gateway
+- Last completed task: Phase 21 verification and review
+- Next task: wait for explicit instruction before starting Phase 22
+- Blockers: none
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-21-mcp-native-gateway/review.md`, then start Phase 22 only if explicitly requested.

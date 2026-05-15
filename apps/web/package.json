@@ -25,6 +25,7 @@
     "@nexpress/builder-editor": "workspace:*",
     "@nexpress/commerce": "workspace:*",
     "@nexpress/forms": "workspace:*",
+    "@nexpress/mcp-gateway": "workspace:*",
     "@nexpress/plugins": "workspace:*",
     "@nexpress/themes": "workspace:*",
     "@nexpress/webhooks": "workspace:*",

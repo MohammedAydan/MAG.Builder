@@ -18,6 +18,7 @@ export const AUDIT_ACTIONS = {
   memberLogoutSucceeded: 'members.logout.succeeded',
   memberProfileUpdated: 'members.profile.updated',
   memberRegistered: 'members.registered',
+  mcpToolCalled: 'system.mcp.tool_called',
   pluginActivated: 'plugins.activated',
   pluginDeactivated: 'plugins.deactivated',
   pluginMigrationExecuted: 'plugins.migrations.executed',
