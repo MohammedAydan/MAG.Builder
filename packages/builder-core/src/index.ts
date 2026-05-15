@@ -11,6 +11,8 @@ export {
   type BuilderKnownBlock,
   type BuilderBlockInput,
   type BuilderDocumentInput,
+  type BuilderExternalBlockRenderArgs,
+  type BuilderExternalBlockRenderer,
   type BuilderMigrationResult,
   type BuilderRenderContext,
   type BuilderStructureValidationResult,

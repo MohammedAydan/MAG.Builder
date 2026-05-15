@@ -1,10 +1,10 @@
-# Commerce MVP Runbook - Phase 17
+# Commerce MVP and Storefront Blocks Runbook - Phases 17-18
 
 ## Overview
 
 Phase 17 adds the first minimal commerce runtime on top of the Phase 16 boundary.
 
-This phase introduces:
+Phase 17 introduced:
 
 - public-safe catalog reads through NexPress-owned route handlers
 - member-authenticated cart creation and cart item mutations
@@ -12,7 +12,14 @@ This phase introduces:
 - test-mode checkout that records admin-visible order snapshots
 - continued fail-closed gating through `commerce-pack`
 
-This phase does not add storefront builder blocks, real payment processing, shipping, taxes, promotions, inventory, refunds, or marketplace features.
+Phase 18 adds:
+
+- builder-core storefront blocks for product grid, product detail, cart, and collection list
+- builder-editor mappings for those blocks with constrained field inputs only
+- NexPress-owned server rendering for storefront product and cart blocks
+- minimal client add-to-cart and cart-summary interactivity that talks only to existing NexPress commerce APIs
+
+These phases still do not add real payment processing, shipping, taxes, promotions, inventory, refunds, or marketplace features.
 
 ## Runtime model
 
@@ -24,6 +31,8 @@ NexPress owns:
 - server-side cart and checkout orchestration
 - member-to-customer mapping persistence
 - local admin visibility of order snapshots in `commerce-orders`
+- storefront block rendering integration inside published builder pages
+- minimal browser-local cart id storage for signed-in member storefront sessions
 
 Medusa owns:
 
@@ -37,6 +46,7 @@ Medusa owns:
 - all Phase 17 commerce services still require `commerce-pack`
 - capability checks run server-side only
 - disabled or missing capability state fails closed with a `503`
+- Phase 18 storefront blocks render safe disabled or unavailable states when the capability or runtime config is not ready
 
 ## Environment variables
 
@@ -71,6 +81,38 @@ Behavior:
 - cart and order routes require an authenticated `members` session
 - checkout runs in NexPress test mode and records an order snapshot without collecting payment data
 
+## Storefront builder blocks
+
+Phase 18 registers these public-safe builder blocks:
+
+- `commerce.product-grid`
+- `commerce.product-detail`
+- `commerce.cart`
+- `commerce.collection-list`
+
+Notes:
+
+- `commerce.product-grid` can render from the catalog feed or a curated manual list of product handles
+- `commerce.product-detail` resolves one product by handle and can expose only safe product and variant projections
+- `commerce.cart` renders against existing NexPress commerce routes and never calls Medusa directly from the browser
+- `commerce.collection-list` is a curated storefront link list, not a provider-backed category sync
+
+## Public rendering model
+
+- `@nexpress/builder-core` remains the public rendering source of truth
+- `apps/web` injects storefront block rendering through the builder render context
+- editor-only Puck code stays out of public routes and bundles
+- storefront server components call `apps/web/src/lib/commerce/service.ts` helpers rather than provider SDK code
+- client components are limited to cart/add-to-cart interactions and only call NexPress-owned `/api/commerce/*` endpoints
+
+## Cart behavior
+
+- carts remain member-authenticated only
+- the browser stores only a local cart id pointer for the signed-in member session
+- variant ids and quantities are validated server-side before cart mutations
+- client-provided prices, totals, discounts, shipping, taxes, and inventory are never trusted
+- guest carts are still out of scope; the storefront cart UI prompts login or fails safely for unauthenticated users
+
 ## Payload collections added
 
 - `commerce-customers`
@@ -99,18 +141,18 @@ No public write access exists for either collection.
 
 ## Known limitations
 
-- no storefront product pages or commerce builder blocks yet
+- no dedicated storefront product routes were added; product presentation is currently builder-block driven inside existing page routes
 - no guest carts
 - no real payment completion
 - no shipping/tax/promotion/inventory workflows
 - no order-management dashboard UI beyond Payload admin collection visibility
+- collection links are curated manually rather than synced from provider categories or collections
 - no live DB migration file generated in this session; collections were added and types were regenerated, but migration generation still requires a live database
 
-## Phase 18 handoff
+## Phase 19 handoff
 
-Phase 18 can build on this work by adding:
+Phase 19 can build on this work by adding:
 
-- storefront-facing commerce builder blocks
-- richer product presentation routes/components
-- stronger customer-to-cart association with provider-native customer flows
-- order history presentation inside the public member account
+- OpenAPI-backed public contracts for the storefront and commerce routes
+- documented scoped API behavior for catalog, cart, and future order flows
+- broader public storefront API hardening and documentation

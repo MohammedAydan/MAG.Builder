@@ -149,4 +149,70 @@ describe('builder renderer', () => {
     expect(html).toContain('Invalid block');
     expect(html).toContain('Safe sibling content.');
   });
+
+  it('renders storefront collection links safely without an app callback', () => {
+    const html = renderToStaticMarkup(
+      renderBuilderDocument(
+        {
+          blocks: [
+            {
+              id: 'collections',
+              props: {
+                items: [
+                  {
+                    description: 'Curated storefront links stay static and safe.',
+                    href: '/shop/new-arrivals',
+                    label: 'New arrivals',
+                  },
+                ],
+                layout: 'cards',
+                title: 'Shop collections',
+              },
+              type: 'commerce.collection-list',
+            },
+          ],
+          schema: 'nexpress-builder',
+          version: 1,
+        },
+        {
+          registry: coreBlockRegistry,
+        },
+      ),
+    );
+
+    expect(html).toContain('Shop collections');
+    expect(html).toContain('New arrivals');
+    expect(html).toContain('/shop/new-arrivals');
+  });
+
+  it('fails storefront product blocks safely when no public renderer callback is provided', () => {
+    const html = renderToStaticMarkup(
+      renderBuilderDocument(
+        {
+          blocks: [
+            {
+              id: 'product-grid',
+              props: {
+                columns: 3,
+                ctaMode: 'add-to-cart',
+                layout: 'grid',
+                limit: 3,
+                productHandles: [],
+                source: 'catalog',
+                title: 'Featured products',
+              },
+              type: 'commerce.product-grid',
+            },
+          ],
+          schema: 'nexpress-builder',
+          version: 1,
+        },
+        {
+          registry: coreBlockRegistry,
+        },
+      ),
+    );
+
+    expect(html).toContain('unavailable on the public renderer');
+  });
 });

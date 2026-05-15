@@ -144,4 +144,56 @@ describe('builder editor adapter', () => {
     expect(result.data.content).toEqual([]);
     expect(result.warnings[0]).toContain('Dropped unsupported builder block');
   });
+
+  it('preserves structured storefront product selections through editor conversion', () => {
+    const result = editorDataToBuilderDocument(
+      {
+        content: [
+          {
+            props: {
+              columns: 3,
+              ctaMode: 'add-to-cart',
+              emptyMessage: 'No products are available yet.',
+              id: 'product-grid',
+              layout: 'grid',
+              limit: 3,
+              productHandles: [
+                {
+                  handle: 'starter-kit',
+                },
+              ],
+              source: 'manual',
+              title: 'Featured products',
+            },
+            type: 'commerce.product-grid',
+          },
+        ],
+        root: {},
+      },
+      coreBlockRegistry,
+    );
+
+    expect(result.success).toBe(true);
+
+    if (result.success) {
+      expect(result.document.blocks[0]).toEqual({
+        id: 'product-grid',
+        props: {
+          columns: 3,
+          ctaMode: 'add-to-cart',
+          emptyMessage: 'No products are available yet.',
+          layout: 'grid',
+          limit: 3,
+          productHandles: [
+            {
+              handle: 'starter-kit',
+            },
+          ],
+          source: 'manual',
+          title: 'Featured products',
+        },
+        type: 'commerce.product-grid',
+      });
+    }
+  });
 });

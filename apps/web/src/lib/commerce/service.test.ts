@@ -8,6 +8,7 @@ import {
   createCommerceCartForMemberWithDeps,
   ensureCommerceCustomerForMemberWithPayload,
   getCommerceAdapter,
+  getCommerceStorefrontStatus,
   hasCommerceCatalogAccess,
   listMemberOrdersWithPayload,
 } from '@/lib/commerce/service';
@@ -138,6 +139,22 @@ describe('commerce service', () => {
         status: 503,
       }),
     );
+  });
+
+  it('reports disabled storefront status when commerce-pack is inactive', async () => {
+    hasActivePluginCapabilityMock.mockResolvedValue(false);
+
+    await expect(getCommerceStorefrontStatus()).resolves.toBe('disabled');
+  });
+
+  it('reports enabled storefront status when runtime commerce config is valid', async () => {
+    hasActivePluginCapabilityMock.mockResolvedValue(true);
+    vi.stubEnv('NEXPRESS_COMMERCE_PROVIDER', 'medusa');
+    vi.stubEnv('MEDUSA_BACKEND_URL', 'http://127.0.0.1:9000');
+    vi.stubEnv('MEDUSA_DEFAULT_REGION_ID', 'reg_test');
+    vi.stubEnv('MEDUSA_PUBLISHABLE_KEY', 'pk_test_value');
+
+    await expect(getCommerceStorefrontStatus()).resolves.toBe('enabled');
   });
 
   it('creates a persisted commerce customer mapping once per member', async () => {

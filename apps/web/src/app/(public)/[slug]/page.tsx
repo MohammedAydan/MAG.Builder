@@ -53,6 +53,7 @@ export default async function PublicContentPage({ params }: PublicContentPagePro
   }
 
   const page = pageResult.document;
+  const content = await renderPublishedPageContent(page);
 
   return (
     <div className="mx-auto flex w-full max-w-[var(--layout-content)] flex-col gap-8 px-[var(--space-gutter)] py-[var(--space-section)]">
@@ -74,7 +75,7 @@ export default async function PublicContentPage({ params }: PublicContentPagePro
             </span>
           ) : null}
         </div>
-        {renderPublishedPageContent(page)}
+        {content}
       </SurfaceCard>
     </div>
   );

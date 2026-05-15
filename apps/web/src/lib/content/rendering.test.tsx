@@ -1,11 +1,17 @@
+import { vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
+
+vi.mock('@/lib/commerce/storefront', () => ({
+  renderCommerceBuilderBlock: () => null,
+}));
+
 import { renderPublishedPageContent } from '@/lib/content/rendering';
 
 describe('published page rendering', () => {
-  it('renders the builder document when it validates', () => {
+  it('renders the builder document when it validates', async () => {
     const html = renderToStaticMarkup(
-      renderPublishedPageContent({
+      await renderPublishedPageContent({
         body: 'Legacy body',
         builder: {
           blocks: [
@@ -41,9 +47,9 @@ describe('published page rendering', () => {
     expect(html).not.toContain('Legacy body');
   });
 
-  it('falls back to the legacy body when builder JSON is invalid', () => {
+  it('falls back to the legacy body when builder JSON is invalid', async () => {
     const html = renderToStaticMarkup(
-      renderPublishedPageContent({
+      await renderPublishedPageContent({
         body: 'Legacy fallback survives.',
         builder: {
           blocks: 'broken',
@@ -56,9 +62,9 @@ describe('published page rendering', () => {
     expect(html).toContain('Legacy fallback survives.');
   });
 
-  it('renders safe placeholders for unknown blocks instead of crashing', () => {
+  it('renders safe placeholders for unknown blocks instead of crashing', async () => {
     const html = renderToStaticMarkup(
-      renderPublishedPageContent({
+      await renderPublishedPageContent({
         body: 'Legacy body',
         builder: {
           blocks: [

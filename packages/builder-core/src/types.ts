@@ -12,7 +12,17 @@ export type JsonObject = {
 
 export type BuilderSurface = 'admin' | 'public';
 
+export type BuilderExternalBlockRenderArgs = Readonly<{
+  block: BuilderKnownBlock;
+  context: BuilderRenderContext;
+  props: JsonObject;
+  type: string;
+}>;
+
+export type BuilderExternalBlockRenderer = (args: BuilderExternalBlockRenderArgs) => ReactNode;
+
 export type BuilderRenderContext = Readonly<{
+  renderExternalBlock?: BuilderExternalBlockRenderer;
   surface: BuilderSurface;
 }>;
 

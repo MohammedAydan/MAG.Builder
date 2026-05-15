@@ -6,6 +6,10 @@ describe('puck config', () => {
     const config = createPuckConfig();
 
     expect(Object.keys(config.components)).toEqual([
+      'commerce.cart',
+      'commerce.collection-list',
+      'commerce.product-detail',
+      'commerce.product-grid',
       'core.button',
       'core.heading',
       'core.image',
@@ -14,7 +18,17 @@ describe('puck config', () => {
     ]);
 
     expect(config.components['core.section'].fields?.content).toEqual({
-      allow: ['core.heading', 'core.text', 'core.image', 'core.button', 'core.section'],
+      allow: [
+        'core.heading',
+        'core.text',
+        'core.image',
+        'core.button',
+        'core.section',
+        'commerce.product-grid',
+        'commerce.product-detail',
+        'commerce.cart',
+        'commerce.collection-list',
+      ],
       type: 'slot',
     });
   });

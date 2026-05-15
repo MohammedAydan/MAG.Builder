@@ -6,7 +6,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 
 ## Current Status
 
-- Active feature: phase-17-commerce-mvp
+- Active feature: phase-18-storefront-commerce-blocks
 - Overall health: green
 - Last updated: 2026-05-15
 
@@ -38,6 +38,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - phase-15-membership-public-protection: done, `apps/web` now has a dedicated `members` auth collection, server-side member auth routes, a protected `/account` route, and published public content visibility rules for public vs members-only pages and posts
 - phase-16-commerce-service-spike: done, `packages/commerce` now owns the typed adapter contracts, Medusa spike adapter, and lazy runtime config parsing while `apps/web` fails closed behind `commerce-pack` capability checks
 - phase-17-commerce-mvp: done, commerce now exposes server-side catalog, cart, checkout, customer mapping, and member-order flows with Payload-backed admin snapshots and audit events
+- phase-18-storefront-commerce-blocks: done, builder-core and builder-editor now support safe storefront commerce blocks, while `apps/web` injects NexPress-owned server rendering plus minimal client cart interactivity through existing `/api/commerce/*` routes
 
 ## Known Issues / Tech Debt
 
@@ -58,7 +59,9 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - Commerce carts are member-authenticated only in Phase 17; guest carts and anonymous checkout are not implemented
 - Checkout is currently a server-side test-mode order snapshot path with admin-visible `commerce-orders` persistence; real payment capture and provider-native order finalization are still incomplete
 - No live DB-backed Payload migration file has been generated yet for the new `commerce-customers` and `commerce-orders` collections because migration creation still requires a live database
-- Storefront blocks, real taxes/shipping/coupons/inventory flows, and webhook-based order reconciliation remain out of scope until later phases
+- Storefront catalog, product-detail, cart, and collection-list blocks now exist, but collection links are curated manually and not provider-synced
+- Commerce storefront interactivity stores only a local cart id pointer in the browser; guest carts are still out of scope
+- Real taxes/shipping/coupons/inventory flows and webhook-based order reconciliation remain out of scope until later phases
 - `@measured/puck@0.20.2` is currently the editor adapter dependency even though the package is marked deprecated upstream; the kernel remains vendor-neutral and Phase 13+ can revisit the adapter choice if needed
 - Package placeholders outside `apps/web`, `packages/builder-core`, `packages/builder-editor`, `packages/themes`, `packages/plugins`, `packages/forms`, and `packages/commerce` remain intentionally unimplemented until their phases begin
 

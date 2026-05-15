@@ -35,6 +35,10 @@ const cartItemInputSchema = z.object({
   variantId: externalIdSchema,
 });
 
+const catalogListInputSchema = z.object({
+  limit: z.number().int().min(1).max(12).optional(),
+});
+
 type PayloadFindResult<T> = {
   docs: T[];
 };
@@ -91,6 +95,8 @@ export class CommerceServiceError extends Error {
     super(message);
   }
 }
+
+export type CommerceStorefrontStatus = 'disabled' | 'enabled' | 'misconfigured' | 'unavailable';
 
 function createCommerceAuditActor(member: AuthenticatedMemberLike) {
   return {
@@ -529,6 +535,16 @@ export async function listCatalogProducts() {
   }
 }
 
+export async function listCatalogProductsWithInput(input?: { limit?: number }) {
+  try {
+    const adapter = await getCommerceAdapter();
+    const parsed = catalogListInputSchema.parse(input ?? {});
+    return await adapter.products.listCatalog(parsed.limit ? { limit: parsed.limit } : undefined);
+  } catch (error) {
+    throw normalizeCommerceError(error);
+  }
+}
+
 export async function getCatalogProductByHandle(handle: string) {
   try {
     const adapter = await getCommerceAdapter();
@@ -621,4 +637,23 @@ export async function listMemberOrders() {
 
 export function getSafeCommerceErrorMessage(error: unknown) {
   return normalizeCommerceError(error).message;
+}
+
+export async function getCommerceStorefrontStatus(): Promise<CommerceStorefrontStatus> {
+  try {
+    await getCommerceAdapter();
+    return 'enabled';
+  } catch (error) {
+    const normalized = normalizeCommerceError(error);
+
+    if (normalized.code === 'commerce-disabled') {
+      return 'disabled';
+    }
+
+    if (normalized.code === 'commerce-misconfigured') {
+      return 'misconfigured';
+    }
+
+    return 'unavailable';
+  }
 }

@@ -22,6 +22,8 @@ export default async function DashboardPagePreviewPage({ params }: DashboardPage
     notFound();
   }
 
+  const content = await renderPublishedPageContent(page.page);
+
   return (
     <div className="space-y-6">
       <section className="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur">
@@ -46,7 +48,7 @@ export default async function DashboardPagePreviewPage({ params }: DashboardPage
         </SectionHeading>
 
         <SurfaceCard className="mt-6 space-y-6">
-          {renderPublishedPageContent(page.page)}
+          {content}
         </SurfaceCard>
       </div>
     </div>

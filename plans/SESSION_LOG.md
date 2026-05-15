@@ -666,3 +666,42 @@ Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-16-commerce-servic
 ### Resume instructions
 
 Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-17-commerce-mvp/review.md`, and `docs/runbooks/commerce-mvp.md`, then start Phase 18 only if explicitly requested.
+---
+## Session: 2026-05-15
+
+### What was done
+
+- Implemented Phase 18 storefront commerce blocks across `packages/builder-core`, `packages/builder-editor`, and `apps/web`
+- Added typed builder blocks for product grid, product detail, cart, and collection list with strict validation and fail-safe public behavior
+- Added NexPress-owned server rendering for storefront blocks plus minimal client cart/add-to-cart interactivity that only calls existing `/api/commerce/*` routes
+- Verified the root workspace gates and the explicit package/app command matrix from the Phase 18 brief
+
+### Decisions made
+
+- Kept `@nexpress/builder-core` as the public rendering source of truth and injected storefront rendering through a render-context bridge - Reason: commerce blocks need server-owned data fetching without moving Medusa concerns into the kernel or public client bundle
+- Scoped storefront cart state to a browser-local cart id pointer for authenticated members only - Reason: Phase 17 already established member-only cart behavior and guest carts remain out of scope
+- Implemented the collection list block as a curated safe link list instead of provider-synced collections - Reason: the current commerce contract exposes products and variants but not a typed collection/category surface yet
+
+### Files changed
+
+- `packages/builder-core/src/{blocks/core-blocks.tsx,index.ts,types.ts,renderer.test.tsx,schema.test.ts}`
+- `packages/builder-editor/src/{config.tsx,config.test.tsx,adapter.test.ts}`
+- `apps/web/src/components/commerce/{storefront-add-to-cart.tsx,storefront-cart.tsx,storefront-blocks.tsx}`
+- `apps/web/src/lib/commerce/{service.ts,service.test.ts,storefront.ts}`
+- `apps/web/src/lib/content/{rendering.ts,rendering.test.tsx}`
+- `apps/web/src/app/{(public)/[slug]/page.tsx,dashboard/pages/[id]/preview/page.tsx}`
+- `docs/runbooks/commerce-mvp.md`
+- `plans/context.md`
+- `plans/phase-18-storefront-commerce-blocks/review.md`
+- `IMPLEMENTATION_STATUS.md`
+
+### State at end of session
+
+- Active feature: phase-18-storefront-commerce-blocks
+- Last completed task: Phase 18 verification and review
+- Next task: wait for explicit instruction before starting Phase 19
+- Blockers: no live DB migration file was generated because migration creation still requires a live database; guest carts and real checkout flows remain out of scope
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-18-storefront-commerce-blocks/review.md`, and `docs/runbooks/commerce-mvp.md`, then start Phase 19 only if explicitly requested.

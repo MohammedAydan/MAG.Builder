@@ -1,6 +1,7 @@
 import { createElement, Fragment } from 'react';
 import { renderValidatedBuilderDocument } from '@nexpress/builder-core';
 import { validatePublishedBuilderDocument } from '@/lib/builder/kernel';
+import { renderCommerceBuilderBlock } from '@/lib/commerce/storefront';
 
 export type PublishedPageContent = Readonly<{
   body: string;
@@ -34,7 +35,7 @@ export function renderLegacyPageBody(body: string) {
   );
 }
 
-export function renderPublishedPageContent(page: PublishedPageContent) {
+export async function renderPublishedPageContent(page: PublishedPageContent) {
   if (page.builder == null) {
     return renderLegacyPageBody(page.body);
   }
@@ -50,6 +51,7 @@ export function renderPublishedPageContent(page: PublishedPageContent) {
     null,
     renderValidatedBuilderDocument(validation.document, {
       context: {
+        renderExternalBlock: renderCommerceBuilderBlock,
         surface: 'public',
       },
       fallback: renderLegacyPageBody(page.body),
