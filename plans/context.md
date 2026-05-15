@@ -6,7 +6,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 
 ## Current Status
 
-- Active feature: phase-15-membership-public-protection
+- Active feature: phase-16-commerce-service-spike
 - Overall health: green
 - Last updated: 2026-05-15
 
@@ -36,6 +36,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - phase-13-plugin-module-system: done, `packages/plugins` now owns versioned plugin manifest validation, deterministic local registry behavior, typed capability and migration metadata, and `apps/web` now persists protected activation state with audited server-only plugin APIs
 - phase-14-forms-workflows: done, `packages/forms` now owns typed form schemas, validation, rate limiting, SSRF-protected webhooks, and `apps/web` now exposes public-safe form definition/submission flows plus protected submission storage
 - phase-15-membership-public-protection: done, `apps/web` now has a dedicated `members` auth collection, server-side member auth routes, a protected `/account` route, and published public content visibility rules for public vs members-only pages and posts
+- phase-16-commerce-service-spike: done, `packages/commerce` now owns the typed adapter contracts, Medusa spike adapter, and lazy runtime config parsing while `apps/web` fails closed behind `commerce-pack` capability checks
 
 ## Known Issues / Tech Debt
 
@@ -51,8 +52,10 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - Phase 15 keeps membership as a core platform feature rather than a plugin-gated runtime capability; the placeholder `membership-pack` metadata remains non-executable
 - Members now use a separate HTTP-only cookie and do not share the dashboard/admin session, but password reset and email verification remain unimplemented
 - Members-only content is filtered out of sitemap generation and anonymous public reads; no protected media pipeline exists yet
+- Phase 16 selects Medusa as the first provider direction but keeps the integration at adapter-skeleton level only; no storefront, checkout, payment, tax, shipping, inventory, or order runtime has been implemented yet
+- Commerce now fails closed unless `commerce-pack` is active and a valid server-only runtime configuration exists
 - `@measured/puck@0.20.2` is currently the editor adapter dependency even though the package is marked deprecated upstream; the kernel remains vendor-neutral and Phase 13+ can revisit the adapter choice if needed
-- Package placeholders outside `apps/web`, `packages/builder-core`, `packages/builder-editor`, `packages/themes`, and `packages/plugins` remain intentionally unimplemented until their phases begin
+- Package placeholders outside `apps/web`, `packages/builder-core`, `packages/builder-editor`, `packages/themes`, `packages/plugins`, `packages/forms`, and `packages/commerce` remain intentionally unimplemented until their phases begin
 
 ## Team / Ownership
 

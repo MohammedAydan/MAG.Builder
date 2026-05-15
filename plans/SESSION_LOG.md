@@ -587,3 +587,41 @@ Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-13-plugin-module-s
 ### Resume instructions
 
 Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-15-membership-public-protection/review.md`, and `docs/runbooks/membership-protected-routes.md`, then start Phase 16 only if explicitly requested.
+---
+## Session: 2026-05-15
+
+### What was done
+
+- Implemented Phase 16 as a real `packages/commerce` workspace package instead of a placeholder
+- Added provider-agnostic commerce contracts, lazy runtime config parsing, a Medusa spike adapter, and an in-memory contract-test adapter
+- Added server-only commerce access helpers in `apps/web` gated by `commerce-pack`
+- Documented the provider strategy, boundaries, and Phase 17 handoff
+
+### Decisions made
+
+- Keep Medusa as the selected provider direction but limit Phase 16 to an adapter skeleton - Reason: the spike must validate the boundary without silently starting Commerce MVP scope
+- Gate app-side commerce access through `commerce-pack` capability checks - Reason: commerce remains optional and must fail closed when disabled
+- Keep commerce runtime env parsing outside eager build validation and resolve it only inside server-side commerce accessors - Reason: the existing split-schema env pattern must not break static builds
+
+### Files changed
+
+- `packages/commerce/*`
+- `apps/web/package.json`
+- `apps/web/src/lib/commerce/*`
+- `.env.example`
+- `docs/decisions/{README.md,0004-commerce-service-spike.md}`
+- `docs/runbooks/commerce-service-spike.md`
+- `plans/context.md`
+- `plans/phase-16-commerce-service-spike/review.md`
+- `IMPLEMENTATION_STATUS.md`
+
+### State at end of session
+
+- Active feature: phase-16-commerce-service-spike
+- Last completed task: Phase 16 verification and review
+- Next task: wait for explicit instruction before starting Phase 17
+- Blockers: no live DB migration file exists because Phase 16 added no Payload collections and no live database migration generation was needed
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-16-commerce-service-spike/review.md`, and `docs/runbooks/commerce-service-spike.md`, then start Phase 17 only if explicitly requested.

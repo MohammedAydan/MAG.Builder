@@ -2,10 +2,10 @@
 
 Project: NexPress
 Mode: Greenfield
-Current phase: 15-membership-public-protection
+Current phase: 16-commerce-service-spike
 Overall status: in-progress
 
-The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, visual editor adapter, themes/templates foundation, plugin/module system, forms/workflows foundation, and public membership/protected-route foundation are implemented. Commerce, APIs beyond current routes, and MCP features remain out of scope for the current repository state.
+The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, visual editor adapter, themes/templates foundation, plugin/module system, forms/workflows foundation, public membership/protected-route foundation, and the commerce service spike are implemented. Commerce MVP, storefront commerce features, APIs beyond current routes, and MCP features remain out of scope for the current repository state.
 
 ## Phase tracker
 
@@ -25,7 +25,7 @@ The platform foundation, Payload CMS foundation, database/migration/seed layer, 
 - [x] Phase 13 - Plugin and Module System: done
 - [x] Phase 14 - Forms and Workflows: done
 - [x] Phase 15 - Public Membership and Protected Routes: done
-- [ ] Phase 16 - Commerce Service Spike: not-started
+- [x] Phase 16 - Commerce Service Spike: done
 - [ ] Phase 17 - Commerce MVP: not-started
 - [ ] Phase 18 - Storefront Commerce Blocks: not-started
 - [ ] Phase 19 - API Platform and OpenAPI: not-started
@@ -50,22 +50,17 @@ Codex (GPT-5)
 
 ### Requested phase
 
-Phase 15 - Public Membership and Protected Routes
+Phase 16 - Commerce Service Spike
 
 ### Files changed
 
-- `apps/web/src/collections/{Members,Pages,Posts}.ts` - added a dedicated public member auth collection plus content visibility fields for pages/posts
-- `apps/web/src/lib/auth/{access.ts,access.test.ts}` - added member/self access helpers and anonymous-vs-member published content rules
-- `apps/web/src/lib/audit/service.ts` - added member registration/login/logout/profile audit action ids
-- `apps/web/src/lib/content/{access-fields.ts,public.ts,public.test.ts}` - added typed content visibility fields and member-aware protected-content resolution helpers/tests
-- `apps/web/src/lib/members/{service.ts,service.test.ts}` - added server-only member validation, session, sign-up/login/logout/profile, and guard helpers
-- `apps/web/src/app/(public)/{login,signup,account}/page.tsx` - added public auth pages and a protected account/profile route
-- `apps/web/src/app/api/members/**/*` - added server-side member sign-up, login, logout, and profile handlers
-- `apps/web/src/lib/public-shell/{navigation.ts,content.test.ts}` - exposed the member login entry in the public shell
-- `apps/web/src/payload.config.ts`
-- `apps/web/src/payload-types.ts`
-- `docs/runbooks/membership-protected-routes.md`
-- `plans/phase-15-membership-public-protection/review.md`
+- `packages/commerce/**/*` - replaced the placeholder with typed contracts, runtime config parsing, a Medusa spike adapter, a mock adapter, and package tests
+- `apps/web/package.json` - added the `@nexpress/commerce` workspace dependency
+- `apps/web/src/lib/commerce/{service.ts,service.test.ts}` - added server-only commerce capability gating, lazy runtime config access, and fail-closed service tests
+- `.env.example` - added placeholder commerce environment variables only
+- `docs/decisions/{README.md,0004-commerce-service-spike.md}` - recorded the provider and boundary decision
+- `docs/runbooks/commerce-service-spike.md`
+- `plans/phase-16-commerce-service-spike/review.md`
 - `plans/context.md`
 - `plans/SESSION_LOG.md`
 - `IMPLEMENTATION_STATUS.md`
@@ -77,27 +72,10 @@ Phase 15 - Public Membership and Protected Routes
 - `pnpm.cmd typecheck`
 - `pnpm.cmd test`
 - `pnpm.cmd build`
-- `pnpm.cmd --dir packages/plugins lint`
-- `pnpm.cmd --dir packages/plugins typecheck`
-- `pnpm.cmd --dir packages/plugins test`
-- `pnpm.cmd --dir packages/plugins build`
-- `pnpm.cmd --dir packages/builder-core lint`
-- `pnpm.cmd --dir packages/builder-core typecheck`
-- `pnpm.cmd --dir packages/builder-core test`
-- `pnpm.cmd --dir packages/builder-core build`
-- `pnpm.cmd --dir packages/builder-editor lint`
-- `pnpm.cmd --dir packages/builder-editor typecheck`
-- `pnpm.cmd --dir packages/builder-editor test`
-- `pnpm.cmd --dir packages/builder-editor build`
-- `pnpm.cmd --dir packages/themes lint`
-- `pnpm.cmd --dir packages/themes typecheck`
-- `pnpm.cmd --dir packages/themes test`
-- `pnpm.cmd --dir packages/themes build`
-- `pnpm.cmd --dir apps/web lint`
-- `pnpm.cmd --dir apps/web typecheck`
-- `pnpm.cmd --dir apps/web test`
-- `pnpm.cmd --dir apps/web build`
-- `pnpm.cmd --dir apps/web generate:types`
+- `pnpm.cmd --dir packages/commerce lint`
+- `pnpm.cmd --dir packages/commerce typecheck`
+- `pnpm.cmd --dir packages/commerce test`
+- `pnpm.cmd --dir packages/commerce build`
 - `pnpm.cmd --dir packages/forms lint`
 - `pnpm.cmd --dir packages/forms typecheck`
 - `pnpm.cmd --dir packages/forms test`
@@ -118,35 +96,22 @@ Phase 15 - Public Membership and Protected Routes
 - `pnpm.cmd --dir packages/themes typecheck`
 - `pnpm.cmd --dir packages/themes test`
 - `pnpm.cmd --dir packages/themes build`
+- `pnpm.cmd --dir apps/web lint`
+- `pnpm.cmd --dir apps/web typecheck`
+- `pnpm.cmd --dir apps/web test`
+- `pnpm.cmd --dir apps/web build`
 
 ### Test results
 
 - `pnpm.cmd install` - passed
 - `pnpm.cmd lint` - passed
 - `pnpm.cmd typecheck` - passed
-- `pnpm.cmd test` - passed (95/95 tests, 29 test files across `apps/web`, `packages/builder-core`, `packages/builder-editor`, `packages/themes`, and `packages/plugins`)
+- `pnpm.cmd test` - passed
 - `pnpm.cmd build` - passed
-- `pnpm.cmd --dir packages/plugins lint` - passed
-- `pnpm.cmd --dir packages/plugins typecheck` - passed
-- `pnpm.cmd --dir packages/plugins test` - passed (9/9 tests, 2 test files)
-- `pnpm.cmd --dir packages/plugins build` - passed
-- `pnpm.cmd --dir packages/builder-core lint` - passed
-- `pnpm.cmd --dir packages/builder-core typecheck` - passed
-- `pnpm.cmd --dir packages/builder-core test` - passed (9/9 tests, 4 test files)
-- `pnpm.cmd --dir packages/builder-core build` - passed
-- `pnpm.cmd --dir packages/builder-editor lint` - passed
-- `pnpm.cmd --dir packages/builder-editor typecheck` - passed
-- `pnpm.cmd --dir packages/builder-editor test` - passed (4/4 tests, 2 test files)
-- `pnpm.cmd --dir packages/builder-editor build` - passed
-- `pnpm.cmd --dir packages/themes lint` - passed
-- `pnpm.cmd --dir packages/themes typecheck` - passed
-- `pnpm.cmd --dir packages/themes test` - passed (7/7 tests, 2 test files)
-- `pnpm.cmd --dir packages/themes build` - passed
-- `pnpm.cmd --dir apps/web lint` - passed
-- `pnpm.cmd --dir apps/web typecheck` - passed
-- `pnpm.cmd --dir apps/web test` - passed (66/66 tests, 19 test files)
-- `pnpm.cmd --dir apps/web build` - passed
-- `pnpm.cmd --dir apps/web generate:types` - passed
+- `pnpm.cmd --dir packages/commerce lint` - passed
+- `pnpm.cmd --dir packages/commerce typecheck` - passed
+- `pnpm.cmd --dir packages/commerce test` - passed (9/9 tests, 3 test files)
+- `pnpm.cmd --dir packages/commerce build` - passed
 - `pnpm.cmd --dir packages/forms lint` - passed
 - `pnpm.cmd --dir packages/forms typecheck` - passed
 - `pnpm.cmd --dir packages/forms test` - passed (41/41 tests, 3 test files)
@@ -167,24 +132,27 @@ Phase 15 - Public Membership and Protected Routes
 - `pnpm.cmd --dir packages/themes typecheck` - passed
 - `pnpm.cmd --dir packages/themes test` - passed (7/7 tests, 2 test files)
 - `pnpm.cmd --dir packages/themes build` - passed
+- `pnpm.cmd --dir apps/web lint` - passed
+- `pnpm.cmd --dir apps/web typecheck` - passed
+- `pnpm.cmd --dir apps/web test` - passed (85/85 tests, 22 test files)
+- `pnpm.cmd --dir apps/web build` - passed
 
 ### Security notes
 
-- Public members are stored in a separate `members` auth collection; public sign-up never accepts or persists admin/editor/super-admin roles and does not touch the dashboard `users` collection
-- Member sessions use the dedicated HTTP-only `nexpress-member-token` cookie with `SameSite=Lax`; tokens are never returned in URLs or stored in `localStorage`
-- Member sign-up remains server-only: collection-level `members.create` is denied, and the route uses a narrow validated `overrideAccess: true` path similar to earlier bootstrap-only flows
-- Member profile updates use `overrideAccess: false` with the authenticated member attached to the request so self-service writes still respect collection access rules
-- Anonymous public reads now exclude `accessLevel=members` content, members-only content is filtered out of sitemap generation, and metadata generation fails closed when the viewer lacks access
-- Existing install, RBAC, dashboard, audit, content, builder, editor, theme, template, plugin, and forms protections remain intact; public members do not gain `/dashboard`, `/admin`, audit-log, plugin-state, or installation-state access
+- Commerce access is gated server-side through `commerce-pack` capability checks and fails closed when the plugin is disabled
+- Commerce runtime configuration is validated lazily inside server-only helpers; static builds do not eagerly require `MEDUSA_*` values
+- `NEXT_PUBLIC_MEDUSA_SERVER_TOKEN` is rejected explicitly so provider server secrets cannot leak to the browser
+- No checkout, payment, tax, shipping, inventory, or order-creation flow was introduced in Phase 16
+- Existing install, RBAC, dashboard, audit, content, builder, editor, theme, template, plugin, forms, and membership protections remain unchanged
 
 ### Blockers
 
-- No live database-backed Payload migration file was generated for the new `members` collection or the `pages/posts.accessLevel` field because migration generation still requires a live database connection
-- No password reset or email verification flow exists yet; both remain intentionally out of scope for Phase 15
+- No live database-backed Payload migration file was generated because Phase 16 added no new Payload collections or fields
+- Medusa data operations remain adapter stubs only; catalog, cart, checkout, customer sync, and order flows are deferred to later phases
 
 ### Next recommended prompt
 
-Start Phase 16 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and `03-phases/phase-16-*` before implementing.
+Start Phase 17 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and `03-phases/phase-17-*` before implementing.
 
 ---
 
