@@ -371,6 +371,73 @@ export function generateOpenApiDocument() {
           },
         },
       },
+      '/marketplace/packages': {
+        get: {
+          summary: 'List local marketplace packages',
+          description:
+            'Returns the safe local allowlisted marketplace catalog only. ' +
+            'Admin-authenticated. No secrets, install scripts, or arbitrary remote package sources are exposed.',
+          tags: ['Marketplace'],
+          security: [{ adminAuth: [] }],
+          responses: {
+            '200': {
+              description: 'Marketplace package catalog',
+            },
+            '401': {
+              description: 'Unauthorized',
+            },
+            '403': {
+              description: 'Forbidden',
+            },
+          },
+        },
+      },
+      '/marketplace/plans': {
+        post: {
+          summary: 'Create a dry-run marketplace package plan',
+          description:
+            'Creates a dry-run install, update, enable, or disable plan for a local allowlisted package. ' +
+            'No files, package managers, or database records are modified.',
+          tags: ['Marketplace'],
+          security: [{ adminAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    action: {
+                      type: 'string',
+                      enum: ['install', 'update', 'enable', 'disable'],
+                    },
+                    packageId: { type: 'string' },
+                    channel: {
+                      type: 'string',
+                      enum: ['stable', 'beta', 'dev'],
+                    },
+                  },
+                  required: ['action', 'packageId'],
+                },
+              },
+            },
+          },
+          responses: {
+            '200': {
+              description: 'Dry-run package plan',
+            },
+            '400': {
+              description: 'Bad request',
+            },
+            '401': {
+              description: 'Unauthorized',
+            },
+            '403': {
+              description: 'Forbidden',
+            },
+          },
+        },
+      },
       '/webhooks/inbound': {
         post: {
           summary: 'Inbound Webhook Verification',

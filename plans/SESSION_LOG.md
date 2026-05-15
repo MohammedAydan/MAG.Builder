@@ -4,6 +4,47 @@
 
 ### What was done
 
+- Implemented Phase 24 marketplace, packaging, and update-planning foundations
+- Added the new `@nexpress/marketplace` workspace package with typed local package manifests, a local allowlisted catalog, compatibility checks, integrity metadata validation, and dry-run planning
+- Added admin-only `GET /api/marketplace/packages` and `POST /api/marketplace/plans` route handlers plus marketplace audit coverage
+- Updated the OpenAPI document and added the marketplace runbook and phase review
+
+### Decisions made
+
+- Keep the Phase 24 catalog local and allowlisted only - Reason: the phase explicitly forbids remote marketplace installation, arbitrary URLs, and package-manager execution
+- Make all marketplace actions dry-run only - Reason: the phase requires safe planning foundations without mutating files, runtime state, or the database
+- Reuse plugin/theme/template foundations as package references instead of inventing executable package payloads - Reason: packaging must map safely to existing foundations without introducing runtime code loading
+
+### Files changed
+
+- `packages/marketplace/*`
+- `apps/web/package.json`
+- `apps/web/src/lib/marketplace/*`
+- `apps/web/src/app/api/marketplace/**/*`
+- `apps/web/src/lib/audit/service.ts`
+- `apps/web/src/lib/auth/permissions.ts`
+- `packages/api/src/openapi.ts`
+- `docs/runbooks/marketplace-packaging-updates.md`
+- `plans/context.md`
+- `plans/phase-24-marketplace-packaging-updates/review.md`
+- `IMPLEMENTATION_STATUS.md`
+- `pnpm-lock.yaml`
+
+### State at end of session
+
+- Active feature: phase-24-marketplace-packaging-updates
+- Last completed task: Phase 24 verification and review
+- Next task: wait for explicit instruction before starting Phase 25
+- Blockers: no external signature-verification infrastructure or auto-update execution path exists yet by design
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-24-marketplace-packaging-updates/review.md`, and `docs/runbooks/marketplace-packaging-updates.md`, then start Phase 25 only if explicitly requested.
+
+## Session: 2026-05-15
+
+### What was done
+
 - Implemented Phase 23 multi-site and SaaS-readiness foundations in `apps/web`
 - Added a hidden `sites` collection, server-side hostname resolution, default-site bootstrap/fallback logic, and a reusable site relationship field helper
 - Made content, forms, members, commerce, search, analytics, and automation metadata site-aware without adding billing, tenant UI, or Phase 24 work

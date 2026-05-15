@@ -28,6 +28,7 @@
     "@nexpress/commerce": "workspace:*",
     "@nexpress/forms": "workspace:*",
     "@nexpress/mcp-gateway": "workspace:*",
+    "@nexpress/marketplace": "workspace:*",
     "@nexpress/plugins": "workspace:*",
     "@nexpress/search": "workspace:*",
     "@nexpress/themes": "workspace:*",

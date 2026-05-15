@@ -2,10 +2,10 @@
 
 Project: NexPress
 Mode: Greenfield
-Current phase: 23-multisite-saas-readiness
+Current phase: 24-marketplace-packaging-updates
 Overall status: in-progress
 
-The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, visual editor adapter, themes/templates foundation, plugin/module system, forms/workflows foundation, public membership/protected-route foundation, the commerce service spike, the commerce MVP slice, storefront commerce builder blocks, the API platform with OpenAPI, webhooks/integrations foundation, MCP native gateway, the search/analytics/automation foundation, and the multi-site/SaaS-readiness foundation are all implemented.
+The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, visual editor adapter, themes/templates foundation, plugin/module system, forms/workflows foundation, public membership/protected-route foundation, the commerce service spike, the commerce MVP slice, storefront commerce builder blocks, the API platform with OpenAPI, webhooks/integrations foundation, MCP native gateway, the search/analytics/automation foundation, the multi-site/SaaS-readiness foundation, and the marketplace/packaging/update-planning foundation are all implemented.
 
 ## Phase tracker
 
@@ -33,7 +33,7 @@ The platform foundation, Payload CMS foundation, database/migration/seed layer, 
 - [x] Phase 21 - MCP Native Gateway: done
 - [x] Phase 22 - Search, Analytics, and Automation: done
 - [x] Phase 23 - Multi-site and SaaS Readiness: done
-- [ ] Phase 24 - Marketplace, Packaging, and Updates: not-started
+- [x] Phase 24 - Marketplace, Packaging, and Updates: done
 - [ ] Phase 25 - Observability and Security Hardening: not-started
 - [ ] Phase 26 - Production Deployment and Docs: not-started
 - [ ] Phase 27 - Final Release Candidate: not-started
@@ -50,33 +50,33 @@ Codex
 
 ### Requested phase
 
-Phase 23 - Multi-site and SaaS Readiness
+Phase 24 - Marketplace, Packaging, and Updates
 
 ### Files changed
 
 **New files:**
-- `apps/web/src/collections/Sites.ts` - hidden site model
-- `apps/web/src/lib/sites/model.ts` - site constants, slug/hostname normalization, domain validation
-- `apps/web/src/lib/sites/fields.ts` - reusable site relationship field helper
-- `apps/web/src/lib/sites/service.ts` - default-site bootstrap, hostname resolution, site-scope helpers
-- `apps/web/src/lib/sites/service.test.ts` - site resolution and isolation tests
-- `docs/runbooks/multisite-saas-readiness.md`
-- `plans/phase-23-multisite-saas-readiness/review.md`
+- `packages/marketplace/*` - typed marketplace package manifests, local catalog, integrity checks, compatibility checks, and dry-run planning
+- `apps/web/src/lib/marketplace/{service,service.test}.ts` - admin-only marketplace service and tests
+- `apps/web/src/app/api/marketplace/{packages,plans}/route.ts` - admin-only catalog listing and dry-run plan APIs
+- `docs/runbooks/marketplace-packaging-updates.md`
+- `plans/phase-24-marketplace-packaging-updates/review.md`
 
 **Modified files:**
-- `apps/web/src/payload.config.ts` and `apps/web/src/payload-types.ts`
-- `apps/web/src/collections/{Pages,Posts,Redirects,Forms,FormSubmissions,Members,CommerceCustomers,CommerceOrders}.ts`
-- `apps/web/src/lib/{auth,content,forms,install,members,commerce,search,automation}/**/*`
-- `apps/web/src/app/api/{forms,search,analytics}/**/*`
-- `packages/search/src/{types,adapter,service,search.test.ts}`
-- `packages/analytics/src/{types,adapter,service,analytics.test.ts}`
-- `packages/automation/src/types.ts`
-- `.env.example`
+- `apps/web/package.json`
+- `apps/web/src/lib/audit/service.ts`
+- `apps/web/src/lib/auth/permissions.ts`
+- `packages/api/src/openapi.ts`
+- `pnpm-lock.yaml`
 
 ### Commands run
 
-- `pnpm.cmd --dir apps/web generate:types` - passed
 - `pnpm.cmd install` - passed
+- `pnpm.cmd --dir packages/marketplace typecheck` - passed
+- `pnpm.cmd --dir packages/marketplace test` - passed
+- `pnpm.cmd --dir apps/web test` - passed
+- `pnpm.cmd --dir apps/web typecheck` - passed
+- `pnpm.cmd --dir packages/marketplace lint` - passed
+- `pnpm.cmd --dir packages/marketplace build` - passed
 - `pnpm.cmd lint` - passed
 - `pnpm.cmd typecheck` - passed
 - `pnpm.cmd test` - passed
@@ -136,20 +136,18 @@ Phase 23 - Multi-site and SaaS Readiness
 
 ### Security notes
 
-- Hostnames are normalized and treated as untrusted input
-- `x-forwarded-host` is ignored unless `NEXPRESS_TRUST_PROXY_HOST=true`
-- Reserved, malformed, private-network, and metadata-service hostnames are rejected unless explicitly development-only
-- Cross-site member session reuse fails closed
-- Public content, search, analytics summaries, forms, and commerce reads are site-scoped
-- Site records remain hidden and not publicly writable
+- Marketplace package manifests are treated as untrusted input and validated before planning
+- Only the local allowlisted package catalog is accepted in Phase 24
+- Dry-run plans never execute code, run package-manager commands, or modify files/database records
+- Artifact integrity must include verified signature metadata before a package is considered install-ready
+- Admin-only marketplace APIs expose safe metadata only and audit package plan creation
 
 ### Blockers
 
-- No live DB-backed migration/backfill file is committed because Payload migration generation still requires a live database
-- Legacy null-site records still rely on default-site fallback until a live backfill is executed
-- Plugin activation, webhook subscriptions, and integrations remain global in Phase 23
-- No billing or tenant-management UI was added in this phase
+- No external signature-verification or key-distribution infrastructure exists yet; Phase 24 validates metadata shape and verified status only
+- No dedicated dashboard marketplace UI was added in this phase
+- Marketplace planning remains dry-run only and does not execute install/update/enable/disable actions
 
 ### Next recommended prompt
 
-Start Phase 24 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and `03-phases/phase-24-*` before implementing.
+Start Phase 25 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and `03-phases/phase-25-*` before implementing.

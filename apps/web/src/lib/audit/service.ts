@@ -19,6 +19,7 @@ export const AUDIT_ACTIONS = {
   formWorkflowExecuted: 'forms.workflow.executed',
   installCompleted: 'system.install.completed',
   mcpToolCalled: 'system.mcp.tool_called',
+  marketplacePackagePlanCreated: 'marketplace.package.plan.created',
   memberLoginSucceeded: 'members.login.succeeded',
   memberLogoutSucceeded: 'members.logout.succeeded',
   memberProfileUpdated: 'members.profile.updated',

@@ -6,7 +6,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 
 ## Current Status
 
-- Active feature: phase-23-multisite-saas-readiness
+- Active feature: phase-24-marketplace-packaging-updates
 - Overall health: green
 - Last updated: 2026-05-15
 
@@ -44,6 +44,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - phase-21-mcp-native-gateway: done, `packages/mcp-gateway` now owns JSON-RPC routing, tool registry, and safe abstractions, while `apps/web` exposes a protected Next.js API route requiring server-side Payload authentication, strict capability/scope checks, and tool audit logs
 - phase-22-search-analytics-automation: done, `packages/search`, `packages/analytics`, and `packages/automation` now provide bounded search, privacy-safe analytics contracts, and allowlisted automation flows, while `apps/web` exposes public search and admin analytics summary endpoints
 - phase-23-multisite-saas-readiness: done, `apps/web` now has a hidden `sites` collection, server-side hostname resolution, default-site fallback behavior, and site-aware filtering across content, forms, members, commerce, search, analytics, and automation metadata
+- phase-24-marketplace-packaging-updates: done, `packages/marketplace` now provides typed local package manifests, a local allowlisted catalog, integrity and compatibility validation, and dry-run planning, while `apps/web` exposes admin-only marketplace listing and plan endpoints
 
 ## Known Issues / Tech Debt
 
@@ -70,8 +71,9 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - Phase 23 adds the `sites` collection and site relationships, but no live DB-backed migration/backfill file is committed because Payload migration generation still requires a live database
 - Default-site reads intentionally treat legacy null-site records as belonging to the default site until a live backfill is executed
 - Webhook subscriptions, integrations, and plugin activation remain global in Phase 23 rather than site-scoped
+- Phase 24 validates signature, provenance, and SBOM metadata shape for planning, but it does not implement external signature verification infrastructure or runtime install execution
 - `@measured/puck@0.20.2` is currently the editor adapter dependency even though the package is marked deprecated upstream; the kernel remains vendor-neutral and Phase 13+ can revisit the adapter choice if needed
-- Package placeholders outside `apps/web`, `packages/builder-core`, `packages/builder-editor`, `packages/themes`, `packages/plugins`, `packages/forms`, and `packages/commerce` remain intentionally unimplemented until their phases begin
+- Marketplace planning is admin-only and dry-run only; no package-manager execution, remote fetch, or file/database mutation path exists in Phase 24
 
 ## Team / Ownership
 
