@@ -32,20 +32,26 @@ export {
 
 export {
   stubEmailProvider,
+  ResendEmailProvider,
   executeEmailAction,
   type EmailActionConfig,
   type EmailActionResult,
   type EmailPayload,
   type EmailProvider,
+  type EmailProviderKind,
   type EmailRecipient,
+  type ResendEmailProviderConfig,
 } from './email';
 
 export {
   createRateLimiter,
   defaultFormRateLimiter,
+  InMemoryRateLimitStore,
   buildRateLimitKey,
+  type DistributedRateLimitStore,
   type RateLimitConfig,
   type RateLimitResult,
+  type RateLimitStore,
 } from './rate-limit';
 
 export {

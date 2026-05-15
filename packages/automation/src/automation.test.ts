@@ -206,7 +206,7 @@ describe('AutomationEngine - execution', () => {
       name: 'Mixed',
       trigger: 'content.published',
       actions: [
-        { action: 'analytics.emit_event', eventName: 'content.viewed' },
+        { action: 'analytics.emit_event', eventName: 'content.published' },
         { action: 'search.enqueue_reindex' },
       ],
       enabled: true,

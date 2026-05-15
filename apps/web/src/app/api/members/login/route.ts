@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getSafeMemberErrorMessage, loginMember } from '@/lib/members/service';
+import { getSafeMemberErrorCode, loginMember, MemberAuthError } from '@/lib/members/service';
+import { validateBrowserPostRequest } from '@/lib/security/browser-post';
 
 function getSafeReturnPath(value: FormDataEntryValue | null) {
   if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//')) {
@@ -14,12 +15,20 @@ export async function POST(request: Request) {
   const nextPath = getSafeReturnPath(formData.get('next'));
 
   try {
+    const browserPostError = validateBrowserPostRequest(request, {
+      message: 'Cross-site member login requests are blocked.',
+    });
+
+    if (browserPostError) {
+      throw new MemberAuthError(browserPostError, 'csrf', 403);
+    }
+
     await loginMember(Object.fromEntries(formData.entries()));
 
     return NextResponse.redirect(new URL(nextPath, request.url), 303);
   } catch (error) {
     const url = new URL('/login', request.url);
-    url.searchParams.set('error', getSafeMemberErrorMessage(error));
+    url.searchParams.set('error', getSafeMemberErrorCode(error, 'login'));
 
     if (nextPath !== '/account') {
       url.searchParams.set('next', nextPath);

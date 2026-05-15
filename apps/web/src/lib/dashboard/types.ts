@@ -1,6 +1,14 @@
 import type { AppPermission } from '@/lib/auth/permissions';
 
-export type DashboardNavGroup = 'core' | 'operations';
+export type DashboardNavGroup =
+  | 'content'
+  | 'commerce'
+  | 'members-sites'
+  | 'forms'
+  | 'automation'
+  | 'integrations'
+  | 'marketplace'
+  | 'system';
 
 export type DashboardNavItem = {
   description: string;

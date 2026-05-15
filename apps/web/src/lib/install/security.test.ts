@@ -38,4 +38,14 @@ describe('assertSameOriginInstallRequest', () => {
       /Cross-site install attempts are blocked/,
     );
   });
+
+  it('blocks requests without Origin or Referer headers', () => {
+    const request = new Request('https://example.com/api/install', {
+      method: 'POST',
+    });
+
+    expect(() => assertSameOriginInstallRequest(request)).toThrowError(
+      /Cross-site install attempts are blocked/,
+    );
+  });
 });

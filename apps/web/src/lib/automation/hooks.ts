@@ -46,7 +46,7 @@ automationEngine.registerActionHandler('analytics.emit_event', async (config, tr
 
   const accepted = await analyticsService.capture({
     schemaVersion: ANALYTICS_SCHEMA_VERSION,
-    name: eventName as 'form.submitted' | 'content.viewed' | 'commerce.order_created',
+    name: eventName as 'form.submitted' | 'content.published' | 'commerce.order_created',
     meta: {
       ...(triggerPayload.payload.siteId ? { siteId: triggerPayload.payload.siteId } : {}),
       ...('siteSlug' in triggerPayload.payload && triggerPayload.payload.siteSlug
@@ -81,7 +81,11 @@ automationEngine.registerActionHandler('search.enqueue_reindex', async (config, 
   }
 
   if (triggerPayload.trigger === 'content.unpublished') {
-    await removeContentFromIndex(triggerPayload.payload.contentId);
+    await removeContentFromIndex(
+      triggerPayload.payload.contentId,
+      triggerPayload.payload.contentType,
+      triggerPayload.payload.siteId,
+    );
     return { action: config.action, status: 'success', message: 'Document removed from index' };
   }
 
@@ -114,21 +118,23 @@ export async function fireAutomationTrigger(
         const result = await automationEngine.execute(rule, triggerPayload);
 
         // Audit automation execution (non-blocking)
-        try {
-          const payload = await getPayload({ config: configPromise });
-          await writeAuditEntry(payload, {
-            action: 'automation.rule.executed',
-            actor: { source: 'system' },
-            result: result.overallStatus === 'failure' ? 'failure' : 'success',
-            metadata: {
-              ruleId: result.ruleId,
-              trigger: result.trigger,
-              overallStatus: result.overallStatus,
-              actionCount: result.results.length,
-            },
-          });
-        } catch {
-          // Audit is fail-open
+        if (process.env.NODE_ENV !== 'test') {
+          try {
+            const payload = await getPayload({ config: configPromise });
+            await writeAuditEntry(payload, {
+              action: 'automation.rule.executed',
+              actor: { source: 'system' },
+              result: result.overallStatus === 'failure' ? 'failure' : 'success',
+              metadata: {
+                ruleId: result.ruleId,
+                trigger: result.trigger,
+                overallStatus: result.overallStatus,
+                actionCount: result.results.length,
+              },
+            });
+          } catch {
+            // Audit is fail-open
+          }
         }
       } catch {
         // Individual rule failures do not block other rules
@@ -162,9 +168,12 @@ const BUILT_IN_RULES: AutomationRule[] = [
   },
   {
     id: 'builtin-content-search-index',
-    name: 'Update search index on content publish',
+    name: 'Update search index and analytics on content publish',
     trigger: 'content.published',
-    actions: [{ action: 'search.enqueue_reindex' }],
+    actions: [
+      { action: 'analytics.emit_event', eventName: 'content.published' },
+      { action: 'search.enqueue_reindex' },
+    ],
     enabled: true,
   },
   {
@@ -203,11 +212,13 @@ function buildAnalyticsPayloadFromTrigger(
     };
   }
 
-  if (eventName === 'content.viewed' && triggerPayload.trigger === 'content.published') {
+  if (eventName === 'content.published' && triggerPayload.trigger === 'content.published') {
     return {
+      accessLevel: triggerPayload.payload.accessLevel,
       contentType: triggerPayload.payload.contentType,
       contentId: triggerPayload.payload.contentId,
       slug: triggerPayload.payload.slug,
+      title: triggerPayload.payload.title,
     };
   }
 
@@ -220,6 +231,13 @@ function buildAnalyticsPayloadFromTrigger(
   }
 
   return null;
+}
+
+/**
+ * List all registered automation rules (built-in for Phase 22).
+ */
+export function listAutomationRules() {
+  return BUILT_IN_RULES;
 }
 
 // Re-export trigger/action constants for callers

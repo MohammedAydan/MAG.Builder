@@ -86,6 +86,7 @@ export class MemberAuthError extends Error {
   constructor(
     message: string,
     readonly code:
+      | 'csrf'
       | 'invalid-input'
       | 'invalid-session'
       | 'login-failed'
@@ -151,14 +152,6 @@ export function buildMemberLoginPath(returnTo?: string | null) {
   }
 
   return `/login?next=${encodeURIComponent(returnTo)}`;
-}
-
-function normalizeErrorMessage(error: unknown) {
-  if (error instanceof MemberAuthError) {
-    return error.message;
-  }
-
-  return 'Unable to complete that request right now.';
 }
 
 function getExpDate(exp?: number) {
@@ -391,6 +384,49 @@ export async function getMemberAwareHeaders() {
   return new Headers(requestHeaders);
 }
 
-export function getSafeMemberErrorMessage(error: unknown) {
-  return normalizeErrorMessage(error);
+export function getSafeMemberErrorCode(
+  error: unknown,
+  context: 'login' | 'profile' | 'signup',
+) {
+  if (error instanceof MemberAuthError) {
+    if (error.code === 'csrf') {
+      return 'csrf';
+    }
+
+    if (error.code === 'member-exists') {
+      return 'exists';
+    }
+
+    if (error.code === 'not-authenticated') {
+      return 'auth_required';
+    }
+
+    if (error.code === 'invalid-input') {
+      const message = error.message.toLowerCase();
+
+      if (context === 'signup') {
+        if (message.includes('do not match')) {
+          return 'password_mismatch';
+        }
+
+        if (
+          message.includes('password must')
+          || message.includes('lowercase')
+          || message.includes('uppercase')
+          || message.includes('number')
+          || message.includes('symbol')
+        ) {
+          return 'weak_password';
+        }
+      }
+
+      return 'invalid';
+    }
+
+    if (error.code === 'login-failed') {
+      return 'invalid';
+    }
+  }
+
+  return 'server_error';
 }

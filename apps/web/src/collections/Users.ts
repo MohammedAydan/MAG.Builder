@@ -41,7 +41,9 @@ const auditUserChange: CollectionAfterChangeHook = async ({
     result: 'success',
     targetCollection: 'users',
     targetId: doc.id,
-  });
+  }, req);
+
+  return doc;
 };
 
 const auditUserDelete: CollectionAfterDeleteHook = async ({ context, doc, req }) => {
@@ -58,7 +60,9 @@ const auditUserDelete: CollectionAfterDeleteHook = async ({ context, doc, req })
     result: 'success',
     targetCollection: 'users',
     targetId: doc.id,
-  });
+  }, req);
+
+  return doc;
 };
 
 const auditLogin: CollectionAfterLoginHook = async ({ context, req, user }) => {
@@ -75,7 +79,9 @@ const auditLogin: CollectionAfterLoginHook = async ({ context, req, user }) => {
     result: 'success',
     targetCollection: 'users',
     targetId: user.id,
-  });
+  }, req);
+
+  return user;
 };
 
 const auditLogout: CollectionAfterLogoutHook = async ({ context, req }) => {
@@ -87,7 +93,7 @@ const auditLogout: CollectionAfterLogoutHook = async ({ context, req }) => {
     result: 'success',
     targetCollection: 'users',
     ...(req.user?.id != null ? { targetId: req.user.id } : {}),
-  });
+  }, req);
 };
 
 export const Users: CollectionConfig = {

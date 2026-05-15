@@ -73,3 +73,33 @@ If logging to local files, ensure `logrotate` is configured to prevent disk exha
 ### Database Vacuum
 
 PostgreSQL `autovacuum` should be enabled. Monitor bloat periodically.
+
+## 5. Runtime Services
+
+### Search
+
+- Default runtime: `NEXPRESS_SEARCH_PROVIDER=database`
+- Fallback runtime: `NEXPRESS_SEARCH_PROVIDER=memory`
+- Manual rebuild: `pnpm --dir apps/web reindex:search`
+
+### Analytics
+
+- Default runtime: `NEXPRESS_ANALYTICS_PROVIDER=audit-log`
+- Test/local fallback: `NEXPRESS_ANALYTICS_PROVIDER=noop`
+- Admin summary endpoint: `GET /api/analytics/summary`
+
+### Forms
+
+- Default rate limiting: `NEXPRESS_FORM_RATE_LIMIT_PROVIDER=memory`
+- Current distributed-state status: Redis/Valkey contract exists, but no concrete client binding is shipped in this repo
+- Email runtimes:
+  - `NEXPRESS_EMAIL_PROVIDER=stub`
+  - `NEXPRESS_EMAIL_PROVIDER=resend` with `RESEND_API_KEY` and `NEXPRESS_EMAIL_FROM`
+
+### Webhooks
+
+- Delivery mode: `NEXPRESS_WEBHOOK_DELIVERY_MODE=in-process`
+- Retry metadata defaults:
+  - `NEXPRESS_WEBHOOK_MAX_ATTEMPTS=3`
+  - `NEXPRESS_WEBHOOK_BACKOFF_MS=30000`
+- Current limitation: retries/backoff metadata exists at the queue boundary, but execution still runs inline in this repo

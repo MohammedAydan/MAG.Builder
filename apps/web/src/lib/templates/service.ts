@@ -684,6 +684,20 @@ export async function exportTemplateManifest(args: ExportRequestInput & { user: 
   return exportTemplateManifestWithPayload(payload as unknown as PayloadClientLike, args);
 }
 
+/**
+ * List all registered themes.
+ */
+export function listThemes() {
+  return defaultThemeRegistry.list();
+}
+
+/**
+ * List all available templates (local registry).
+ */
+export function listTemplates() {
+  return [starterTemplateManifest];
+}
+
 export function parseTemplateRequestOrThrow<T>(result: z.ZodSafeParseResult<T>) {
   if (result.success) {
     return result.data;

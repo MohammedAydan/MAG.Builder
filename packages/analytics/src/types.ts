@@ -20,7 +20,9 @@ import { z } from 'zod';
 export const ANALYTICS_EVENT_NAMES = [
   'page.viewed',
   'content.viewed',
+  'content.published',
   'search.queried',
+  'search.reindexed',
   'form.submitted',
   'member.registered',
   'member.logged_in',
@@ -78,6 +80,14 @@ const ContentViewedPayloadSchema = z.object({
   accessLevel: z.enum(['public', 'members-only']).optional(),
 });
 
+const ContentPublishedPayloadSchema = z.object({
+  contentType: z.enum(['page', 'post']),
+  contentId: z.string().max(128),
+  slug: z.string().max(200),
+  title: z.string().max(500),
+  accessLevel: z.enum(['public', 'members-only']).optional(),
+});
+
 const SearchQueriedPayloadSchema = z.object({
   /**
    * The search query — length limited.
@@ -87,6 +97,10 @@ const SearchQueriedPayloadSchema = z.object({
   query: z.string().max(200),
   resultsCount: z.number().int().min(0),
   type: z.string().max(50).optional(),
+});
+
+const SearchReindexedPayloadSchema = z.object({
+  documentCount: z.number().int().min(0),
 });
 
 const FormSubmittedPayloadSchema = z.object({
@@ -150,8 +164,20 @@ export const AnalyticsEventSchema = z.discriminatedUnion('name', [
   }),
   z.object({
     schemaVersion: z.literal(ANALYTICS_SCHEMA_VERSION),
+    name: z.literal('content.published'),
+    payload: ContentPublishedPayloadSchema,
+    meta: SafeSessionMetaSchema.optional(),
+  }),
+  z.object({
+    schemaVersion: z.literal(ANALYTICS_SCHEMA_VERSION),
     name: z.literal('search.queried'),
     payload: SearchQueriedPayloadSchema,
+    meta: SafeSessionMetaSchema.optional(),
+  }),
+  z.object({
+    schemaVersion: z.literal(ANALYTICS_SCHEMA_VERSION),
+    name: z.literal('search.reindexed'),
+    payload: SearchReindexedPayloadSchema,
     meta: SafeSessionMetaSchema.optional(),
   }),
   z.object({

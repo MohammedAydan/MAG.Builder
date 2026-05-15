@@ -3,6 +3,7 @@ import { isAppRole, type AppRole } from '@/lib/auth/roles';
 export const AUDIT_CONTEXT_KEY = 'nexpressAudit';
 
 export const AUDIT_ACTIONS = {
+  analyticsEventCaptured: 'analytics.event.captured',
   authLoginSucceeded: 'auth.login.succeeded',
   authLogoutSucceeded: 'auth.logout.succeeded',
   automationRuleCreated: 'automation.rule.created',
@@ -158,7 +159,7 @@ export function getAuditActorFromRequest(
   };
 }
 
-export async function writeAuditEntry(payload: unknown, entry: AuditEntryInput) {
+export async function writeAuditEntry(payload: unknown, entry: AuditEntryInput, req?: unknown) {
   try {
     const auditPayload = payload as {
       create: (args: Record<string, unknown>) => Promise<unknown>;
@@ -166,6 +167,7 @@ export async function writeAuditEntry(payload: unknown, entry: AuditEntryInput) 
 
     await auditPayload.create({
       collection: 'audit-logs',
+      ...(req ? { req } : {}),
       data: {
         action: entry.action,
         actorEmail: entry.actor?.email,
@@ -180,7 +182,7 @@ export async function writeAuditEntry(payload: unknown, entry: AuditEntryInput) 
       },
       overrideAccess: true,
     });
-  } catch {
-    console.error('[audit] Failed to write audit entry.');
+  } catch (err) {
+    console.error('[audit] Failed to write audit entry.', err);
   }
 }

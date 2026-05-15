@@ -6,7 +6,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 
 ## Current Status
 
-- Active feature: phase-27-final-release-candidate
+- Active feature: phase-29-production-runtime-services
 - Overall health: green
 - Last updated: 2026-05-15
 
@@ -48,6 +48,8 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - phase-25-security-observability-hardening: done, added `@nexpress/observability` and `@nexpress/security` with structured logging, redaction, safe errors, CSP, security headers, readiness checks, and threat model documentation
 - phase-26-production-deployment-docs: done, added Dockerfile, docker-compose, CI/CD validation foundation, deployment/operations runbooks, release/rollback checklists, environment matrix, and production readiness documentation
 - phase-27-final-release-candidate: done, added release-candidate notes, changelog, smoke/go-no-go/known-limitations artifacts, corrected env/deployment/OpenAPI drift, and re-verified the full repository command matrix
+- phase-28-rc-fix-pack-live-db-validation: done, added standalone/typegen/browser-post hardening fixes, archived root prompt artifacts, generated a real Payload migration, and documented the remaining live-DB baseline blocker plus Docker unavailability
+- phase-29-production-runtime-services: done, added runtime service config selection, a database-backed search adapter, audit-log-backed analytics adapter, Resend/stub email selection, trigger wiring for forms/content/commerce events, in-process webhook queue metadata, and the related runbook/env updates
 
 ## Known Issues / Tech Debt
 
@@ -56,7 +58,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - v1 scope is now frozen and any expansion requires an ADR update
 - Builder validation is fail-safe at render time: malformed documents fall back to the legacy page body, while unknown or invalid blocks render placeholders without crashing
 - Visual editing is still draft-only after Phase 13: editor saves validate through builder-core, and public rendering still serves published content only
-- No live DB-backed Payload migration file was generated for the `pages.builder` field or the new `plugin-states` collection because migration generation still requires a live database
+- A live DB-backed Payload migration file is now committed at `apps/web/src/migrations/20260515_181413.ts`, but the current local validation database had already been pushed in dev mode so `payload migrate` still fails there until a clean migration-managed database is used
 - Phase 13 ships server-only plugin APIs and services without a dedicated dashboard UI
 - Local plugin definitions are metadata-only placeholders; no runtime commerce, forms, membership, or SEO feature code was introduced yet
 - Internal plugin capability checks use a narrow server-only read path and fail closed; future phases can layer stronger system settings surfaces on top if needed
@@ -67,18 +69,21 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - Commerce now fails closed unless `commerce-pack` is active and a valid server-only runtime configuration exists
 - Commerce carts are member-authenticated only in Phase 17; guest carts and anonymous checkout are not implemented
 - Checkout is currently a server-side test-mode order snapshot path with admin-visible `commerce-orders` persistence; real payment capture and provider-native order finalization are still incomplete
-- No live DB-backed Payload migration file has been generated yet for the new `commerce-customers` and `commerce-orders` collections because migration creation still requires a live database
+- The generated Phase 28 migration covers the current schema, including prior late-phase collection changes, but migration execution still needs a clean target database rather than the existing dev-pushed local one
 - Storefront catalog, product-detail, cart, and collection-list blocks now exist, but collection links are curated manually and not provider-synced
 - Commerce storefront interactivity stores only a local cart id pointer in the browser; guest carts are still out of scope
 - Real taxes/shipping/coupons/inventory flows and webhook-based order reconciliation remain out of scope until later phases
-- Phase 23 adds the `sites` collection and site relationships, but no live DB-backed migration/backfill file is committed because Payload migration generation still requires a live database
+- The Phase 28 migration snapshot now includes the `sites` collection and related late-phase schema additions, but no backfill has been executed against legacy data yet
 - Default-site reads intentionally treat legacy null-site records as belonging to the default site until a live backfill is executed
 - Webhook subscriptions, integrations, and plugin activation remain global in Phase 23 rather than site-scoped
 - Phase 24 validates signature, provenance, and SBOM metadata shape for planning, but it does not implement external signature verification infrastructure or runtime install execution
 - `@measured/puck@0.20.2` is currently the editor adapter dependency even though the package is marked deprecated upstream; the kernel remains vendor-neutral and Phase 13+ can revisit the adapter choice if needed
 - Marketplace planning is admin-only and dry-run only; no package-manager execution, remote fetch, or file/database mutation path exists in Phase 24
 - Phase 27 documents final smoke, route, auth, and multi-site sanity expectations, but browser-level E2E automation remains intentionally minimal
-- Docker build verification is still environment-dependent; the local Phase 27 session could not execute `docker build` because Docker was unavailable on the machine
+- Docker build verification is still environment-dependent; the local Phase 28 session also could not execute `docker build` or `docker compose` because Docker was unavailable on the machine
+- Runtime analytics now persist summary events through audit logs by default, but this is still lighter than a dedicated analytics warehouse
+- Runtime search now defaults to a database-backed projection adapter, but it is not full PostgreSQL FTS yet
+- The Redis-compatible form rate-limit contract exists, but the repo still falls back to the in-memory store until a concrete client adapter is installed
 
 ## Team / Ownership
 

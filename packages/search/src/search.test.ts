@@ -94,7 +94,7 @@ describe('InMemorySearchAdapter', () => {
   });
 
   it('removes a document from the index', async () => {
-    await adapter.removeDocument('1');
+    await adapter.removeDocument({ id: '1', siteId: 'default', type: 'page' });
     const result = await adapter.search({ page: 1, limit: 50 });
     expect(result.total).toBe(3);
     expect(result.docs.find((d) => d.id === '1')).toBeUndefined();
@@ -203,7 +203,7 @@ describe('SearchService - indexDocument / removeDocument', () => {
       slug: 'gone',
       accessLevel: 'public',
     });
-    await service.removeDocument('x2');
+    await service.removeDocument({ id: 'x2', siteId: 'default', type: 'post' });
     const result = await service.search({ q: 'Gone' }, { isMember: false, siteId: 'default' });
     expect(result.docs).toHaveLength(0);
   });

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { addItemToCommerceCart, getSafeCommerceErrorMessage } from '@/lib/commerce/service';
+import { validateBrowserPostRequest } from '@/lib/security/browser-post';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,9 +9,15 @@ export async function POST(
   context: { params: Promise<{ cartId: string }> },
 ) {
   const { cartId } = await context.params;
-  const body = await request.json().catch(() => ({}));
 
   try {
+    const browserPostError = validateBrowserPostRequest(request);
+
+    if (browserPostError) {
+      return NextResponse.json({ error: browserPostError }, { status: 403 });
+    }
+
+    const body = await request.json().catch(() => ({}));
     const cart = await addItemToCommerceCart(cartId, body);
     return NextResponse.json({ cart });
   } catch (error) {

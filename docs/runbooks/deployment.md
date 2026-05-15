@@ -39,6 +39,10 @@ Refer to `docs/architecture/environment-matrix.md` for a full list of required a
    pnpm build
    ```
 
+   The web app build expects Next.js standalone output. `apps/web/package.json`
+   now runs `next typegen` during `typecheck`, and `apps/web/next.config.ts`
+   must keep `output: 'standalone'` aligned with the Docker image layout.
+
 3. **Run Migrations:**
    ```bash
    pnpm --dir apps/web migrate
@@ -55,6 +59,10 @@ Refer to `docs/architecture/environment-matrix.md` for a full list of required a
    ```bash
    docker build -t nexpress:latest .
    ```
+
+   The repository tracks `apps/web/public/.gitkeep` so the Docker
+   `COPY apps/web/public` step remains valid even when the app has no committed
+   public assets yet.
 
 2. **Run the Container:**
    ```bash
@@ -85,6 +93,13 @@ pnpm --dir apps/web migrate
 ```
 
 Only run production migrations after taking and verifying a backup. If the repository has no new generated migration files, document that fact in the release record rather than improvising destructive schema changes.
+
+If the target database was previously mutated by Payload dev-mode schema pushes,
+`payload migrate` will warn that data loss may occur and the generated initial
+migration can fail when it tries to recreate objects that already exist.
+Validate production rollouts against a clean migration-managed database or an
+explicitly baselined clone instead of treating a dev-pushed schema as
+production-ready.
 
 ## 5. Health and Readiness Checks
 

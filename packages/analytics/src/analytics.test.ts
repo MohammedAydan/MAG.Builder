@@ -26,11 +26,29 @@ describe('AnalyticsEventSchema - valid events', () => {
     expect(result.success).toBe(true);
   });
 
+  it('accepts a content.published event', () => {
+    const result = AnalyticsEventSchema.safeParse({
+      schemaVersion: ANALYTICS_SCHEMA_VERSION,
+      name: 'content.published',
+      payload: { contentType: 'page', contentId: 'abc123', slug: 'home', title: 'Home' },
+    });
+    expect(result.success).toBe(true);
+  });
+
   it('accepts a search.queried event', () => {
     const result = AnalyticsEventSchema.safeParse({
       schemaVersion: ANALYTICS_SCHEMA_VERSION,
       name: 'search.queried',
       payload: { query: 'hello world', resultsCount: 5 },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('accepts a search.reindexed event', () => {
+    const result = AnalyticsEventSchema.safeParse({
+      schemaVersion: ANALYTICS_SCHEMA_VERSION,
+      name: 'search.reindexed',
+      payload: { documentCount: 42 },
     });
     expect(result.success).toBe(true);
   });

@@ -61,6 +61,8 @@ export const SearchQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   /** Results per page — bounded to SEARCH_MAX_LIMIT */
   limit: z.coerce.number().int().min(1).max(SEARCH_MAX_LIMIT).default(SEARCH_DEFAULT_LIMIT),
+  /** Internal site scoping hint used by persistent adapters. */
+  siteId: z.string().max(128).optional(),
 });
 
 export type SearchQuery = z.infer<typeof SearchQuerySchema>;
@@ -109,7 +111,7 @@ export interface SearchAdapter {
    * Remove a document from the index.
    * Called on content unpublish/delete events.
    */
-  removeDocument(id: string): Promise<void>;
+  removeDocument(doc: Pick<SearchDocument, 'id' | 'siteId' | 'type'>): Promise<void>;
 
   /**
    * Execute a safe, bounded search query.

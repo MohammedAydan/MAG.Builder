@@ -23,12 +23,8 @@ export class InMemorySearchAdapter implements SearchAdapter {
     this.index.set(this.toIndexKey(doc), doc);
   }
 
-  async removeDocument(id: string): Promise<void> {
-    for (const [key, doc] of this.index.entries()) {
-      if (doc.id === id) {
-        this.index.delete(key);
-      }
-    }
+  async removeDocument(doc: Pick<SearchDocument, 'id' | 'siteId' | 'type'>): Promise<void> {
+    this.index.delete(this.toIndexKey(doc));
   }
 
   async reindex(docs: SearchDocument[]): Promise<void> {
@@ -39,9 +35,13 @@ export class InMemorySearchAdapter implements SearchAdapter {
   }
 
   async search(query: SearchQuery): Promise<SearchResult> {
-    const { q, type, page, limit } = query;
+    const { q, type, page, limit, siteId } = query;
 
     let results: SearchDocument[] = Array.from(this.index.values());
+
+    if (siteId) {
+      results = results.filter((doc) => doc.siteId === siteId);
+    }
 
     // Filter by content type (allowlisted)
     if (type) {

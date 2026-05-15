@@ -16,6 +16,7 @@
  *  - limit: results per page (max 50, default 10)
  */
 import { NextRequest, NextResponse } from 'next/server';
+import { ANALYTICS_SCHEMA_VERSION, emitAnalyticsEvent } from '@/lib/analytics/service';
 import { searchService } from '@/lib/search/service';
 import { resolveSiteFromHeaders } from '@/lib/sites/service';
 import { getPayload } from 'payload';
@@ -57,6 +58,25 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     isMember,
     siteId: site.siteId,
   });
+
+  const query = typeof rawQuery.q === 'string' ? rawQuery.q.trim() : '';
+  const looksSensitive = /@|\b\d{7,}\b/.test(query);
+
+  if (query && !looksSensitive) {
+    await emitAnalyticsEvent({
+      schemaVersion: ANALYTICS_SCHEMA_VERSION,
+      name: 'search.queried',
+      meta: {
+        siteId: site.siteId,
+        siteSlug: site.slug,
+      },
+      payload: {
+        query,
+        resultsCount: result.total,
+        ...(typeof rawQuery.type === 'string' ? { type: rawQuery.type } : {}),
+      },
+    });
+  }
 
   return NextResponse.json({
     success: true,

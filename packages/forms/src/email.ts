@@ -39,12 +39,58 @@ export type EmailActionResult =
   | { reason: string; sent: false }
   | { messageId?: string; sent: true };
 
+export type EmailProviderKind = 'resend' | 'stub';
+
+export type ResendEmailProviderConfig = {
+  apiKey: string;
+  from: string;
+  replyTo?: string;
+};
+
 /**
  * Provider-agnostic email action interface.
  * Implement this interface to integrate a real email provider.
  */
 export interface EmailProvider {
   send(config: EmailActionConfig, payload: EmailPayload): Promise<EmailActionResult>;
+}
+
+function buildEmailText(payload: EmailPayload) {
+  return [
+    `Form: ${payload.formSlug}`,
+    `Submitted at: ${payload.submittedAt}`,
+    `Summary: ${payload.summary}`,
+  ].join('\n');
+}
+
+export class ResendEmailProvider implements EmailProvider {
+  constructor(private readonly config: ResendEmailProviderConfig) {}
+
+  async send(config: EmailActionConfig, payload: EmailPayload): Promise<EmailActionResult> {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.config.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: this.config.from,
+        to: [config.to.name ? `${config.to.name} <${config.to.email}>` : config.to.email],
+        ...(config.replyTo ?? this.config.replyTo
+          ? { reply_to: config.replyTo ?? this.config.replyTo }
+          : {}),
+        subject: `New submission for ${payload.formSlug}`,
+        text: buildEmailText(payload),
+      }),
+    });
+
+    if (!response.ok) {
+      return { reason: `Email provider returned ${response.status}.`, sent: false };
+    }
+
+    const body = (await response.json().catch(() => ({}))) as { id?: string };
+    return { ...(body.id ? { messageId: body.id } : {}), sent: true };
+  }
 }
 
 /**

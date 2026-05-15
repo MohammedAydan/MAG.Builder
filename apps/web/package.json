@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "generate:types": "payload generate:types",
     "generate:importmap": "payload generate:importmap",
@@ -16,6 +16,7 @@
     "migrate": "payload migrate",
     "migrate:status": "payload migrate:status",
     "migrate:fresh": "payload migrate:fresh",
+    "reindex:search": "tsx src/scripts/reindex-search.ts",
     "seed": "tsx src/scripts/seed.ts"
   },
   "dependencies": {

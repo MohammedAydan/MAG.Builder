@@ -2,185 +2,96 @@
 
 ## Overview
 
-Phase 22 introduces three foundation modules:
+Phase 29 upgrades the Phase 22 foundations with production-oriented runtime selection:
 
-1. **Search** (`@nexpress/search`) — In-memory adapter, replaceable via adapter pattern
-2. **Analytics** (`@nexpress/analytics`) — Typed event schema, no-op adapter in Phase 22
-3. **Automation** (`@nexpress/automation`) — Allowlisted trigger/action engine, synchronous execution
-
----
+1. **Search** (`@nexpress/search`) now supports a database-backed app adapter plus the legacy memory fallback.
+2. **Analytics** (`@nexpress/analytics`) now supports an audit-log-backed app adapter plus the legacy no-op fallback.
+3. **Automation** (`@nexpress/automation`) is now wired to real form, content, and commerce events.
 
 ## Search
 
-### How It Works
+### Runtime Options
 
-- Published pages and posts are indexed as `SearchDocument` projections.
-- The `SearchAdapter` interface is the substitution point for external search providers.
-- `SearchService` enforces access-level filtering and query validation.
+- `NEXPRESS_SEARCH_PROVIDER=database`
+  - default outside tests
+  - queries published Payload-backed content directly
+- `NEXPRESS_SEARCH_PROVIDER=memory`
+  - development/test fallback
 
-### Access Control
+### Behavior
 
-| User type | Visible documents |
-|-----------|-------------------|
-| Anonymous | `accessLevel: 'public'` only |
-| Authenticated member | `public` + `members-only` |
-| Admin (server-side) | All (via `overrideAccess`) |
-
-Draft content is **never** indexed or returned.
-
-### Public API
-
-```
-GET /api/search?q=<query>&type=page|post&page=1&limit=10
-```
-
-- `q`: max 200 chars
-- `limit`: max 50 per page
-- Returns safe `SearchDocument` projections (id, type, title, slug, excerpt, publishedAt, accessLevel)
-
-### In-Memory Adapter Limitations
-
-> [!WARNING]
-> The Phase 22 in-memory adapter is **not production-safe**:
-> - Index is process-local and lost on restart
-> - Not suitable for multi-instance deployments
-> - Replace with Algolia, Typesense, or PostgreSQL FTS adapter for production
-
-### Replacing the Adapter
-
-1. Implement `SearchAdapter` from `@nexpress/search`
-2. Update `apps/web/src/lib/search/service.ts` to use the new adapter
-3. No other files need changing
+- published pages and posts are projected into safe `SearchDocument` results
+- site-aware filtering is enforced
+- anonymous users see only `public` content
+- members can also see `members-only` content
+- drafts are never returned
 
 ### Reindexing
 
-- Content publish events automatically trigger `search.enqueue_reindex` automation action
-- Manual full reindex: call `reindexAllContent()` from `apps/web/src/lib/search/service.ts`
+- publish/unpublish hooks trigger `search.enqueue_reindex`
+- manual rebuild: `pnpm --dir apps/web reindex:search`
 
----
+### Current Limitation
+
+The default adapter is database-backed, but it is still a Payload projection adapter rather than full PostgreSQL FTS.
 
 ## Analytics
 
-### How It Works
+### Runtime Options
 
-- Events are typed and versioned with `ANALYTICS_SCHEMA_VERSION = '1'`
-- All events are validated server-side against a Zod discriminated union schema
-- Events with sensitive field names are rejected before reaching the adapter
-- The `AnalyticsAdapter` is the substitution point for external analytics providers
+- `NEXPRESS_ANALYTICS_PROVIDER=audit-log`
+  - default outside tests
+  - persists event summaries through the existing audit log collection
+- `NEXPRESS_ANALYTICS_PROVIDER=noop`
+  - test-safe fallback
 
-### Allowed Event Names
+### Event Coverage
 
-| Event | Trigger |
-|-------|---------|
-| `page.viewed` | Public page view |
-| `content.viewed` | Content item view |
-| `search.queried` | Search executed |
-| `form.submitted` | Form submission outcome |
-| `member.registered` | New member signup |
-| `member.logged_in` | Member login |
-| `commerce.product_viewed` | Product page view |
-| `commerce.cart_updated` | Cart add/remove/update |
-| `commerce.order_created` | Order snapshot created |
+- `page.viewed`
+- `content.viewed`
+- `content.published`
+- `search.queried`
+- `search.reindexed`
+- `form.submitted`
+- `commerce.order_created`
 
-### Privacy Design
+### Privacy Rules
 
-> [!IMPORTANT]
-> Analytics events must never contain:
-> - Passwords, secrets, tokens, API keys
-> - Raw form submission payloads
-> - Payment/card data
-> - Private member/admin data (email, phone, address)
-> - IP addresses (omitted by design)
-> - User agents over 500 chars
+- no passwords, tokens, secrets, API keys, raw form payloads, or payment data
+- no raw IP addresses
+- search query analytics are skipped when the query looks like obvious PII
 
-### No-Op Adapter Limitations
+### Current Limitation
 
-> [!WARNING]
-> Phase 22 uses a no-op adapter: events are **not persisted**.
-> Replace with PostHog, Plausible, or a DB adapter for production analytics.
-
-### Admin API
-
-```
-GET /api/analytics/summary?since=<ISO-date>
-```
-- Requires `analytics:read` or `analytics:admin` permission
-- Returns aggregated event counts only — never raw event data
-
-### Replacing the Adapter
-
-1. Implement `AnalyticsAdapter` from `@nexpress/analytics`
-2. Update `apps/web/src/lib/analytics/service.ts` to use the new adapter
-
----
+The audit-log adapter is durable and useful for admin summaries, but it is not a dedicated analytics warehouse.
 
 ## Automation
 
-### How It Works
+### Active Trigger Wiring
 
-- Automation rules specify an allowlisted trigger + ordered list of allowlisted actions
-- Rules are hard-coded in Phase 22 (no admin UI for rule management yet)
-- Execution is synchronous and in-process
-- Trigger payloads are fully validated before execution
-- Action failures are isolated and never expose internal error details
+- `form.submitted`
+  - fired after successful form submission persistence
+- `content.published`
+  - fired from page/post publish hooks
+- `content.unpublished`
+  - fired from page/post unpublish/delete hooks
+- `commerce.order_created`
+  - fired after the checkout snapshot is recorded
 
-### Allowed Triggers
+### Built-In Rules
 
-| Trigger | Fired by |
-|---------|----------|
-| `form.submitted` | Form submission API |
-| `content.published` | Content publish hook (manual via automation) |
-| `content.unpublished` | Content unpublish hook |
-| `commerce.order_created` | Commerce order snapshot |
+- `form.submitted` -> `analytics.emit_event`
+- `content.published` -> `analytics.emit_event`, `search.enqueue_reindex`
+- `content.unpublished` -> `search.enqueue_reindex`
+- `commerce.order_created` -> `analytics.emit_event`
 
-### Allowed Actions
+### Hard Boundaries
 
-| Action | Effect |
-|--------|--------|
-| `analytics.emit_event` | Emits a typed analytics event |
-| `search.enqueue_reindex` | Indexes/removes content from search index |
-
-### Forbidden Actions (Hard Boundary)
-
-The following actions are **never** implemented:
+Forbidden actions remain forbidden:
 `shell.exec`, `database.query`, `filesystem.read/write`, `http.fetch.arbitrary`,
-`webhook.send.arbitrary`, `payment.charge`, `checkout.complete`, `admin.role.grant`,
-`user.impersonate`, `plugin.install.remote`, `package.install`, `env.read`,
+`payment.charge`, `admin.role.grant`, `plugin.install.remote`, `env.read`,
 `secrets.read`, `code.eval`
 
-### Built-in Rules
+### Current Limitation
 
-| Rule | Trigger | Action |
-|------|---------|--------|
-| Track form submissions | `form.submitted` | `analytics.emit_event` |
-| Update search on publish | `content.published` | `search.enqueue_reindex` |
-| Remove from search on unpublish | `content.unpublished` | `search.enqueue_reindex` |
-| Track order created | `commerce.order_created` | `analytics.emit_event` |
-
-### In-Process Execution Limitation
-
-> [!WARNING]
-> Phase 22 automation is synchronous and in-process. For reliability at scale:
-> - Use a background job queue (BullMQ, etc.) — Phase 25+
-> - Implement retry/backoff
-
-### Audit
-
-Automation rule executions are written to the audit log with:
-- `action: 'automation.rule.executed'`
-- `metadata.ruleId`, `metadata.trigger`, `metadata.overallStatus`
-
----
-
-## Migration Gap
-
-No new Payload collections are introduced in Phase 22. No DB migrations needed.
-
-## Known Gaps
-
-- No admin UI for managing automation rules (Phase 25+)
-- No persisted automation rule storage in Payload (Phase 25+)
-- No scheduled/cron automation (Phase 25+)
-- In-memory search index (replace adapter for production)
-- No-op analytics adapter (replace adapter for production)
-- Search index is not populated at startup; content is indexed on next publish trigger
+Automation remains static and in-process. There is still no persisted rule UI, cron layer, or background worker queue.

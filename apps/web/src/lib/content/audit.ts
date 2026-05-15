@@ -39,7 +39,9 @@ export function createAuditedAfterChangeHook({
       result: 'success',
       targetCollection: collection,
       targetId: doc.id,
-    });
+    }, req);
+
+    return doc;
   };
 }
 
@@ -67,6 +69,8 @@ export function createAuditedAfterDeleteHook({
       result: 'success',
       targetCollection: collection,
       targetId: doc.id,
-    });
+    }, req);
+
+    return doc;
   };
 }

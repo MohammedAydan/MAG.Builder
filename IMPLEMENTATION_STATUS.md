@@ -2,10 +2,10 @@
 
 Project: NexPress
 Mode: Greenfield
-Current phase: 27-final-release-candidate
+Current phase: 29-production-runtime-services
 Overall status: completed
 
-The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, visual editor adapter, themes/templates foundation, plugin/module system, forms/workflows foundation, public membership/protected-route foundation, the commerce service spike, the commerce MVP slice, storefront commerce builder blocks, the API platform with OpenAPI, webhooks/integrations foundation, MCP native gateway, the search/analytics/automation foundation, the multi-site/SaaS-readiness foundation, the marketplace/packaging/update-planning foundation, the security/observability hardening slice, the production deployment/docs slice, and the final release-candidate validation slice are implemented.
+The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, visual editor adapter, themes/templates foundation, plugin/module system, forms/workflows foundation, public membership/protected-route foundation, the commerce service spike, the commerce MVP slice, storefront commerce builder blocks, the API platform with OpenAPI, webhooks/integrations foundation, MCP native gateway, the search/analytics/automation foundation, the multi-site/SaaS-readiness foundation, the marketplace/packaging/update-planning foundation, the security/observability hardening slice, the production deployment/docs slice, the final release-candidate validation slice, the Phase 28 RC fix pack/live DB validation slice, and the Phase 29 production runtime services slice are implemented.
 
 ## Phase tracker
 
@@ -37,6 +37,8 @@ The platform foundation, Payload CMS foundation, database/migration/seed layer, 
 - [x] Phase 25 - Observability and Security Hardening: done
 - [x] Phase 26 - Production Deployment and Docs: done
 - [x] Phase 27 - Final Release Candidate: done
+- [x] Phase 28 - RC Fix Pack and Live DB Validation: done
+- [x] Phase 29 - Production Runtime Services: done
 
 ## Current session log
 
@@ -46,31 +48,40 @@ The platform foundation, Payload CMS foundation, database/migration/seed layer, 
 
 ### Agent/tool
 
-Gemini CLI
+Codex
 
 ### Requested phase
 
-Phase 27 - Final Release Candidate
+Phase 29 - Production Runtime Services
 
 ### Files changed
 
 **New files:**
-- `docs/release/RELEASE_CANDIDATE.md`
-- `docs/release/CHANGELOG.md`
-- `docs/release/SMOKE_TEST_MATRIX.md`
-- `docs/release/KNOWN_LIMITATIONS.md`
-- `docs/release/GO_NO_GO_CHECKLIST.md`
-- `plans/phase-27-final-release-candidate/review.md`
+- `apps/web/src/lib/runtime-services/{config,config.test}.ts`
+- `apps/web/src/lib/forms/runtime.ts`
+- `apps/web/src/lib/search/database-adapter.ts`
+- `apps/web/src/lib/analytics/audit-log-adapter.ts`
+- `apps/web/src/scripts/reindex-search.ts`
+- `packages/webhooks/src/{queue,queue.test.ts}`
+- `packages/forms/src/rate-limit.test.ts`
+- `plans/phase-29-production-runtime-services/review.md`
 
 **Modified files:**
-- `.github/workflows/ci.yml`
-- `docker-compose.yml`
+- `apps/web/package.json`
+- `apps/web/src/app/api/forms/[formId]/submit/route.ts`
+- `apps/web/src/app/api/search/route.ts`
+- `apps/web/src/app/(public)/[slug]/page.tsx`
+- `apps/web/src/app/(public)/journal/[slug]/page.tsx`
+- `apps/web/src/lib/{forms,search,analytics,automation,content,webhooks,commerce}/**/*`
+- `apps/web/src/collections/{Pages,Posts}.ts`
+- `packages/forms/src/{email,index,rate-limit,security.test}.ts`
+- `packages/search/src/{adapter,service,types,search.test}.ts`
+- `packages/analytics/src/{types,analytics.test}.ts`
+- `packages/automation/src/automation.test.ts`
+- `packages/webhooks/src/index.ts`
+- `.env.example`
+- `docs/runbooks/{forms-workflows,search-analytics-automation,operations}.md`
 - `docs/architecture/environment-matrix.md`
-- `docs/product/production-roadmap.md`
-- `docs/runbooks/deployment.md`
-- `docs/runbooks/release-checklist.md`
-- `docs/runbooks/rollback.md`
-- `packages/api/src/openapi.ts`
 - `plans/context.md`
 - `plans/SESSION_LOG.md`
 - `IMPLEMENTATION_STATUS.md`
@@ -82,20 +93,28 @@ Phase 27 - Final Release Candidate
 - `pnpm.cmd typecheck` - passed
 - `pnpm.cmd test` - passed
 - `pnpm.cmd build` - passed
-- `docker build -t nexpress-rc-check .` - skipped locally because `docker` is not installed in this environment
+- `pnpm.cmd --dir packages/forms test` - passed
+- `pnpm.cmd --dir packages/search test` - passed
+- `pnpm.cmd --dir packages/analytics test` - passed
+- `pnpm.cmd --dir packages/automation test` - passed
+- `pnpm.cmd --dir packages/webhooks test` - passed
+- `pnpm.cmd --dir apps/web test` - passed
+- `pnpm.cmd --dir apps/web typecheck` - passed
 
-### Security notes
+### Runtime notes
 
-- Release-candidate docs now distinguish RC status from GA and explicitly preserve prior security boundaries.
-- CI and docker-compose now use the actual runtime env name `DATABASE_URL`, avoiding misleading deployment guidance.
-- OpenAPI no longer documents browser auth form posts or nonexistent template/cart/member endpoints as if they were valid JSON APIs.
-- Known release-candidate limitations remain documented rather than hidden.
+- Forms now resolve rate limiting and email delivery through runtime-selected adapters without exposing secrets to the client.
+- Search now defaults to a database-backed adapter and adds a manual `reindex:search` entry point.
+- Analytics now default to an audit-log-backed adapter outside tests, with `noop` retained as the test-safe fallback.
+- Content publish/unpublish, form submission, and commerce checkout snapshot flows now fire automation and outbound webhook events through explicit runtime boundaries.
 
 ### Blockers
 
-- No repo blocker found for Phase 27.
-- Local Docker build verification could not be executed because Docker is unavailable in this environment.
+- The Redis/Valkey-compatible rate-limit contract is present, but this repo still lacks a concrete distributed client binding.
+- Search is database-backed but not full PostgreSQL FTS yet.
+- Analytics persistence currently uses audit-log summaries rather than a dedicated analytics warehouse.
+- Webhook retry/backoff metadata exists at the queue boundary, but delivery still runs inline in this repo.
 
 ### Next recommended prompt
 
-Phase 27 is complete. If more work is needed, request a new scoped task explicitly instead of extending this phase implicitly.
+Phase 29 is complete. The next scoped prompt is Phase 30 admin control center unless you want to address one of the explicit runtime-service gaps first.

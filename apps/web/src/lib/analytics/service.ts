@@ -1,14 +1,23 @@
 /**
  * Server-only analytics service instance for the web app.
  *
- * Phase 22 uses the NoopAnalyticsAdapter (events are not persisted).
- * Replace the adapter argument here to switch to PostHog, Plausible, etc.
+ * Phase 29 selects a persistent audit-log-backed adapter by default while
+ * retaining a no-op fallback for tests or explicitly disabled deployments.
  */
 import { AnalyticsService, NoopAnalyticsAdapter } from '@nexpress/analytics';
 import type { AnalyticsEvent } from '@nexpress/analytics';
 import { ANALYTICS_SCHEMA_VERSION } from '@nexpress/analytics';
+import { AuditLogAnalyticsAdapter } from '@/lib/analytics/audit-log-adapter';
+import { getRuntimeServicesConfig } from '@/lib/runtime-services/config';
 
-export const analyticsService = new AnalyticsService(new NoopAnalyticsAdapter());
+function createAnalyticsAdapter() {
+  const config = getRuntimeServicesConfig();
+  return config.analytics.provider === 'noop'
+    ? new NoopAnalyticsAdapter()
+    : new AuditLogAnalyticsAdapter();
+}
+
+export const analyticsService = new AnalyticsService(createAnalyticsAdapter());
 
 // Re-export types for callers
 export type { AnalyticsEvent };

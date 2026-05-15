@@ -29,7 +29,10 @@ export class SearchService {
       return { docs: [], total: 0, page: 1, limit: 10, hasNextPage: false };
     }
 
-    const query: SearchQuery = parsed.data;
+    const query: SearchQuery = {
+      ...parsed.data,
+      siteId: audience.siteId,
+    };
 
     let result: SearchResult;
     try {
@@ -41,10 +44,9 @@ export class SearchService {
 
     // Enforce access-level filtering
     // Anonymous users only see public documents; members see all published docs
-    const siteScopedDocs = result.docs.filter((doc) => doc.siteId === audience.siteId);
     const filteredDocs = audience.isMember
-      ? siteScopedDocs
-      : siteScopedDocs.filter((doc) => doc.accessLevel === 'public');
+      ? result.docs
+      : result.docs.filter((doc) => doc.accessLevel === 'public');
 
     return {
       ...result,
@@ -69,11 +71,11 @@ export class SearchService {
    * Remove a document from the index (on unpublish/delete).
    * Fails silently.
    */
-  async removeDocument(id: string): Promise<void> {
+  async removeDocument(doc: Pick<SearchDocument, 'id' | 'siteId' | 'type'>): Promise<void> {
     try {
-      await this.adapter.removeDocument(id);
+      await this.adapter.removeDocument(doc);
     } catch {
-      console.error('[search] Failed to remove document:', id);
+      console.error('[search] Failed to remove document:', doc.id);
     }
   }
 

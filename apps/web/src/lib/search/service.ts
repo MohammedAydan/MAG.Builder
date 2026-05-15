@@ -1,26 +1,40 @@
 /**
  * Server-only search service instance for the web app.
  *
- * The singleton InMemorySearchAdapter is used in Phase 22.
- * Replace with a persistent adapter (Algolia, Typesense, pgfts, etc.)
- * by swapping the adapter argument here — callers do not change.
- *
- * PRODUCTION LIMITATION:
- *  - Index is process-local and lost on restart.
- *  - Not suitable for multi-instance deployments.
+ * Phase 29 defaults to a database-backed adapter that reads published content
+ * from Payload. The in-memory adapter remains available as a development
+ * fallback.
  */
-import { SearchService, defaultSearchAdapter } from '@nexpress/search';
+import { InMemorySearchAdapter, SearchService } from '@nexpress/search';
 import type { SearchDocument } from '@nexpress/search';
 import { getPayload } from 'payload';
+import { emitAnalyticsEvent, ANALYTICS_SCHEMA_VERSION } from '@/lib/analytics/service';
 import configPromise from '@/payload.config';
+import { DatabaseSearchAdapter } from '@/lib/search/database-adapter';
+import { getRuntimeServicesConfig } from '@/lib/runtime-services/config';
 import { DEFAULT_SITE_ID } from '@/lib/sites/model';
 import { extractSiteRelationshipId } from '@/lib/sites/service';
 
-export const searchService = new SearchService(defaultSearchAdapter);
+function createSearchAdapter() {
+  const config = getRuntimeServicesConfig();
+  return config.search.provider === 'memory'
+    ? new InMemorySearchAdapter()
+    : new DatabaseSearchAdapter();
+}
 
-// ---------------------------------------------------------------------------
-// Indexing helpers — called from content hooks / automation
-// ---------------------------------------------------------------------------
+export const searchService = new SearchService(createSearchAdapter());
+
+/**
+ * Get the current search status and provider metadata for the dashboard.
+ */
+export async function getSearchStatus() {
+  const adapterName = getRuntimeServicesConfig().search.provider;
+
+  return {
+    adapter: adapterName,
+    healthy: true,
+  };
+}
 
 /**
  * Build a safe SearchDocument projection from a Payload page/post record.
@@ -80,7 +94,11 @@ export async function indexContentItem(
       await searchService.indexDocument(doc);
     } else {
       // Not published or missing required fields — remove from index
-      await searchService.removeDocument(String(id));
+      await searchService.removeDocument({
+        id: String(id),
+        siteId: String(extractSiteRelationshipId((record as Parameters<typeof buildDocFromRecord>[0]).site) ?? DEFAULT_SITE_ID),
+        type,
+      });
     }
   } catch {
     console.error('[search] Failed to index content item:', id, type);
@@ -90,8 +108,48 @@ export async function indexContentItem(
 /**
  * Remove a content item from the search index (on unpublish/delete).
  */
-export async function removeContentFromIndex(id: string): Promise<void> {
-  await searchService.removeDocument(id);
+export async function removeContentFromIndex(
+  id: string,
+  type?: 'page' | 'post',
+  siteId?: string,
+): Promise<void> {
+  if (type && siteId) {
+    await searchService.removeDocument({
+      id: String(id),
+      siteId,
+      type,
+    });
+    return;
+  }
+
+  const payload = await getPayload({ config: configPromise });
+  const collections = ['pages', 'posts'] as const;
+
+  for (const collection of collections) {
+    try {
+      const record = await payload.findByID({
+        collection,
+        id,
+        overrideAccess: true,
+        depth: 0,
+      });
+      const doc = buildDocFromRecord(
+        record as Parameters<typeof buildDocFromRecord>[0],
+        collection === 'pages' ? 'page' : 'post',
+      );
+
+      if (doc) {
+        await searchService.removeDocument({
+          id: doc.id,
+          siteId: doc.siteId,
+          type: doc.type,
+        });
+        return;
+      }
+    } catch {
+      continue;
+    }
+  }
 }
 
 /**
@@ -130,6 +188,13 @@ export async function reindexAllContent(): Promise<void> {
     }
 
     await searchService.reindex(docs);
+    await emitAnalyticsEvent({
+      schemaVersion: ANALYTICS_SCHEMA_VERSION,
+      name: 'search.reindexed',
+      payload: {
+        documentCount: docs.length,
+      },
+    });
   } catch {
     console.error('[search] Failed to reindex all content.');
   }

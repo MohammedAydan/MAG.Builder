@@ -4,10 +4,11 @@ import { defaultSecurityHeaders, getCspHeader } from "@nexpress/security";
 
 const securityHeaders = [
   ...defaultSecurityHeaders,
-  getCspHeader()
+  ...(process.env.NODE_ENV === 'production' ? [getCspHeader()] : [])
 ];
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   poweredByHeader: false,
   reactStrictMode: true,
   transpilePackages: ['@nexpress/builder-core', '@nexpress/builder-editor'],

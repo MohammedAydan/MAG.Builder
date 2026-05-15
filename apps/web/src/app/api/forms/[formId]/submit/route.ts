@@ -20,7 +20,8 @@
  * X-Forwarded-For or a fallback constant. Raw IP addresses are not stored.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { defaultFormRateLimiter, buildRateLimitKey } from '@nexpress/forms';
+import { buildRateLimitKey } from '@nexpress/forms';
+import { formRateLimiter } from '@/lib/forms/runtime';
 import { processFormSubmission } from '@/lib/forms/service';
 import { resolveSiteFromHeaders } from '@/lib/sites/service';
 
@@ -94,7 +95,7 @@ export async function POST(
     // Rate limit check
     const clientId = deriveClientIdentifier(req);
     const rateLimitKey = buildRateLimitKey(formId, clientId);
-    const rateLimitResult = defaultFormRateLimiter.check(rateLimitKey);
+    const rateLimitResult = await formRateLimiter.check(rateLimitKey);
 
     if (!rateLimitResult.allowed) {
       return NextResponse.json(

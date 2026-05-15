@@ -28,6 +28,10 @@ type RateLimitEntry = {
   windowStart: number;
 };
 
+export interface RateLimitStore {
+  check(key: string, config: RateLimitConfig): Promise<RateLimitResult>;
+}
+
 const DEFAULT_CONFIG: RateLimitConfig = {
   maxRequests: 5,
   windowMs: 60_000, // 1 minute
@@ -39,33 +43,21 @@ const DEFAULT_CONFIG: RateLimitConfig = {
  * @param config - Rate limit configuration.
  * @returns A function that checks whether a key is within limits.
  */
-export function createRateLimiter(config: RateLimitConfig = DEFAULT_CONFIG) {
-  const store = new Map<string, RateLimitEntry>();
+export class InMemoryRateLimitStore implements RateLimitStore {
+  private readonly store = new Map<string, RateLimitEntry>();
 
-  function cleanup(now: number) {
-    for (const [key, entry] of store) {
-      if (now - entry.windowStart > config.windowMs) {
-        store.delete(key);
-      }
-    }
-  }
-
-  /**
-   * Check and increment the rate limit for a given key.
-   * Returns allowed=false with retryAfterMs if the limit is exceeded.
-   */
-  function check(key: string): RateLimitResult {
+  async check(key: string, config: RateLimitConfig): Promise<RateLimitResult> {
     const now = Date.now();
 
     // Periodic cleanup to prevent unbounded memory growth
-    if (store.size > 10_000) {
-      cleanup(now);
+    if (this.store.size > 10_000) {
+      this.cleanup(config, now);
     }
 
-    const entry = store.get(key);
+    const entry = this.store.get(key);
 
     if (!entry || now - entry.windowStart > config.windowMs) {
-      store.set(key, { count: 1, windowStart: now });
+      this.store.set(key, { count: 1, windowStart: now });
       return { allowed: true };
     }
 
@@ -78,7 +70,35 @@ export function createRateLimiter(config: RateLimitConfig = DEFAULT_CONFIG) {
     return { allowed: true };
   }
 
-  return { check };
+  private cleanup(config: RateLimitConfig, now: number) {
+    for (const [key, entry] of this.store) {
+      if (now - entry.windowStart > config.windowMs) {
+        this.store.delete(key);
+      }
+    }
+  }
+}
+
+/**
+ * Redis/Valkey-compatible placeholder contract.
+ *
+ * Phase 29 avoids taking a hard dependency on a specific Redis client.
+ * Applications can implement this interface with their preferred client and
+ * pass it to `createRateLimiter`.
+ */
+export interface DistributedRateLimitStore extends RateLimitStore {
+  readonly kind: 'redis-compatible';
+}
+
+export function createRateLimiter(
+  config: RateLimitConfig = DEFAULT_CONFIG,
+  store: RateLimitStore = new InMemoryRateLimitStore(),
+) {
+  return {
+    check(key: string) {
+      return store.check(key, config);
+    },
+  };
 }
 
 /** Default rate limiter: 5 submissions per form per minute. */

@@ -1,6 +1,6 @@
 # Production Environment Variable Matrix
 
-This matrix reflects the variables currently consumed by the repository as of the Phase 27 release candidate. It intentionally excludes future-facing placeholders that are not read by the code today.
+This matrix reflects the variables currently consumed by the repository as of Phase 29 runtime-services completion.
 
 ## 1. Core Runtime
 
@@ -39,9 +39,25 @@ This matrix reflects the variables currently consumed by the repository as of th
 | `HOSTNAME` | No | `0.0.0.0` | Docker/runtime | Server bind address in container or Node hosting environments. |
 | `NEXT_TELEMETRY_DISABLED` | No | `1` | build/runtime | Recommended in CI and production images. |
 
+## 5. Runtime Services
+
+| Variable | Required | Default | Source | Notes |
+|---|---|---|---|---|
+| `NEXPRESS_FORM_RATE_LIMIT_PROVIDER` | No | `memory` | `apps/web/src/lib/runtime-services/config.ts` | Supported values: `memory`, `redis-compatible`. The Redis-compatible option is a contract only until a concrete client adapter is installed. |
+| `NEXPRESS_EMAIL_PROVIDER` | No | `stub` | `apps/web/src/lib/runtime-services/config.ts` | Supported values: `stub`, `resend`. |
+| `NEXPRESS_EMAIL_FROM` | If `resend` | None | `apps/web/src/lib/runtime-services/config.ts` | Required sender address for the built-in Resend provider. |
+| `NEXPRESS_EMAIL_REPLY_TO` | No | None | `apps/web/src/lib/runtime-services/config.ts` | Optional operator-managed reply-to address. |
+| `RESEND_API_KEY` | If `resend` | None | `apps/web/src/lib/runtime-services/config.ts` | Secret API key for Resend email delivery. |
+| `NEXPRESS_SEARCH_PROVIDER` | No | `database` | `apps/web/src/lib/runtime-services/config.ts` | Supported values: `database`, `memory`. Tests default to `memory` when not overridden. |
+| `NEXPRESS_ANALYTICS_PROVIDER` | No | `audit-log` | `apps/web/src/lib/runtime-services/config.ts` | Supported values: `audit-log`, `noop`. Tests default to `noop` when not overridden. |
+| `NEXPRESS_WEBHOOK_DELIVERY_MODE` | No | `in-process` | `apps/web/src/lib/runtime-services/config.ts` | Queue boundary selector for outbound webhook delivery. |
+| `NEXPRESS_WEBHOOK_MAX_ATTEMPTS` | No | `3` | `apps/web/src/lib/runtime-services/config.ts` | Bounded retry metadata for webhook delivery jobs. |
+| `NEXPRESS_WEBHOOK_BACKOFF_MS` | No | `30000` | `apps/web/src/lib/runtime-services/config.ts` | Retry backoff metadata for webhook delivery jobs. |
+
 ## Validation Rules
 
 - Build-time validation is intentionally minimal: only `NODE_ENV` is validated at module load.
 - Runtime secrets are validated lazily through `getRuntimeEnv()` so CI builds do not require live production secrets.
 - `NEXT_PUBLIC_MEDUSA_SERVER_TOKEN` must never be set; the commerce package rejects it explicitly.
 - `.env.example` contains placeholder values only and remains the source of local-development defaults.
+- Runtime service secrets are parsed lazily through `apps/web/src/lib/runtime-services/config.ts` and redacted before any diagnostic output.

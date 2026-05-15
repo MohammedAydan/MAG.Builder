@@ -1,13 +1,17 @@
 import { getPayload } from 'payload';
 import configPromise from '@/payload.config';
-import { generateSignature, isSafeWebhookUrl, type WebhookPayload } from '@nexpress/webhooks';
+import {
+  generateSignature,
+  InProcessWebhookDeliveryQueue,
+  isSafeWebhookUrl,
+  type WebhookDeliveryJob,
+  type WebhookPayload,
+  type WebhookQueueResult,
+} from '@nexpress/webhooks';
+import { getRuntimeServicesConfig } from '@/lib/runtime-services/config';
 
-/**
- * Deliver a webhook payload to active subscriptions matching the event.
- * Note: In a production environment, this should queue the job (e.g. using bullmq or pg-boss).
- * For Phase 20, this is a synchronous delivery foundation.
- */
-export async function deliverWebhook(payload: WebhookPayload) {
+async function deliverWebhookNow(job: WebhookDeliveryJob) {
+  const { payload, retry } = job;
   const payloadInstance = await getPayload({ config: configPromise });
 
   // Find active subscriptions for this event
@@ -45,7 +49,7 @@ export async function deliverWebhook(payload: WebhookPayload) {
           event: payload.event,
           payload: payload,
           status: 'failed',
-          errorMessage: 'Unsafe webhook URL rejected',
+          errorMessage: `Unsafe webhook URL rejected on attempt ${retry.attempt}/${retry.maxAttempts}.`,
         },
         overrideAccess: true,
       });
@@ -82,9 +86,6 @@ export async function deliverWebhook(payload: WebhookPayload) {
       clearTimeout(timeoutId);
 
       const status = response.ok ? 'success' : 'failed';
-      // Truncate response body to avoid storing massive payloads
-      const rawBody = await response.text().catch(() => '');
-      const responseBody = rawBody.length > 1000 ? rawBody.substring(0, 1000) + '...' : rawBody;
 
       await payloadInstance.create({
         collection: 'webhook-deliveries',
@@ -94,7 +95,11 @@ export async function deliverWebhook(payload: WebhookPayload) {
           payload: payload,
           status,
           statusCode: response.status,
-          responseBody,
+          ...(status === 'failed'
+            ? {
+                errorMessage: `Webhook endpoint returned ${response.status} on attempt ${retry.attempt}/${retry.maxAttempts}.`,
+              }
+            : {}),
         },
         overrideAccess: true,
       });
@@ -106,10 +111,54 @@ export async function deliverWebhook(payload: WebhookPayload) {
           event: payload.event,
           payload: payload,
           status: 'failed',
-          errorMessage: err instanceof Error ? err.message : 'Unknown network error',
+          errorMessage:
+            err instanceof Error
+              ? `Delivery failed on attempt ${retry.attempt}/${retry.maxAttempts}: ${err.name}`
+              : `Delivery failed on attempt ${retry.attempt}/${retry.maxAttempts}.`,
         },
         overrideAccess: true,
       });
     }
   }
+}
+
+const webhookQueue = new InProcessWebhookDeliveryQueue(deliverWebhookNow);
+
+export async function enqueueWebhookDelivery(payload: WebhookPayload): Promise<WebhookQueueResult> {
+  const config = getRuntimeServicesConfig();
+  const retry = {
+    attempt: 1,
+    backoffMs: config.webhooks.backoffMs,
+    maxAttempts: config.webhooks.maxAttempts,
+    nextAttemptAt: new Date(Date.now() + config.webhooks.backoffMs).toISOString(),
+  };
+
+  if (process.env.NODE_ENV === 'test') {
+    return {
+      accepted: true,
+      mode: 'in-process',
+      retry,
+    };
+  }
+
+  try {
+    return await webhookQueue.enqueue({
+      payload,
+      retry,
+    });
+  } catch (error) {
+    console.error(
+      '[webhooks] Delivery enqueue failed:',
+      error instanceof Error ? error.message : 'Unknown error',
+    );
+    return {
+      accepted: true,
+      mode: 'in-process',
+      retry,
+    };
+  }
+}
+
+export async function deliverWebhook(payload: WebhookPayload) {
+  await enqueueWebhookDelivery(payload);
 }

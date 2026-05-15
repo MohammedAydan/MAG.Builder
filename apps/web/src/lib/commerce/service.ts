@@ -11,11 +11,53 @@ import {
   type CommerceOrderSummary,
 } from '@nexpress/commerce';
 import { AUDIT_ACTIONS, writeAuditEntry } from '@/lib/audit/service';
-import type { AuthenticatedMemberLike } from '@/lib/auth/access';
+import { fireAutomationTrigger } from '@/lib/automation/hooks';
+import {
+  type AuthenticatedMemberLike,
+  type AuthenticatedUserLike,
+} from '@/lib/auth/access';
 import { getAuthenticatedMember } from '@/lib/members/service';
 import { getPayloadClient } from '@/lib/payload';
 import { hasActivePluginCapability } from '@/lib/plugins/service';
 import { createSiteScopeWhere, type ResolvedSite } from '@/lib/sites/service';
+import { enqueueWebhookDelivery } from '@/lib/webhooks/outbound';
+
+/**
+ * List all commerce orders for the dashboard.
+ */
+export async function listAllOrders(user: AuthenticatedUserLike | null | undefined) {
+  const payload = await getPayloadClient();
+
+  const result = await payload.find({
+    collection: 'commerce-orders',
+    depth: 0,
+    limit: 100,
+    overrideAccess: false,
+    pagination: false,
+    sort: '-placedAt',
+    user,
+  });
+
+  return result.docs;
+}
+
+/**
+ * List all commerce customers for the dashboard.
+ */
+export async function listAllCustomers(user: AuthenticatedUserLike | null | undefined) {
+  const payload = await getPayloadClient();
+
+  const result = await payload.find({
+    collection: 'commerce-customers',
+    depth: 1,
+    limit: 100,
+    overrideAccess: false,
+    pagination: false,
+    user,
+  });
+
+  return result.docs;
+}
 
 const productHandleSchema = z
   .string()
@@ -516,6 +558,27 @@ export async function checkoutCommerceCartWithDeps(
     result: 'success',
     targetCollection: 'commerce-orders',
     targetId: order.externalId,
+  });
+
+  await fireAutomationTrigger({
+    payload: {
+      currency: order.currencyCode,
+      itemCount: order.items.length,
+      orderRef: order.externalId,
+      siteId: site.siteId,
+      siteSlug: site.slug,
+    },
+    trigger: 'commerce.order_created',
+  });
+
+  await enqueueWebhookDelivery({
+    data: {
+      orderId: order.externalId,
+      status: order.status,
+    },
+    event: 'order.created',
+    id: randomUUID(),
+    timestamp: new Date().toISOString(),
   });
 
   return order;

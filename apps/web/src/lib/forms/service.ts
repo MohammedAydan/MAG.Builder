@@ -22,7 +22,6 @@ import {
   toPublicFormDefinition,
   validateSubmission,
   executeWorkflowActions,
-  stubEmailProvider,
   validateWebhookUrl,
   type FormDefinition,
   type PublicFormDefinition,
@@ -30,8 +29,32 @@ import {
   type WorkflowAction,
 } from '@nexpress/forms';
 import { AUDIT_ACTIONS, writeAuditEntry } from '@/lib/audit/service';
+import {
+  type AuthenticatedUserLike,
+} from '@/lib/auth/access';
+import { fireAutomationTrigger } from '@/lib/automation/hooks';
+import { getFormEmailProvider } from '@/lib/forms/runtime';
 import { getPayloadClient } from '@/lib/payload';
 import { createSiteScopeWhere, type ResolvedSite } from '@/lib/sites/service';
+import { enqueueWebhookDelivery } from '@/lib/webhooks/outbound';
+
+/**
+ * List all forms accessible to the user.
+ */
+export async function listForms(user: AuthenticatedUserLike | null | undefined) {
+  const payload = await getPayloadClient();
+
+  const result = await (payload as unknown as { find: FormsPayloadClient['find'] }).find({
+    collection: 'forms',
+    depth: 0,
+    limit: 100,
+    overrideAccess: false,
+    pagination: false,
+    user,
+  });
+
+  return result.docs;
+}
 
 /** Payload-shaped form field entry. */
 type PayloadFormFieldEntry = {
@@ -284,7 +307,7 @@ export async function processFormSubmission(
       formSlug,
       validated,
       actions,
-      stubEmailProvider,
+      getFormEmailProvider(),
     );
 
     const hasFailure = workflowResult.results.some((r) => r.status === 'failure');
@@ -332,6 +355,27 @@ export async function processFormSubmission(
     result: 'success',
     targetCollection: 'form-submissions',
     targetId: String(submissionId),
+  });
+
+  await fireAutomationTrigger({
+    payload: {
+      formId: String(doc.id),
+      formSlug,
+      outcome: 'success',
+      siteId: site.siteId,
+      siteSlug: site.slug,
+    },
+    trigger: 'form.submitted',
+  });
+
+  await enqueueWebhookDelivery({
+    data: {
+      formId: String(doc.id),
+      submissionId: String(submissionId),
+    },
+    event: 'form.submitted',
+    id: crypto.randomUUID(),
+    timestamp: new Date().toISOString(),
   });
 
   return { submissionId, success: true };

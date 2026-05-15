@@ -35,7 +35,9 @@ const auditMemberChange: CollectionAfterChangeHook = async ({ context, doc, oper
     result: 'success',
     targetCollection: 'members',
     targetId: doc.id,
-  });
+  }, req);
+
+  return doc;
 };
 
 const auditMemberLogin: CollectionAfterLoginHook = async ({ context, req, user }) => {
@@ -52,7 +54,9 @@ const auditMemberLogin: CollectionAfterLoginHook = async ({ context, req, user }
     result: 'success',
     targetCollection: 'members',
     targetId: user.id,
-  });
+  }, req);
+
+  return user;
 };
 
 export const Members: CollectionConfig = {

@@ -30,11 +30,12 @@ export function getCspHeader(isDev: boolean = process.env.NODE_ENV === "developm
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
     "font-src 'self'",
-    "connect-src 'self' https:",
+    "connect-src 'self' https: ws: wss:",
     "media-src 'self'",
     "object-src 'self' data:",
     "frame-src 'self'",
-    "worker-src 'self' blob:"
+    "worker-src 'self' blob: data:",
+    "child-src 'self' blob: data:"
   ];
 
   return {

@@ -91,30 +91,30 @@ describe('validateWebhookUrl', () => {
 // ---------------------------------------------------------------------------
 
 describe('createRateLimiter', () => {
-  it('allows requests within the limit', () => {
+  it('allows requests within the limit', async () => {
     const limiter = createRateLimiter({ maxRequests: 3, windowMs: 60_000 });
-    expect(limiter.check('key1').allowed).toBe(true);
-    expect(limiter.check('key1').allowed).toBe(true);
-    expect(limiter.check('key1').allowed).toBe(true);
+    expect((await limiter.check('key1')).allowed).toBe(true);
+    expect((await limiter.check('key1')).allowed).toBe(true);
+    expect((await limiter.check('key1')).allowed).toBe(true);
   });
 
-  it('blocks requests exceeding the limit', () => {
+  it('blocks requests exceeding the limit', async () => {
     const limiter = createRateLimiter({ maxRequests: 2, windowMs: 60_000 });
-    limiter.check('key2');
-    limiter.check('key2');
-    const result = limiter.check('key2');
+    await limiter.check('key2');
+    await limiter.check('key2');
+    const result = await limiter.check('key2');
     expect(result.allowed).toBe(false);
     if (!result.allowed) {
       expect(result.retryAfterMs).toBeGreaterThan(0);
     }
   });
 
-  it('tracks different keys independently', () => {
+  it('tracks different keys independently', async () => {
     const limiter = createRateLimiter({ maxRequests: 1, windowMs: 60_000 });
-    expect(limiter.check('keyA').allowed).toBe(true);
-    expect(limiter.check('keyA').allowed).toBe(false);
+    expect((await limiter.check('keyA')).allowed).toBe(true);
+    expect((await limiter.check('keyA')).allowed).toBe(false);
     // Different key should still be allowed
-    expect(limiter.check('keyB').allowed).toBe(true);
+    expect((await limiter.check('keyB')).allowed).toBe(true);
   });
 });
 

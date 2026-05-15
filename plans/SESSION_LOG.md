@@ -4,6 +4,99 @@
 
 ### What was done
 
+- Implemented Phase 29 Production Runtime Services
+- Added runtime-selected forms rate limiting and email delivery boundaries, including a built-in Resend provider and test-safe stub fallback
+- Added a database-backed search adapter, an audit-log-backed analytics adapter, manual search reindex entry point, and real event wiring for forms/content/commerce flows
+- Added a queue abstraction for outbound webhooks with retry/backoff metadata and an in-process fallback, then updated env/runbook/status documentation
+
+### Decisions made
+
+- Use audit logs as the default persistent analytics sink instead of adding a new analytics collection - Reason: this provides durable summaries without introducing another migration-dependent schema during the current RC-hardening window
+- Default search to a Payload-backed database projection adapter rather than the prior in-memory adapter - Reason: this removes the undocumented process-local production assumption while preserving the existing public API surface
+- Keep Redis-compatible rate limiting as a contract plus documentation, but fall back to in-memory until a concrete client binding is intentionally added - Reason: the phase requires explicit runtime boundaries without taking on vendor lock-in or a heavy new dependency casually
+
+### Files changed
+
+- `packages/forms/*`
+- `packages/search/*`
+- `packages/analytics/*`
+- `packages/automation/*`
+- `packages/webhooks/*`
+- `apps/web/src/lib/runtime-services/*`
+- `apps/web/src/lib/{forms,search,analytics,automation,content,webhooks,commerce}/*`
+- `apps/web/src/app/api/forms/[formId]/submit/route.ts`
+- `apps/web/src/app/api/search/route.ts`
+- `apps/web/src/app/(public)/*/page.tsx`
+- `apps/web/src/collections/{Pages,Posts}.ts`
+- `apps/web/src/scripts/reindex-search.ts`
+- `.env.example`
+- `docs/runbooks/{forms-workflows,search-analytics-automation,operations}.md`
+- `docs/architecture/environment-matrix.md`
+- `plans/context.md`
+- `plans/phase-29-production-runtime-services/review.md`
+- `IMPLEMENTATION_STATUS.md`
+
+### State at end of session
+
+- Active feature: phase-29-production-runtime-services
+- Last completed task: Phase 29 verification and review
+- Next task: wait for explicit instruction before starting Phase 30 or a targeted follow-up on the remaining runtime-service gaps
+- Blockers: Redis/Valkey rate-limit binding is still deferred; search is database-backed but not full PostgreSQL FTS; analytics persistence is audit-log-based rather than a dedicated event store; webhook retries remain inline
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-29-production-runtime-services/review.md`, `docs/runbooks/forms-workflows.md`, `docs/runbooks/search-analytics-automation.md`, and `docs/architecture/environment-matrix.md` before doing follow-up runtime-service work.
+---
+
+## Session: 2026-05-15
+
+### What was done
+
+- Implemented Phase 28 RC Fix Pack and Live DB Validation
+- Added reusable browser POST origin validation and applied it to member auth/profile routes plus member-authenticated commerce POST routes
+- Hardened login/account query-string messaging, kept sign-up redirects relative-only, and updated `apps/web` typecheck to run `next typegen`
+- Moved root `next-prompet-phase-*` artifacts into `docs/agent-prompts/archive/`
+- Generated and reviewed a real Payload migration, then documented the remaining baseline issue against the current dev-pushed PostgreSQL database
+
+### Decisions made
+
+- Reuse a generic browser POST validator instead of duplicating per-route origin checks - Reason: the prompt required broader CSRF/origin hardening without breaking webhook or public form routes
+- Keep login/account/signup messaging allowlisted by code rather than forwarding raw service errors - Reason: release-candidate pages should not render arbitrary query-string text
+- Commit the generated migration but document the local apply failure honestly - Reason: the current database is real and reachable, but it is not a clean migration-managed baseline
+
+### Files changed
+
+- `apps/web/src/lib/security/*`
+- `apps/web/src/lib/install/{security.ts,security.test.ts}`
+- `apps/web/src/lib/members/service.ts`
+- `apps/web/src/app/(public)/{login,signup,account}/page.tsx`
+- `apps/web/src/app/api/members/**/*`
+- `apps/web/src/app/api/commerce/cart/**/*`
+- `apps/web/package.json`
+- `apps/web/src/migrations/{20260515_181413.ts,20260515_181413.json,index.ts}`
+- `docs/agent-prompts/archive/*`
+- `docs/runbooks/{deployment,migrations}.md`
+- `docs/release/{KNOWN_LIMITATIONS.md,GO_NO_GO_CHECKLIST.md}`
+- `plans/context.md`
+- `plans/phase-28-rc-fix-pack-live-db-validation/review.md`
+- `IMPLEMENTATION_STATUS.md`
+
+### State at end of session
+
+- Active feature: phase-28-rc-fix-pack-live-db-validation
+- Last completed task: Phase 28 verification and review
+- Next task: use a fresh migration-managed PostgreSQL database if migration execution evidence is required beyond the generated file and pending-status validation
+- Blockers: current local DB was previously pushed in dev mode, so applying the initial migration there is not a clean production-style validation; Docker is unavailable locally
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-28-rc-fix-pack-live-db-validation/review.md`, `docs/runbooks/migrations.md`, and `docs/release/*` before doing any follow-up RC hardening or DB-baseline cleanup.
+---
+
+## Session: 2026-05-15
+
+### What was done
+
 - Implemented Phase 27 Final Release Candidate
 - Added the release-candidate documentation set under `docs/release/`
 - Corrected deployment/env/OpenAPI drift discovered during the final release review

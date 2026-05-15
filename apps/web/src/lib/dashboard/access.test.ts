@@ -48,18 +48,41 @@ describe('dashboard navigation', () => {
       'Overview',
       'Pages',
       'Content Studio',
+      'Orders',
+      'Customers',
+      'Sites',
+      'Forms',
+      'Automation',
+      'Integrations',
+      'Webhooks',
+      'Plugins',
+      'Marketplace',
       'Settings',
+      'Analytics',
+      'Search',
     ]);
 
     expect(getDashboardNavigation(admin).map((item) => item.title)).toEqual([
       'Overview',
       'Pages',
       'Content Studio',
+      'Orders',
+      'Customers',
+      'Forms',
+      'Automation',
+      'Integrations',
+      'Webhooks',
+      'Plugins',
+      'Marketplace',
+      'Analytics',
+      'Search',
     ]);
 
     expect(getDashboardNavigation(editor).map((item) => item.title)).toEqual([
       'Overview',
       'Pages',
+      'Forms',
+      'Search',
     ]);
   });
 });

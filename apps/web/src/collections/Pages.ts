@@ -8,7 +8,11 @@ import {
 } from '@/lib/auth/access';
 import { createAuditedAfterChangeHook, createAuditedAfterDeleteHook } from '@/lib/content/audit';
 import { createContentAccessField } from '@/lib/content/access-fields';
-import { populateSlugFromSiblingData } from '@/lib/content/hooks';
+import {
+  createContentLifecycleAfterChangeHook,
+  createContentLifecycleAfterDeleteHook,
+  populateSlugFromSiblingData,
+} from '@/lib/content/hooks';
 import { createPublishedAtField, syncPublishedAt } from '@/lib/content/publishing';
 import { createSeoFields } from '@/lib/content/seo';
 import { isSafeSlugSegment } from '@/lib/content/slug';
@@ -32,8 +36,14 @@ export const Pages: CollectionConfig = {
   },
   hooks: {
     beforeChange: [syncPublishedAt],
-    afterChange: [createAuditedAfterChangeHook({ collection: 'pages' })],
-    afterDelete: [createAuditedAfterDeleteHook({ collection: 'pages' })],
+    afterChange: [
+      createAuditedAfterChangeHook({ collection: 'pages' }),
+      createContentLifecycleAfterChangeHook('page'),
+    ],
+    afterDelete: [
+      createAuditedAfterDeleteHook({ collection: 'pages' }),
+      createContentLifecycleAfterDeleteHook('page'),
+    ],
   },
   fields: [
     {

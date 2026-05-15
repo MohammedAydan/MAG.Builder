@@ -12,6 +12,10 @@
 - [ ] `pnpm typecheck` passed.
 - [ ] `pnpm test` passed.
 - [ ] `pnpm build` passed.
+- [ ] `pnpm --dir apps/web generate:types` passed.
+- [ ] `pnpm --dir apps/web migrate:create` output was reviewed and the generated migration file was committed.
+- [ ] `pnpm --dir apps/web migrate:status` was reviewed against the target database.
+- [ ] `pnpm --dir apps/web migrate` completed on a clean migration-managed database, or the reason it could not safely run is explicitly accepted.
 
 ## Route and API sanity
 
@@ -27,6 +31,7 @@
 - [ ] `docs/runbooks/deployment.md`, `docs/runbooks/operations.md`, and `docs/runbooks/rollback.md` match the current scripts and env names.
 - [ ] `.env.example` still contains placeholders only.
 - [ ] Docker and CI configuration do not require real production secrets.
+- [ ] The target DB is not only a dev-mode pushed schema unless that risk is explicitly accepted.
 - [ ] Known limitations in `docs/release/KNOWN_LIMITATIONS.md` are accepted for the target environment.
 
 ## Decision
