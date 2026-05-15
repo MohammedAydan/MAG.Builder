@@ -10,6 +10,7 @@ import {
 } from '@/lib/content/public';
 import { renderPublishedPageContent } from '@/lib/content/rendering';
 import { getAuthenticatedMember } from '@/lib/members/service';
+import { resolveCurrentSite } from '@/lib/sites/service';
 
 type PublicContentPageProps = Readonly<{
   params: Promise<{
@@ -54,6 +55,12 @@ export default async function PublicContentPage({ params }: PublicContentPagePro
   }
 
   const page = pageResult.document;
+  const site = await resolveCurrentSite();
+
+  if (!site) {
+    notFound();
+  }
+
   await emitAnalyticsEvent({
     schemaVersion: ANALYTICS_SCHEMA_VERSION,
     name: 'page.viewed',
@@ -62,7 +69,7 @@ export default async function PublicContentPage({ params }: PublicContentPagePro
       title: page.title,
     },
   });
-  const content = await renderPublishedPageContent(page);
+  const content = await renderPublishedPageContent(page, site);
 
   return (
     <div className="mx-auto flex w-full max-w-[var(--layout-content)] flex-col gap-8 px-[var(--space-gutter)] py-[var(--space-section)]">

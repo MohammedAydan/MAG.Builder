@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload';
+import { commerceReadAccess } from '@/lib/auth/access';
 import { createSiteRelationshipField } from '@/lib/sites/fields';
 
 export const CommerceCustomers: CollectionConfig = {
@@ -10,7 +11,7 @@ export const CommerceCustomers: CollectionConfig = {
   access: {
     create: () => false,
     delete: () => false,
-    read: () => false,
+    read: commerceReadAccess,
     update: () => false,
   },
   fields: [

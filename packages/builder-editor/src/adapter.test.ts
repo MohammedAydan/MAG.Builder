@@ -38,7 +38,9 @@ describe('builder editor adapter', () => {
     expect(result.warnings).toEqual([]);
     expect(result.data.content[0]).toEqual({
       props: {
+        align: 'left',
         background: 'none',
+        columns: 1,
         content: [
           {
             props: {

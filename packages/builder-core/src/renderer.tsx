@@ -15,6 +15,7 @@ type SafeRenderOptions = RenderOptions &
 
 function resolveContext(input?: Partial<BuilderRenderContext>): BuilderRenderContext {
   return {
+    ...input,
     surface: input?.surface ?? 'public',
   };
 }

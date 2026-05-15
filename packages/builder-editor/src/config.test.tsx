@@ -5,12 +5,13 @@ describe('puck config', () => {
   it('maps core builder blocks into editor components', () => {
     const config = createPuckConfig();
 
-    expect(Object.keys(config.components)).toEqual([
+    expect(Object.keys(config.components).sort()).toEqual([
       'commerce.cart',
       'commerce.collection-list',
       'commerce.product-detail',
       'commerce.product-grid',
       'core.button',
+      'core.form',
       'core.heading',
       'core.image',
       'core.section',
@@ -24,6 +25,7 @@ describe('puck config', () => {
         'core.image',
         'core.button',
         'core.section',
+        'core.form',
         'commerce.product-grid',
         'commerce.product-detail',
         'commerce.cart',

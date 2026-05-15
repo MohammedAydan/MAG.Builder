@@ -74,7 +74,7 @@ describe('audit service', () => {
       }),
     ).resolves.toBeUndefined();
 
-    expect(consoleError).toHaveBeenCalledWith('[audit] Failed to write audit entry.');
+    expect(consoleError).toHaveBeenCalledWith('[audit] Failed to write audit entry.', expect.any(Error));
     consoleError.mockRestore();
   });
 });

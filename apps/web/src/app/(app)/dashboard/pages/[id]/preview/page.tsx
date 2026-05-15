@@ -4,6 +4,7 @@ import { SectionHeading } from '@/components/public/section-heading';
 import { loadBuilderEditorPage } from '@/lib/builder/editor';
 import { renderPublishedPageContent } from '@/lib/content/rendering';
 import { requireDashboardContentUser } from '@/lib/dashboard/guards';
+import { resolveCurrentSite } from '@/lib/sites/service';
 
 type DashboardPagePreviewProps = Readonly<{
   params: Promise<{
@@ -22,7 +23,13 @@ export default async function DashboardPagePreviewPage({ params }: DashboardPage
     notFound();
   }
 
-  const content = await renderPublishedPageContent(page.page);
+  const site = await resolveCurrentSite();
+
+  if (!site) {
+    notFound();
+  }
+
+  const content = await renderPublishedPageContent(page.page, site);
 
   return (
     <div className="space-y-6">
