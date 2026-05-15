@@ -4,6 +4,46 @@
 
 ### What was done
 
+- Implemented Phase 27 Final Release Candidate
+- Added the release-candidate documentation set under `docs/release/`
+- Corrected deployment/env/OpenAPI drift discovered during the final release review
+- Re-ran the required root verification matrix and confirmed the current route surface from `next build`
+
+### Decisions made
+
+- Keep Phase 27 documentation-heavy and avoid introducing a new E2E platform - Reason: the phase explicitly allows documented smoke coverage and forbids broad new scope
+- Tighten OpenAPI to match the actual JSON API subset rather than pretending browser form-post auth routes are public JSON APIs - Reason: release-candidate accuracy is more important than surface-area inflation
+- Treat Docker build validation as environment-dependent and document the local skip when Docker is unavailable - Reason: the repo should not claim container verification that did not actually run
+
+### Files changed
+
+- `docs/release/*`
+- `docs/architecture/environment-matrix.md`
+- `docs/product/production-roadmap.md`
+- `docs/runbooks/{deployment,release-checklist,rollback}.md`
+- `.github/workflows/ci.yml`
+- `docker-compose.yml`
+- `packages/api/src/openapi.ts`
+- `plans/context.md`
+- `plans/phase-27-final-release-candidate/review.md`
+- `IMPLEMENTATION_STATUS.md`
+
+### State at end of session
+
+- Active feature: phase-27-final-release-candidate
+- Last completed task: Phase 27 verification and review
+- Next task: wait for an explicitly scoped post-Phase-27 request
+- Blockers: none for the repo; local Docker verification was skipped because Docker is unavailable in this environment
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-27-final-release-candidate/review.md`, and `docs/release/*` before starting any post-release-candidate work.
+---
+
+## Session: 2026-05-15
+
+### What was done
+
 - Implemented Phase 25 Security and Observability Hardening
 - Created `@nexpress/observability` with structured JSON logger, field redaction, safe client errors, and correlation IDs
 - Created `@nexpress/security` with CSP and baseline security headers (X-Frame-Options, HSTS, Permissions-Policy, Referrer-Policy)

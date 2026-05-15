@@ -2,10 +2,10 @@
 
 Project: NexPress
 Mode: Greenfield
-Current phase: 25-security-observability-hardening
-Overall status: in-progress
+Current phase: 27-final-release-candidate
+Overall status: completed
 
-The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, visual editor adapter, themes/templates foundation, plugin/module system, forms/workflows foundation, public membership/protected-route foundation, the commerce service spike, the commerce MVP slice, storefront commerce builder blocks, the API platform with OpenAPI, webhooks/integrations foundation, MCP native gateway, the search/analytics/automation foundation, the multi-site/SaaS-readiness foundation, and the marketplace/packaging/update-planning foundation are all implemented.
+The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, visual editor adapter, themes/templates foundation, plugin/module system, forms/workflows foundation, public membership/protected-route foundation, the commerce service spike, the commerce MVP slice, storefront commerce builder blocks, the API platform with OpenAPI, webhooks/integrations foundation, MCP native gateway, the search/analytics/automation foundation, the multi-site/SaaS-readiness foundation, the marketplace/packaging/update-planning foundation, the security/observability hardening slice, the production deployment/docs slice, and the final release-candidate validation slice are implemented.
 
 ## Phase tracker
 
@@ -36,7 +36,7 @@ The platform foundation, Payload CMS foundation, database/migration/seed layer, 
 - [x] Phase 24 - Marketplace, Packaging, and Updates: done
 - [x] Phase 25 - Observability and Security Hardening: done
 - [x] Phase 26 - Production Deployment and Docs: done
-- [ ] Phase 27 - Final Release Candidate: not-started
+- [x] Phase 27 - Final Release Candidate: done
 
 ## Current session log
 
@@ -50,49 +50,52 @@ Gemini CLI
 
 ### Requested phase
 
-Phase 26 - Production Deployment and Docs
+Phase 27 - Final Release Candidate
 
 ### Files changed
 
 **New files:**
-- `Dockerfile`
-- `.dockerignore`
-- `docker-compose.yml`
-- `.github/workflows/ci.yml`
-- `docs/runbooks/deployment.md`
-- `docs/runbooks/operations.md`
-- `docs/runbooks/rollback.md`
-- `docs/runbooks/release-checklist.md`
-- `docs/architecture/environment-matrix.md`
-- `docs/checklists/production-readiness.md`
-- `docs/product/production-roadmap.md`
-- `plans/phase-26-production-deployment-docs/review.md`
+- `docs/release/RELEASE_CANDIDATE.md`
+- `docs/release/CHANGELOG.md`
+- `docs/release/SMOKE_TEST_MATRIX.md`
+- `docs/release/KNOWN_LIMITATIONS.md`
+- `docs/release/GO_NO_GO_CHECKLIST.md`
+- `plans/phase-27-final-release-candidate/review.md`
 
 **Modified files:**
+- `.github/workflows/ci.yml`
+- `docker-compose.yml`
+- `docs/architecture/environment-matrix.md`
+- `docs/product/production-roadmap.md`
+- `docs/runbooks/deployment.md`
+- `docs/runbooks/release-checklist.md`
+- `docs/runbooks/rollback.md`
+- `packages/api/src/openapi.ts`
 - `plans/context.md`
 - `plans/SESSION_LOG.md`
 - `IMPLEMENTATION_STATUS.md`
 
 ### Commands run
 
-- `pnpm install` - passed
-- `pnpm lint` - passed
-- `pnpm typecheck` - passed
-- `pnpm test` - passed
-- `pnpm build` - passed
+- `pnpm.cmd install` - passed
+- `pnpm.cmd lint` - passed
+- `pnpm.cmd typecheck` - passed
+- `pnpm.cmd test` - passed
+- `pnpm.cmd build` - passed
+- `docker build -t nexpress-rc-check .` - skipped locally because `docker` is not installed in this environment
 
 ### Security notes
 
-- Dockerfile uses multi-stage build and non-root user for production.
-- CI/CD foundation is generic and does not include production secrets.
-- Environment matrix clearly identifies required secrets and their roles.
-- Runbooks include incident response, secret rotation, and rollback procedures.
+- Release-candidate docs now distinguish RC status from GA and explicitly preserve prior security boundaries.
+- CI and docker-compose now use the actual runtime env name `DATABASE_URL`, avoiding misleading deployment guidance.
+- OpenAPI no longer documents browser auth form posts or nonexistent template/cart/member endpoints as if they were valid JSON APIs.
+- Known release-candidate limitations remain documented rather than hidden.
 
 ### Blockers
 
-- None.
+- No repo blocker found for Phase 27.
+- Local Docker build verification could not be executed because Docker is unavailable in this environment.
 
 ### Next recommended prompt
 
-Start Phase 27 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and `03-phases/phase-27-*` before implementing.
-d `03-phases/phase-25-*` before implementing.
+Phase 27 is complete. If more work is needed, request a new scoped task explicitly instead of extending this phase implicitly.

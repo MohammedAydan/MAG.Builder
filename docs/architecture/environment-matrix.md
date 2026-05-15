@@ -1,61 +1,47 @@
 # Production Environment Variable Matrix
 
-This document defines the environment variables required for production deployment of NexPress.
+This matrix reflects the variables currently consumed by the repository as of the Phase 27 release candidate. It intentionally excludes future-facing placeholders that are not read by the code today.
 
-## 1. Core Platform (Required)
+## 1. Core Runtime
 
-| Variable | Type | Description |
-|---|---|---|
-| `DATABASE_URI` | Secret | PostgreSQL connection string. |
-| `PAYLOAD_SECRET` | Secret | Long random string for JWT and encryption. |
-| `NEXT_PUBLIC_SITE_URL` | String | Canonical public URL (e.g., `https://example.com`). |
+| Variable | Required | Type | Source | Notes |
+|---|---|---|---|---|
+| `NODE_ENV` | Yes | String | `apps/web/src/lib/env.ts` | Must be `development`, `test`, or `production`. |
+| `PAYLOAD_SECRET` | Yes | Secret | `apps/web/src/lib/env.ts` | Runtime-only validation; never commit a real value. |
+| `DATABASE_URL` | Yes | Secret | `apps/web/src/lib/env.ts`, `apps/web/src/payload.config.ts` | PostgreSQL connection string used by Payload and readiness checks. |
 
-## 2. Server Performance & Networking (Recommended)
+## 2. Install and Multi-site
 
-| Variable | Type | Default | Description |
-|---|---|---|---|
-| `NODE_ENV` | String | `production` | Set to `production` for optimized runtime. |
-| `PORT` | Number | `3000` | Port the server listens on. |
-| `HOSTNAME` | String | `0.0.0.0` | Binding address. |
-| `NEXT_TELEMETRY_DISABLED` | Boolean | `1` | Disables Next.js anonymous usage collection. |
-| `TRUST_PROXY` | Boolean | `false` | Set to `true` if behind a reverse proxy (required for multi-site host resolution). |
+| Variable | Required | Default | Source | Notes |
+|---|---|---|---|---|
+| `NEXPRESS_INSTALLATION_MODE` | No | `wizard` | install/runtime services | Keeps the first-run install flow enabled or controlled by deployment policy. |
+| `NEXPRESS_DEFAULT_SITE_NAME` | No | `NexPress Local` | site bootstrap helpers | Used when creating the default site record. |
+| `NEXPRESS_TRUST_PROXY_HOST` | No | `false` | `apps/web/src/lib/sites/service.ts` | Set to `true` only behind a trusted reverse proxy. |
 
-## 3. Storage & Media (Production)
+## 3. Commerce Runtime
 
-| Variable | Type | Description |
-|---|---|---|
-| `S3_ENDPOINT` | String | Endpoint for S3-compatible storage. |
-| `S3_ACCESS_KEY_ID` | Secret | S3 access key. |
-| `S3_SECRET_ACCESS_KEY` | Secret | S3 secret key. |
-| `S3_BUCKET` | String | Target bucket name. |
-| `S3_REGION` | String | S3 region. |
+| Variable | Required | Default | Source | Notes |
+|---|---|---|---|---|
+| `NEXPRESS_COMMERCE_PROVIDER` | No | `disabled` | `packages/commerce/src/config.ts` | Supported values: `disabled`, `medusa`. |
+| `MEDUSA_BACKEND_URL` | If `medusa` | None | `packages/commerce/src/config.ts` | Must be an absolute `http` or `https` URL; non-local production usage must be `https`. |
+| `MEDUSA_DEFAULT_REGION_ID` | If `medusa` | None | `packages/commerce/src/config.ts` | Required for cart and checkout flows. |
+| `MEDUSA_HEALTH_PATH` | No | `/health` | `packages/commerce/src/config.ts` | Must begin with `/`. |
+| `MEDUSA_PUBLISHABLE_KEY` | If `medusa` | None | `packages/commerce/src/config.ts` | Public Medusa storefront key. |
+| `MEDUSA_REQUEST_TIMEOUT_MS` | No | `5000` | `packages/commerce/src/config.ts` | Positive integer capped at `30000`. |
+| `MEDUSA_SERVER_TOKEN` | Optional | None | `packages/commerce/src/config.ts` | Required for some server-side customer and admin commerce operations. |
 
-## 4. Commerce Integration (Optional)
+## 4. Operations and Logging
 
-| Variable | Type | Description |
-|---|---|---|
-| `MEDUSA_BACKEND_URL` | String | URL of the Medusa backend. |
-| `MEDUSA_PUBLISHABLE_KEY` | String | Medusa public key. |
-| `MEDUSA_ADMIN_API_TOKEN` | Secret | Medusa admin API token. |
+| Variable | Required | Default | Source | Notes |
+|---|---|---|---|---|
+| `LOG_LEVEL` | No | `info` | `packages/observability/src/logger.ts` | Supported values: `debug`, `info`, `warn`, `error`. |
+| `PORT` | No | `3000` | Docker/runtime | Server listen port in container or Node hosting environments. |
+| `HOSTNAME` | No | `0.0.0.0` | Docker/runtime | Server bind address in container or Node hosting environments. |
+| `NEXT_TELEMETRY_DISABLED` | No | `1` | build/runtime | Recommended in CI and production images. |
 
-## 5. Security & CSP
+## Validation Rules
 
-| Variable | Type | Description |
-|---|---|---|
-| `CSP_REPORT_ONLY` | Boolean | If `true`, CSP violations are logged but not blocked. |
-| `SECURE_COOKIES` | Boolean | Forces `Secure` flag on all application cookies. |
-
-## 6. Observability
-
-| Variable | Type | Description |
-|---|---|---|
-| `LOG_LEVEL` | String | `info`, `warn`, `error`, `debug`. |
-| `LOG_REDACTION_ENABLED` | Boolean | `true` by default. |
-
----
-
-### Validation Rules
-
-NexPress uses `apps/web/src/lib/env.ts` to validate these variables.
-- **Build-time:** Only `buildEnv` variables are validated (e.g., `NEXT_PUBLIC_*`).
-- **Runtime:** `getRuntimeEnv()` validates all secrets lazily to prevent build-time failures in CI/CD when secrets are missing.
+- Build-time validation is intentionally minimal: only `NODE_ENV` is validated at module load.
+- Runtime secrets are validated lazily through `getRuntimeEnv()` so CI builds do not require live production secrets.
+- `NEXT_PUBLIC_MEDUSA_SERVER_TOKEN` must never be set; the commerce package rejects it explicitly.
+- `.env.example` contains placeholder values only and remains the source of local-development defaults.

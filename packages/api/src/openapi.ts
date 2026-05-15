@@ -3,8 +3,10 @@ export function generateOpenApiDocument() {
     openapi: '3.1.1',
     info: {
       title: 'NexPress API',
-      version: '1.0.0',
-      description: 'API for NexPress CMS and Commerce Platform',
+      version: '1.0.0-rc.1',
+      description:
+        'Release-candidate API contract for NexPress JSON endpoints. ' +
+        'Browser-oriented auth form posts and Payload internals are intentionally excluded.',
     },
     servers: [
       {
@@ -85,6 +87,22 @@ export function generateOpenApiDocument() {
                   },
                 },
               },
+            },
+          },
+        },
+      },
+      '/readiness': {
+        get: {
+          summary: 'Readiness check',
+          description:
+            'Returns the runtime readiness state for database configuration, Payload initialization, and critical secrets without exposing secret values.',
+          tags: ['System'],
+          responses: {
+            '200': {
+              description: 'Ready',
+            },
+            '503': {
+              description: 'Configured but not ready',
             },
           },
         },
@@ -220,28 +238,6 @@ export function generateOpenApiDocument() {
           },
         },
       },
-      '/members/me': {
-        get: {
-          summary: 'Get current member profile',
-          tags: ['Members'],
-          security: [{ memberAuth: [] }],
-          responses: {
-            '200': {
-              description: 'Member profile',
-              content: {
-                'application/json': {
-                  schema: {
-                    $ref: '#/components/schemas/ApiSuccess',
-                  },
-                },
-              },
-            },
-            '401': {
-              description: 'Unauthorized',
-            },
-          },
-        },
-      },
       '/commerce/products': {
         get: {
           summary: 'List products',
@@ -291,10 +287,37 @@ export function generateOpenApiDocument() {
         },
       },
       '/commerce/cart': {
-        get: {
-          summary: 'Get current cart',
+        post: {
+          summary: 'Create cart for current member',
           tags: ['Commerce'],
           security: [{ memberAuth: [] }],
+          responses: {
+            '201': {
+              description: 'Cart created',
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: '#/components/schemas/ApiSuccess',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/commerce/cart/{cartId}': {
+        get: {
+          summary: 'Get cart by id',
+          tags: ['Commerce'],
+          security: [{ memberAuth: [] }],
+          parameters: [
+            {
+              name: 'cartId',
+              in: 'path',
+              required: true,
+              schema: { type: 'string' },
+            },
+          ],
           responses: {
             '200': {
               description: 'Cart object',
@@ -306,37 +329,11 @@ export function generateOpenApiDocument() {
                 },
               },
             },
-          },
-        },
-        post: {
-          summary: 'Add to cart',
-          tags: ['Commerce'],
-          security: [{ memberAuth: [] }],
-          requestBody: {
-            required: true,
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    variantId: { type: 'string' },
-                    quantity: { type: 'integer' },
-                  },
-                  required: ['variantId', 'quantity'],
-                },
-              },
+            '401': {
+              description: 'Unauthorized',
             },
-          },
-          responses: {
-            '200': {
-              description: 'Cart updated',
-              content: {
-                'application/json': {
-                  schema: {
-                    $ref: '#/components/schemas/ApiSuccess',
-                  },
-                },
-              },
+            '404': {
+              description: 'Cart not found',
             },
           },
         },
@@ -349,21 +346,6 @@ export function generateOpenApiDocument() {
           responses: {
             '200': {
               description: 'Plugins list',
-            },
-            '401': {
-              description: 'Unauthorized',
-            },
-          },
-        },
-      },
-      '/templates': {
-        get: {
-          summary: 'List templates',
-          tags: ['Templates'],
-          security: [{ adminAuth: [] }],
-          responses: {
-            '200': {
-              description: 'Templates list',
             },
             '401': {
               description: 'Unauthorized',

@@ -30,15 +30,9 @@ docker run ... nexpress:1.2.3
 
 ## 3. Reverting Database Migrations
 
-**Warning:** Reverting migrations can lead to data loss if new columns contained data from the failed deployment.
+**Warning:** Reverting schema changes can lead to data loss if new columns or rows already contain production data.
 
-### Revert the last migration
-
-```bash
-# Use Payload CMS migration tool if it supports down migrations
-# Note: Many production environments prefer rolling forward or restoring from backup
-pnpm --dir apps/web migrate:down
-```
+NexPress does not currently expose a documented `migrate:down` workflow in `apps/web/package.json`. Treat rollback as a code rollback plus either a forward fix or a restore-from-backup event.
 
 ### Restore from Backup (Last Resort)
 
@@ -46,7 +40,8 @@ If the database is corrupted or the migration cannot be cleanly reverted:
 
 1. Stop the application server.
 2. Restore the database from the backup taken immediately before the deployment.
-3. Restart the application server using the previous version code.
+3. Re-deploy the previous application version.
+4. Validate `/api/health` and `/api/readiness` before reopening traffic.
 
 ## 4. Communication
 

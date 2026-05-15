@@ -10,7 +10,7 @@ This checklist must be completed for every production release of NexPress.
 - [ ] **Security Audit:** `pnpm audit` reviewed for high/critical vulnerabilities.
 - [ ] **Database Migrations:** All new migrations are tested against a copy of production data.
 - [ ] **OpenAPI Sync:** `api/openapi.json` is updated and validated.
-- [ ] **Changelog:** `CHANGELOG.md` is updated with new features and fixes.
+- [ ] **Changelog:** `docs/release/CHANGELOG.md` is updated with release notes and scope notes.
 
 ## 2. Release Execution
 
@@ -21,6 +21,7 @@ This checklist must be completed for every production release of NexPress.
 
 ## 3. Post-Release Verification (Smoke Tests)
 
+- [ ] **Smoke Matrix:** `docs/release/SMOKE_TEST_MATRIX.md` is reviewed and executed for the target environment.
 - [ ] **Admin Login:** Can log in to `/admin`.
 - [ ] **Content Rendering:** Homepage and key pages render correctly.
 - [ ] **Builder Save:** Can open a page in the builder, edit, and save.
@@ -28,7 +29,7 @@ This checklist must be completed for every production release of NexPress.
 - [ ] **Commerce (if enabled):** Product details page and cart work.
 - [ ] **API Health:** `/api/health` returns 200.
 - [ ] **Webhooks:** Webhook delivery system is active.
-- [ ] **MCP:** MCP tools (if enabled) are responding to discovery requests.
+- [ ] **MCP:** MCP tools (if enabled) are responding to authenticated discovery requests only.
 
 ## 4. Operational Monitoring
 

@@ -41,5 +41,4 @@ jobs:
           # Use placeholder for build-time validation if needed
           # Do NOT put real secrets here
           PAYLOAD_SECRET: ci-secret-placeholder
-          DATABASE_URI: postgresql://ci:ci@localhost:5432/ci
-          NEXT_PUBLIC_SITE_URL: http://localhost:3000
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci

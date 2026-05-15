@@ -18,14 +18,14 @@ NexPress is designed for containerized deployment (Docker) or standard Node.js h
 
 Refer to `docs/architecture/environment-matrix.md` for a full list of required and optional variables.
 
-### Critical Production Secrets
+### Critical Runtime Variables
 
 | Variable | Description |
 |---|---|
-| `DATABASE_URI` | PostgreSQL connection string |
+| `DATABASE_URL` | PostgreSQL connection string |
 | `PAYLOAD_SECRET` | Used for Payload CMS encryption and authentication |
-| `NEXT_PUBLIC_SITE_URL` | The public canonical URL of the site |
-| `MEDUSA_ADMIN_API_TOKEN` | If commerce is enabled |
+| `NEXPRESS_TRUST_PROXY_HOST` | Enables trusted forwarded-host resolution behind a reverse proxy when needed |
+| `MEDUSA_SERVER_TOKEN` | Optional server-side Medusa token for advanced commerce operations |
 
 ## 2. Standard Deployment (Node.js/pnpm)
 
@@ -36,7 +36,7 @@ Refer to `docs/architecture/environment-matrix.md` for a full list of required a
 
 2. **Build the Platform:**
    ```bash
-   pnpm turbo run build --filter=@nexpress/web
+   pnpm build
    ```
 
 3. **Run Migrations:**
@@ -59,9 +59,9 @@ Refer to `docs/architecture/environment-matrix.md` for a full list of required a
 2. **Run the Container:**
    ```bash
    docker run -p 3000:3000 \
-     -e DATABASE_URI=postgres://... \
+     -e DATABASE_URL=postgres://... \
      -e PAYLOAD_SECRET=... \
-     -e NEXT_PUBLIC_SITE_URL=https://example.com \
+     -e NEXPRESS_TRUST_PROXY_HOST=false \
      nexpress:latest
    ```
 
@@ -83,6 +83,8 @@ pg_dump -U postgres -d nexpress > nexpress_backup_$(date +%Y%m%d).sql
 ```bash
 pnpm --dir apps/web migrate
 ```
+
+Only run production migrations after taking and verifying a backup. If the repository has no new generated migration files, document that fact in the release record rather than improvising destructive schema changes.
 
 ## 5. Health and Readiness Checks
 

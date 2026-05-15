@@ -6,7 +6,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 
 ## Current Status
 
-- Active feature: phase-26-production-deployment-docs
+- Active feature: phase-27-final-release-candidate
 - Overall health: green
 - Last updated: 2026-05-15
 
@@ -47,6 +47,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - phase-24-marketplace-packaging-updates: done, `packages/marketplace` now provides typed local package manifests, a local allowlisted catalog, integrity and compatibility validation, and dry-run planning, while `apps/web` exposes admin-only marketplace listing and plan endpoints
 - phase-25-security-observability-hardening: done, added `@nexpress/observability` and `@nexpress/security` with structured logging, redaction, safe errors, CSP, security headers, readiness checks, and threat model documentation
 - phase-26-production-deployment-docs: done, added Dockerfile, docker-compose, CI/CD validation foundation, deployment/operations runbooks, release/rollback checklists, environment matrix, and production readiness documentation
+- phase-27-final-release-candidate: done, added release-candidate notes, changelog, smoke/go-no-go/known-limitations artifacts, corrected env/deployment/OpenAPI drift, and re-verified the full repository command matrix
 
 ## Known Issues / Tech Debt
 
@@ -76,6 +77,8 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - Phase 24 validates signature, provenance, and SBOM metadata shape for planning, but it does not implement external signature verification infrastructure or runtime install execution
 - `@measured/puck@0.20.2` is currently the editor adapter dependency even though the package is marked deprecated upstream; the kernel remains vendor-neutral and Phase 13+ can revisit the adapter choice if needed
 - Marketplace planning is admin-only and dry-run only; no package-manager execution, remote fetch, or file/database mutation path exists in Phase 24
+- Phase 27 documents final smoke, route, auth, and multi-site sanity expectations, but browser-level E2E automation remains intentionally minimal
+- Docker build verification is still environment-dependent; the local Phase 27 session could not execute `docker build` because Docker was unavailable on the machine
 
 ## Team / Ownership
 
