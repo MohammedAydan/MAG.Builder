@@ -20,6 +20,7 @@ describe('public shell content', () => {
   it('keeps operator shortcuts explicit and internal', () => {
     expect(PUBLIC_ACTION_LINKS).toEqual([
       { href: '/dashboard', label: 'Dashboard', style: 'primary' },
+      { href: '/login', label: 'Member Login', style: 'secondary' },
       { href: '/admin', label: 'Payload Admin', style: 'secondary' },
     ]);
   });

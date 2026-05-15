@@ -544,3 +544,46 @@ Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-12-themes-and-temp
 ### Resume instructions
 
 Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-13-plugin-module-system/review.md`, and `docs/runbooks/plugins-modules.md`, then start Phase 14 only if explicitly requested.
+---
+## Session: 2026-05-15
+
+### What was done
+
+- Implemented Phase 15 public membership and protected-route foundations in `apps/web`
+- Added a dedicated `members` Payload auth collection plus server-side sign-up, login, logout, and profile update routes
+- Added a protected `/account` route and members-only content visibility for published pages/posts
+- Regenerated Payload types and verified root, package, and app quality gates
+
+### Decisions made
+
+- Kept public members in a separate `members` collection instead of extending admin `users` - Reason: public identity must not share admin roles, sessions, or dashboard privileges
+- Used a dedicated HTTP-only member cookie instead of the Payload admin session cookie - Reason: public member auth must stay isolated from `/admin` and `/dashboard`
+- Treated membership as a core Phase 15 platform feature rather than a plugin-gated runtime feature - Reason: protected public routes are part of the v1 platform scope and should not depend on activating executable plugin behavior
+
+### Files changed
+
+- `apps/web/src/collections/{Members,Pages,Posts}.ts`
+- `apps/web/src/lib/auth/{access.ts,access.test.ts}`
+- `apps/web/src/lib/audit/service.ts`
+- `apps/web/src/lib/content/{access-fields.ts,public.ts,public.test.ts}`
+- `apps/web/src/lib/members/{service.ts,service.test.ts}`
+- `apps/web/src/app/(public)/{login,signup,account}/page.tsx`
+- `apps/web/src/app/api/members/**/*`
+- `apps/web/src/lib/public-shell/{navigation.ts,content.test.ts}`
+- `apps/web/src/payload.config.ts`
+- `apps/web/src/payload-types.ts`
+- `docs/runbooks/membership-protected-routes.md`
+- `plans/context.md`
+- `plans/phase-15-membership-public-protection/review.md`
+- `IMPLEMENTATION_STATUS.md`
+
+### State at end of session
+
+- Active feature: phase-15-membership-public-protection
+- Last completed task: Phase 15 verification and review
+- Next task: wait for explicit instruction before starting Phase 16
+- Blockers: no live DB migration file was generated because Payload migration creation still requires a live database
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-15-membership-public-protection/review.md`, and `docs/runbooks/membership-protected-routes.md`, then start Phase 16 only if explicitly requested.

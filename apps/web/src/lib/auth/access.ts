@@ -9,6 +9,14 @@ export type AuthenticatedUserLike = {
   role?: string | null;
 };
 
+export type AuthenticatedMemberLike = {
+  collection?: string | null;
+  email?: string | null;
+  firstName?: string | null;
+  id: number | string;
+  lastName?: string | null;
+};
+
 export class AuthorizationError extends Error {
   constructor(
     message: string,
@@ -49,6 +57,21 @@ export function canManageContent(user: AuthenticatedUserLike | null | undefined)
 
 export function canReadOwnUser(
   user: AuthenticatedUserLike | null | undefined,
+  requestedID?: number | string | null,
+) {
+  if (!user || requestedID == null) {
+    return false;
+  }
+
+  return String(user.id) === String(requestedID);
+}
+
+export function isMemberIdentity(user: AuthenticatedUserLike | AuthenticatedMemberLike | null | undefined) {
+  return user?.collection === 'members';
+}
+
+export function canReadOwnMember(
+  user: AuthenticatedMemberLike | null | undefined,
   requestedID?: number | string | null,
 ) {
   if (!user || requestedID == null) {
@@ -150,10 +173,47 @@ export function createPublishedOrPermissionWhere(
 }
 
 export const publishedContentReadAccess: Access = ({ req }) =>
-  createPublishedOrPermissionWhere(
-    { user: req.user as AuthenticatedUserLike | null | undefined },
-    'content:read',
-  );
+  createPublishedContentAccessWhere(req.user as AuthenticatedUserLike | AuthenticatedMemberLike | null | undefined);
+
+export function createPublishedContentAccessWhere(
+  user: AuthenticatedUserLike | AuthenticatedMemberLike | null | undefined,
+): true | false | Where {
+  if (hasPermission(user as AuthenticatedUserLike | undefined, 'content:read')) {
+    return true;
+  }
+
+  if (isMemberIdentity(user)) {
+    return {
+      _status: {
+        equals: 'published',
+      },
+    };
+  }
+
+  return {
+    and: [
+      {
+        _status: {
+          equals: 'published',
+        },
+      },
+      {
+        or: [
+          {
+            accessLevel: {
+              equals: 'public',
+            },
+          },
+          {
+            accessLevel: {
+              exists: false,
+            },
+          },
+        ],
+      },
+    ],
+  };
+}
 
 export const contentCreateAccess: Access = ({ req }) =>
   hasPermission(req.user as AuthenticatedUserLike | undefined, 'content:write');
@@ -202,3 +262,42 @@ export const formDefinitionsAdminReadAccess: Access = ({ req }) =>
 export const formDefinitionsManageAccess: Access = ({ req }) =>
   hasPermission(req.user as AuthenticatedUserLike | undefined, 'forms:manage');
 
+export const membersAdminAccess: Access = () => false;
+
+export const membersCreateAccess: Access = () => false;
+
+export const membersDeleteAccess: Access = () => false;
+
+export const membersReadAccess: Access = ({ req }) => {
+  const user = req.user as AuthenticatedUserLike | AuthenticatedMemberLike | null | undefined;
+
+  if (!isMemberIdentity(user)) {
+    return false;
+  }
+
+  const member = user as AuthenticatedMemberLike;
+
+  return {
+    id: {
+      equals: member.id,
+    },
+  };
+};
+
+export const membersUpdateAccess: Access = ({ req }) => {
+  const user = req.user as AuthenticatedUserLike | AuthenticatedMemberLike | null | undefined;
+
+  if (!isMemberIdentity(user)) {
+    return false;
+  }
+
+  const member = user as AuthenticatedMemberLike;
+
+  return {
+    id: {
+      equals: member.id,
+    },
+  };
+};
+
+export const membersUnlockAccess: Access = () => false;

@@ -4,9 +4,10 @@ import { SectionHeading } from '@/components/public/section-heading';
 import { SurfaceCard } from '@/components/public/surface-card';
 import {
   buildContentMetadata,
-  getPublishedPostBySlug,
   getPublishedRedirectByPath,
+  resolvePublishedPostAccessBySlug,
 } from '@/lib/content/public';
+import { getAuthenticatedMember } from '@/lib/members/service';
 
 type PublicPostPageProps = Readonly<{
   params: Promise<{
@@ -18,20 +19,25 @@ export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: PublicPostPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = await getPublishedPostBySlug(slug);
+  const post = await resolvePublishedPostAccessBySlug(slug);
 
-  if (!post) {
+  if (post.kind !== 'granted') {
     return {};
   }
 
-  return buildContentMetadata(post);
+  return buildContentMetadata(post.document);
 }
 
 export default async function PublicPostPage({ params }: PublicPostPageProps) {
   const { slug } = await params;
-  const post = await getPublishedPostBySlug(slug);
+  const member = await getAuthenticatedMember();
+  const postResult = await resolvePublishedPostAccessBySlug(slug, member);
 
-  if (!post) {
+  if (postResult.kind === 'login-required') {
+    redirect(postResult.loginPath);
+  }
+
+  if (postResult.kind !== 'granted') {
     const matchedRedirect = await getPublishedRedirectByPath(`/journal/${slug}`);
 
     if (matchedRedirect) {
@@ -44,6 +50,8 @@ export default async function PublicPostPage({ params }: PublicPostPageProps) {
 
     notFound();
   }
+
+  const post = postResult.document;
 
   return (
     <div className="mx-auto flex w-full max-w-[var(--layout-content)] flex-col gap-8 px-[var(--space-gutter)] py-[var(--space-section)]">

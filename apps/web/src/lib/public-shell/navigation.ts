@@ -31,6 +31,11 @@ export const PUBLIC_ACTION_LINKS: readonly PublicActionLink[] = [
     style: 'primary',
   },
   {
+    href: '/login',
+    label: 'Member Login',
+    style: 'secondary',
+  },
+  {
     href: '/admin',
     label: 'Payload Admin',
     style: 'secondary',

@@ -64,13 +64,17 @@ export type SupportedTimezones =
 export interface Config {
   auth: {
     users: UserAuthOperations;
+    members: MemberAuthOperations;
   };
   blocks: {};
   collections: {
     users: User;
+    members: Member;
     'installation-state': InstallationState;
     'audit-logs': AuditLog;
     'plugin-states': PluginState;
+    forms: Form;
+    'form-submissions': FormSubmission;
     media: Media;
     pages: Page;
     posts: Post;
@@ -83,9 +87,12 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
+    members: MembersSelect<false> | MembersSelect<true>;
     'installation-state': InstallationStateSelect<false> | InstallationStateSelect<true>;
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
     'plugin-states': PluginStatesSelect<false> | PluginStatesSelect<true>;
+    forms: FormsSelect<false> | FormsSelect<true>;
+    'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
@@ -105,13 +112,31 @@ export interface Config {
   widgets: {
     collections: CollectionsWidget;
   };
-  user: User;
+  user: User | Member;
   jobs: {
     tasks: unknown;
     workflows: unknown;
   };
 }
 export interface UserAuthOperations {
+  forgotPassword: {
+    email: string;
+    password: string;
+  };
+  login: {
+    email: string;
+    password: string;
+  };
+  registerFirstUser: {
+    email: string;
+    password: string;
+  };
+  unlock: {
+    email: string;
+    password: string;
+  };
+}
+export interface MemberAuthOperations {
   forgotPassword: {
     email: string;
     password: string;
@@ -154,6 +179,33 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "members".
+ */
+export interface Member {
+  id: number;
+  firstName: string;
+  lastName?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'members';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -232,6 +284,105 @@ export interface PluginState {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "forms".
+ */
+export interface Form {
+  id: number;
+  title: string;
+  /**
+   * Lowercase alphanumeric and hyphens only. Used to embed this form in pages.
+   */
+  slug: string;
+  description?: string | null;
+  /**
+   * Define the form fields. Field IDs must be unique and lowercase.
+   */
+  fields: {
+    /**
+     * Unique field identifier — lowercase alphanumeric and underscores.
+     */
+    id: string;
+    type: 'text' | 'textarea' | 'email' | 'checkbox' | 'select' | 'hidden';
+    label: string;
+    placeholder?: string | null;
+    required?: boolean | null;
+    /**
+     * Only applicable for hidden fields. Value set server-side.
+     */
+    defaultValue?: string | null;
+    /**
+     * Required for select fields.
+     */
+    options?:
+      | {
+          label: string;
+          value: string;
+          id?: string | null;
+        }[]
+      | null;
+  }[];
+  /**
+   * Workflow actions to execute when this form is submitted.
+   */
+  actions?:
+    | {
+        type: 'email' | 'webhook';
+        /**
+         * HTTPS webhook URL. Must use https:// scheme.
+         */
+        webhookUrl?: string | null;
+        /**
+         * Recipient email for email notification.
+         */
+        emailTo?: string | null;
+        /**
+         * Recipient display name.
+         */
+        emailToName?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "form-submissions".
+ */
+export interface FormSubmission {
+  id: number;
+  formSlug: string;
+  /**
+   * Validated field values. Read-only after submission.
+   */
+  fields?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  submittedAt: string;
+  status: 'received' | 'processed' | 'failed';
+  /**
+   * Safe workflow execution metadata. Does not contain secrets or webhook responses.
+   */
+  workflowResults?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
@@ -261,6 +412,10 @@ export interface Page {
   publishedAt?: string | null;
   excerpt?: string | null;
   heroImage?: (number | null) | Media;
+  /**
+   * Public content is anonymous-safe. Members-only content requires a signed-in member session.
+   */
+  accessLevel: 'public' | 'members';
   body: string;
   /**
    * Optional versioned NexPress builder document JSON. Public rendering falls back to body when omitted or invalid.
@@ -296,6 +451,10 @@ export interface Post {
   publishedAt?: string | null;
   excerpt?: string | null;
   featuredImage?: (number | null) | Media;
+  /**
+   * Public content is anonymous-safe. Members-only content requires a signed-in member session.
+   */
+  accessLevel: 'public' | 'members';
   body: string;
   seo?: {
     metaTitle?: string | null;
@@ -350,6 +509,10 @@ export interface PayloadLockedDocument {
         value: number | User;
       } | null)
     | ({
+        relationTo: 'members';
+        value: number | Member;
+      } | null)
+    | ({
         relationTo: 'installation-state';
         value: number | InstallationState;
       } | null)
@@ -360,6 +523,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'plugin-states';
         value: number | PluginState;
+      } | null)
+    | ({
+        relationTo: 'forms';
+        value: number | Form;
+      } | null)
+    | ({
+        relationTo: 'form-submissions';
+        value: number | FormSubmission;
       } | null)
     | ({
         relationTo: 'media';
@@ -378,10 +549,15 @@ export interface PayloadLockedDocument {
         value: number | Redirect;
       } | null);
   globalSlug?: string | null;
-  user: {
-    relationTo: 'users';
-    value: number | User;
-  };
+  user:
+    | {
+        relationTo: 'users';
+        value: number | User;
+      }
+    | {
+        relationTo: 'members';
+        value: number | Member;
+      };
   updatedAt: string;
   createdAt: string;
 }
@@ -391,10 +567,15 @@ export interface PayloadLockedDocument {
  */
 export interface PayloadPreference {
   id: number;
-  user: {
-    relationTo: 'users';
-    value: number | User;
-  };
+  user:
+    | {
+        relationTo: 'users';
+        value: number | User;
+      }
+    | {
+        relationTo: 'members';
+        value: number | Member;
+      };
   key?: string | null;
   value?:
     | {
@@ -425,6 +606,30 @@ export interface PayloadMigration {
  */
 export interface UsersSelect<T extends boolean = true> {
   role?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "members_select".
+ */
+export interface MembersSelect<T extends boolean = true> {
+  firstName?: T;
+  lastName?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -508,6 +713,56 @@ export interface PluginStatesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "forms_select".
+ */
+export interface FormsSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  description?: T;
+  fields?:
+    | T
+    | {
+        id?: T;
+        type?: T;
+        label?: T;
+        placeholder?: T;
+        required?: T;
+        defaultValue?: T;
+        options?:
+          | T
+          | {
+              label?: T;
+              value?: T;
+              id?: T;
+            };
+      };
+  actions?:
+    | T
+    | {
+        type?: T;
+        webhookUrl?: T;
+        emailTo?: T;
+        emailToName?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "form-submissions_select".
+ */
+export interface FormSubmissionsSelect<T extends boolean = true> {
+  formSlug?: T;
+  fields?: T;
+  submittedAt?: T;
+  status?: T;
+  workflowResults?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
@@ -535,6 +790,7 @@ export interface PagesSelect<T extends boolean = true> {
   publishedAt?: T;
   excerpt?: T;
   heroImage?: T;
+  accessLevel?: T;
   body?: T;
   builder?: T;
   seo?:
@@ -560,6 +816,7 @@ export interface PostsSelect<T extends boolean = true> {
   publishedAt?: T;
   excerpt?: T;
   featuredImage?: T;
+  accessLevel?: T;
   body?: T;
   seo?:
     | T

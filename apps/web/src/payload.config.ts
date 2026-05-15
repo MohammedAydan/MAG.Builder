@@ -8,6 +8,7 @@ import { FormSubmissions } from './collections/FormSubmissions';
 import { Forms } from './collections/Forms';
 import { InstallationState } from './collections/InstallationState';
 import { Media } from './collections/Media';
+import { Members } from './collections/Members';
 import { Pages } from './collections/Pages';
 import { PluginStates } from './collections/PluginStates';
 import { Posts } from './collections/Posts';
@@ -40,7 +41,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, InstallationState, AuditLogs, PluginStates, Forms, FormSubmissions, Media, Pages, Posts, Redirects],
+  collections: [Users, Members, InstallationState, AuditLogs, PluginStates, Forms, FormSubmissions, Media, Pages, Posts, Redirects],
   editor: lexicalEditor({}),
   secret: payloadSecret,
   typescript: {

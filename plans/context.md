@@ -6,7 +6,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 
 ## Current Status
 
-- Active feature: phase-13-plugin-module-system
+- Active feature: phase-15-membership-public-protection
 - Overall health: green
 - Last updated: 2026-05-15
 
@@ -34,6 +34,8 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - phase-11-visual-editor-adapter: done, `packages/builder-editor` now adapts the builder kernel into a protected Puck-based visual editor for page drafts, with server-side validation, autosave, and protected draft preview routes in `apps/web`
 - phase-12-themes-and-templates: done, `packages/themes` now owns the typed public theme registry, safe template manifest validation, starter demo manifest, and `apps/web` now exposes server-only admin template import/export/demo flows with strict collection allowlists
 - phase-13-plugin-module-system: done, `packages/plugins` now owns versioned plugin manifest validation, deterministic local registry behavior, typed capability and migration metadata, and `apps/web` now persists protected activation state with audited server-only plugin APIs
+- phase-14-forms-workflows: done, `packages/forms` now owns typed form schemas, validation, rate limiting, SSRF-protected webhooks, and `apps/web` now exposes public-safe form definition/submission flows plus protected submission storage
+- phase-15-membership-public-protection: done, `apps/web` now has a dedicated `members` auth collection, server-side member auth routes, a protected `/account` route, and published public content visibility rules for public vs members-only pages and posts
 
 ## Known Issues / Tech Debt
 
@@ -46,6 +48,9 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - Phase 13 ships server-only plugin APIs and services without a dedicated dashboard UI
 - Local plugin definitions are metadata-only placeholders; no runtime commerce, forms, membership, or SEO feature code was introduced yet
 - Internal plugin capability checks use a narrow server-only read path and fail closed; future phases can layer stronger system settings surfaces on top if needed
+- Phase 15 keeps membership as a core platform feature rather than a plugin-gated runtime capability; the placeholder `membership-pack` metadata remains non-executable
+- Members now use a separate HTTP-only cookie and do not share the dashboard/admin session, but password reset and email verification remain unimplemented
+- Members-only content is filtered out of sitemap generation and anonymous public reads; no protected media pipeline exists yet
 - `@measured/puck@0.20.2` is currently the editor adapter dependency even though the package is marked deprecated upstream; the kernel remains vendor-neutral and Phase 13+ can revisit the adapter choice if needed
 - Package placeholders outside `apps/web`, `packages/builder-core`, `packages/builder-editor`, `packages/themes`, and `packages/plugins` remain intentionally unimplemented until their phases begin
 

@@ -7,6 +7,7 @@ import {
   publishedContentReadAccess,
 } from '@/lib/auth/access';
 import { createAuditedAfterChangeHook, createAuditedAfterDeleteHook } from '@/lib/content/audit';
+import { createContentAccessField } from '@/lib/content/access-fields';
 import { populateSlugFromSiblingData } from '@/lib/content/hooks';
 import { createPublishedAtField, syncPublishedAt } from '@/lib/content/publishing';
 import { createSeoFields } from '@/lib/content/seo';
@@ -70,6 +71,7 @@ export const Pages: CollectionConfig = {
       type: 'upload',
       relationTo: 'media',
     },
+    createContentAccessField(),
     {
       name: 'body',
       type: 'textarea',

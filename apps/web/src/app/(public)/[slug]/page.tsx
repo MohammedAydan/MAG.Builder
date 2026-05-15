@@ -4,10 +4,11 @@ import { SectionHeading } from '@/components/public/section-heading';
 import { SurfaceCard } from '@/components/public/surface-card';
 import {
   buildContentMetadata,
-  getPublishedPageBySlug,
   getPublishedRedirectByPath,
+  resolvePublishedPageAccessBySlug,
 } from '@/lib/content/public';
 import { renderPublishedPageContent } from '@/lib/content/rendering';
+import { getAuthenticatedMember } from '@/lib/members/service';
 
 type PublicContentPageProps = Readonly<{
   params: Promise<{
@@ -19,20 +20,25 @@ export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: PublicContentPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const page = await getPublishedPageBySlug(slug);
+  const page = await resolvePublishedPageAccessBySlug(slug);
 
-  if (!page) {
+  if (page.kind !== 'granted') {
     return {};
   }
 
-  return buildContentMetadata(page);
+  return buildContentMetadata(page.document);
 }
 
 export default async function PublicContentPage({ params }: PublicContentPageProps) {
   const { slug } = await params;
-  const page = await getPublishedPageBySlug(slug);
+  const member = await getAuthenticatedMember();
+  const pageResult = await resolvePublishedPageAccessBySlug(slug, member);
 
-  if (!page) {
+  if (pageResult.kind === 'login-required') {
+    redirect(pageResult.loginPath);
+  }
+
+  if (pageResult.kind !== 'granted') {
     const matchedRedirect = await getPublishedRedirectByPath(`/${slug}`);
 
     if (matchedRedirect) {
@@ -45,6 +51,8 @@ export default async function PublicContentPage({ params }: PublicContentPagePro
 
     notFound();
   }
+
+  const page = pageResult.document;
 
   return (
     <div className="mx-auto flex w-full max-w-[var(--layout-content)] flex-col gap-8 px-[var(--space-gutter)] py-[var(--space-section)]">

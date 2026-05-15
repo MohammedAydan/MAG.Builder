@@ -16,6 +16,7 @@
     "typecheck": "pnpm exec turbo run typecheck",
     "test": "pnpm exec turbo run test",
     "build": "pnpm exec turbo run build",
+    "start": "pnpm --filter @nexpress/web start",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   }
 }
