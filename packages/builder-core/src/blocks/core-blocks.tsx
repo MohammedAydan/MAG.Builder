@@ -4,6 +4,9 @@ import { createBlockRegistry } from '../registry';
 import type { BuilderBlockDefinition, BuilderKnownBlock, BuilderRenderContext, JsonObject } from '../types';
 import { isSafeAssetSrc, isSafeHref } from '../url';
 
+/** Safe form slug pattern — must match the slug format enforced by @nexpress/forms. */
+const SAFE_FORM_SLUG_REGEX = /^[a-z0-9-]{1,80}$/;
+
 const headingPropsSchema = z.object({
   align: z.enum(['center', 'left', 'right']),
   level: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5), z.literal(6)]),
@@ -43,11 +46,35 @@ const buttonPropsSchema = z.object({
   variant: z.enum(['ghost', 'primary', 'secondary']),
 });
 
+const formPropsSchema = z.object({
+  /**
+   * Reference to a form definition by its slug.
+   * Empty string means no form is selected (renders a placeholder).
+   * When set, must match [a-z0-9-]+ pattern.
+   */
+  formSlug: z
+    .string()
+    .max(80, 'Form slug is too long.')
+    .refine(
+      (value) => value === '' || SAFE_FORM_SLUG_REGEX.test(value),
+      'Form slug must be lowercase alphanumeric or hyphens only.',
+    )
+    .optional()
+    .default(''),
+  /** Optional submit button label override. */
+  submitLabel: z.string().max(80).optional(),
+  /** Optional heading displayed above the form. */
+  title: z.string().max(120).optional(),
+});
+
+
 type HeadingProps = z.infer<typeof headingPropsSchema>;
 type TextProps = z.infer<typeof textPropsSchema>;
 type SectionProps = z.infer<typeof sectionPropsSchema>;
 type ImageProps = z.infer<typeof imagePropsSchema>;
 type ButtonProps = z.infer<typeof buttonPropsSchema>;
+type FormProps = z.infer<typeof formPropsSchema>;
+
 
 const alignClasses: Record<'center' | 'left' | 'right', string> = {
   center: 'text-center',
@@ -293,6 +320,61 @@ const coreDefinitions = [
     },
     type: 'core.button',
   }),
+  createDefinition({
+    availability: {
+      admin: true,
+      public: true,
+    },
+    defaultProps: {
+      formSlug: '',
+      submitLabel: 'Submit',
+      title: '',
+    },
+    displayName: 'Form',
+    propsSchema: formPropsSchema,
+    render: ({ props }) => {
+      const formProps = props as FormProps;
+
+      /**
+       * Public renderer: renders a safe form container element.
+       * The data-form-slug attribute references the form definition by slug only.
+       * No form field definitions, API keys, or private configuration are
+       * rendered here. The client-side hydration component in apps/web
+       * fetches the public form definition by slug to render the actual form.
+       *
+       * If formSlug is empty (e.g., a new block in the editor with no slug set),
+       * render a placeholder and nothing interactive.
+       */
+      if (!formProps.formSlug) {
+        return (
+          <div className="rounded-[var(--radius-surface)] border border-dashed border-[var(--color-border-strong)] px-[var(--space-gutter)] py-[var(--space-8)] text-center text-sm text-[var(--color-ink-muted)]">
+            No form selected. Set a form slug in the editor.
+          </div>
+        );
+      }
+
+      return (
+        <div
+          className="w-full"
+          data-block="core.form"
+          data-form-slug={formProps.formSlug}
+          data-submit-label={formProps.submitLabel ?? 'Submit'}
+          data-title={formProps.title ?? ''}
+        >
+          {formProps.title ? (
+            <h3 className="mb-4 text-xl font-semibold text-[var(--color-ink)]">{formProps.title}</h3>
+          ) : null}
+          <noscript>
+            <p className="text-sm text-[var(--color-ink-muted)]">
+              This form requires JavaScript to be enabled.
+            </p>
+          </noscript>
+        </div>
+      );
+    },
+    type: 'core.form',
+  }),
 ] as const;
 
 export const coreBlockRegistry = createBlockRegistry(coreDefinitions);
+

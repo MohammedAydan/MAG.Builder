@@ -190,3 +190,15 @@ export function getRoleOptions() {
     value: role,
   }));
 }
+
+/**
+ * Form definition read access: admin/editor with forms:read or content:read.
+ * Public users must never read form definitions (they may contain workflow config).
+ */
+export const formDefinitionsAdminReadAccess: Access = ({ req }) =>
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'forms:read') ||
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'content:read');
+
+export const formDefinitionsManageAccess: Access = ({ req }) =>
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'forms:manage');
+

@@ -1,0 +1,24 @@
+{
+  "name": "@nexpress/forms",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Typed form schemas, field validation, submission validation, spam controls, and workflow action foundations for NexPress.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "tsc --noEmit --pretty false",
+    "typecheck": "tsc --noEmit --pretty false",
+    "test": "vitest run",
+    "build": "tsc --noEmit --pretty false"
+  },
+  "dependencies": {
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "25.7.0",
+    "typescript": "6.0.3",
+    "vitest": "4.1.6"
+  }
+}

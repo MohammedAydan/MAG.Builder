@@ -4,6 +4,8 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { AuditLogs } from './collections/AuditLogs';
+import { FormSubmissions } from './collections/FormSubmissions';
+import { Forms } from './collections/Forms';
 import { InstallationState } from './collections/InstallationState';
 import { Media } from './collections/Media';
 import { Pages } from './collections/Pages';
@@ -11,6 +13,7 @@ import { PluginStates } from './collections/PluginStates';
 import { Posts } from './collections/Posts';
 import { Redirects } from './collections/Redirects';
 import { Users } from './collections/Users';
+
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -37,7 +40,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, InstallationState, AuditLogs, PluginStates, Media, Pages, Posts, Redirects],
+  collections: [Users, InstallationState, AuditLogs, PluginStates, Forms, FormSubmissions, Media, Pages, Posts, Redirects],
   editor: lexicalEditor({}),
   secret: payloadSecret,
   typescript: {

@@ -8,6 +8,8 @@ export const AUDIT_ACTIONS = {
   contentCreated: 'content.created',
   contentDeleted: 'content.deleted',
   contentUpdated: 'content.updated',
+  formSubmitted: 'forms.submitted',
+  formWorkflowExecuted: 'forms.workflow.executed',
   installCompleted: 'system.install.completed',
   pluginActivated: 'plugins.activated',
   pluginDeactivated: 'plugins.deactivated',
@@ -20,6 +22,7 @@ export const AUDIT_ACTIONS = {
   userDeleted: 'users.deleted',
   userUpdated: 'users.updated',
 } as const;
+
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];
 export type AuditResult = 'failure' | 'success';

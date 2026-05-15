@@ -6,6 +6,8 @@ export const APP_PERMISSIONS = [
   'content:delete',
   'content:read',
   'content:write',
+  'forms:manage',
+  'forms:read',
   'media:manage',
   'plugins:manage',
   'plugins:read',
@@ -29,13 +31,15 @@ const ROLE_PERMISSIONS: Record<AppRole, readonly AppPermission[]> = {
     'content:delete',
     'content:read',
     'content:write',
+    'forms:manage',
+    'forms:read',
     'media:manage',
     'plugins:manage',
     'plugins:read',
     'redirects:manage',
     'redirects:read',
   ],
-  editor: ['content:delete', 'content:read', 'content:write', 'media:manage'],
+  editor: ['content:delete', 'content:read', 'content:write', 'forms:read', 'media:manage'],
 };
 
 export function getRolePermissions(role: AppRole): readonly AppPermission[] {
