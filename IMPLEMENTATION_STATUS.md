@@ -2,7 +2,7 @@
 
 Project: NexPress
 Mode: Greenfield
-Current phase: 18-storefront-commerce-blocks
+Current phase: 19-api-platform-openapi
 Overall status: in-progress
 
 The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, visual editor adapter, themes/templates foundation, plugin/module system, forms/workflows foundation, public membership/protected-route foundation, the commerce service spike, the commerce MVP slice, and storefront commerce builder blocks are implemented. Broader API platform work and MCP features remain out of scope for the current repository state.
@@ -28,7 +28,7 @@ The platform foundation, Payload CMS foundation, database/migration/seed layer, 
 - [x] Phase 16 - Commerce Service Spike: done
 - [x] Phase 17 - Commerce MVP: done
 - [x] Phase 18 - Storefront Commerce Blocks: done
-- [ ] Phase 19 - API Platform and OpenAPI: not-started
+- [x] Phase 19 - API Platform and OpenAPI: done
 - [ ] Phase 20 - Webhooks and Integrations: not-started
 - [ ] Phase 21 - MCP Native Gateway: not-started
 - [ ] Phase 22 - Search, Analytics, and Automation: not-started
@@ -50,115 +50,70 @@ Codex (GPT-5)
 
 ### Requested phase
 
-Phase 18 - Storefront Commerce Blocks
+Phase 19 - API Platform and OpenAPI
 
 ### Files changed
 
-- `packages/builder-core/src/{blocks/core-blocks.tsx,index.ts,types.ts}` - added typed Phase 18 storefront block definitions, strict prop validation, and an external render hook for server-owned commerce rendering
-- `packages/builder-core/src/{renderer.test.tsx,schema.test.ts}` - added storefront rendering and unsafe prop rejection coverage
-- `packages/builder-editor/src/{config.tsx,config.test.tsx,adapter.test.ts}` - registered constrained storefront editor mappings and added structured product-selection coverage
-- `apps/web/src/lib/commerce/{service.ts,service.test.ts,storefront.ts}` - added storefront availability helpers, safe product listing input, and the builder render bridge into NexPress-owned commerce surfaces
-- `apps/web/src/components/commerce/{storefront-add-to-cart.tsx,storefront-cart.tsx,storefront-blocks.tsx}` - added minimal client cart interactivity and server-rendered storefront block components
-- `apps/web/src/lib/content/{rendering.ts,rendering.test.tsx}` - updated published page rendering to inject storefront commerce block renderers safely
-- `apps/web/src/app/{(public)/[slug]/page.tsx,dashboard/pages/[id]/preview/page.tsx}` - awaited async public builder rendering for storefront block support
-- `docs/runbooks/commerce-mvp.md`
-- `plans/phase-18-storefront-commerce-blocks/review.md`
+- `packages/api/package.json` - created `@nexpress/api` platform module
+- `packages/api/tsconfig.json`
+- `packages/api/vitest.config.ts`
+- `packages/api/src/responses.ts` - added standard API response/error helper contracts
+- `packages/api/src/rate-limit.ts` - added common rate limit interface and memory implementation
+- `packages/api/src/scopes.ts` - added API scope foundation definitions
+- `packages/api/src/openapi.ts` - added static OpenAPI 3.1.1 document generator
+- `packages/api/src/index.ts`
+- `packages/api/src/*.test.ts` - test coverage for all new api platform modules
+- `apps/web/package.json` - added `@nexpress/api` dependency
+- `apps/web/src/app/api/openapi.json/route.ts` - added static OpenAPI endpoint
+- `plans/phase-19-api-platform-openapi/review.md`
 - `plans/context.md`
 - `plans/SESSION_LOG.md`
 - `IMPLEMENTATION_STATUS.md`
 
 ### Commands run
 
-- `pnpm.cmd install`
-- `pnpm.cmd lint`
-- `pnpm.cmd typecheck`
-- `pnpm.cmd test`
-- `pnpm.cmd build`
-- `pnpm.cmd --dir packages/commerce lint`
-- `pnpm.cmd --dir packages/commerce typecheck`
-- `pnpm.cmd --dir packages/commerce test`
-- `pnpm.cmd --dir packages/commerce build`
-- `pnpm.cmd --dir packages/forms lint`
-- `pnpm.cmd --dir packages/forms typecheck`
-- `pnpm.cmd --dir packages/forms test`
-- `pnpm.cmd --dir packages/forms build`
-- `pnpm.cmd --dir packages/plugins lint`
-- `pnpm.cmd --dir packages/plugins typecheck`
-- `pnpm.cmd --dir packages/plugins test`
-- `pnpm.cmd --dir packages/plugins build`
-- `pnpm.cmd --dir packages/builder-core lint`
-- `pnpm.cmd --dir packages/builder-core typecheck`
-- `pnpm.cmd --dir packages/builder-core test`
-- `pnpm.cmd --dir packages/builder-core build`
-- `pnpm.cmd --dir packages/builder-editor lint`
-- `pnpm.cmd --dir packages/builder-editor typecheck`
-- `pnpm.cmd --dir packages/builder-editor test`
-- `pnpm.cmd --dir packages/builder-editor build`
-- `pnpm.cmd --dir packages/themes lint`
-- `pnpm.cmd --dir packages/themes typecheck`
-- `pnpm.cmd --dir packages/themes test`
-- `pnpm.cmd --dir packages/themes build`
-- `pnpm.cmd --dir apps/web lint`
-- `pnpm.cmd --dir apps/web typecheck`
-- `pnpm.cmd --dir apps/web test`
-- `pnpm.cmd --dir apps/web build`
+- `pnpm install`
+- `pnpm --dir packages/api test`
+- `pnpm check`
 
 ### Test results
 
-- `pnpm.cmd install` - passed
-- `pnpm.cmd lint` - passed
-- `pnpm.cmd typecheck` - passed
-- `pnpm.cmd test` - passed
-- `pnpm.cmd build` - passed
-- `pnpm.cmd --dir packages/commerce lint` - passed
-- `pnpm.cmd --dir packages/commerce typecheck` - passed
-- `pnpm.cmd --dir packages/commerce test` - passed (11/11 tests, 3 test files)
-- `pnpm.cmd --dir packages/commerce build` - passed
-- `pnpm.cmd --dir packages/forms lint` - passed
-- `pnpm.cmd --dir packages/forms typecheck` - passed
-- `pnpm.cmd --dir packages/forms test` - passed (41/41 tests, 3 test files)
-- `pnpm.cmd --dir packages/forms build` - passed
-- `pnpm.cmd --dir packages/plugins lint` - passed
-- `pnpm.cmd --dir packages/plugins typecheck` - passed
-- `pnpm.cmd --dir packages/plugins test` - passed (9/9 tests, 2 test files)
-- `pnpm.cmd --dir packages/plugins build` - passed
-- `pnpm.cmd --dir packages/builder-core lint` - passed
-- `pnpm.cmd --dir packages/builder-core typecheck` - passed
-- `pnpm.cmd --dir packages/builder-core test` - passed (12/12 tests, 4 test files)
-- `pnpm.cmd --dir packages/builder-core build` - passed
-- `pnpm.cmd --dir packages/builder-editor lint` - passed
-- `pnpm.cmd --dir packages/builder-editor typecheck` - passed
-- `pnpm.cmd --dir packages/builder-editor test` - passed (5/5 tests, 2 test files)
-- `pnpm.cmd --dir packages/builder-editor build` - passed
-- `pnpm.cmd --dir packages/themes lint` - passed
-- `pnpm.cmd --dir packages/themes typecheck` - passed
-- `pnpm.cmd --dir packages/themes test` - passed (7/7 tests, 2 test files)
-- `pnpm.cmd --dir packages/themes build` - passed
-- `pnpm.cmd --dir apps/web lint` - passed
-- `pnpm.cmd --dir apps/web typecheck` - passed
-- `pnpm.cmd --dir apps/web test` - passed (91/91 tests, 22 test files)
-- `pnpm.cmd --dir apps/web build` - passed
+- `packages/api` test passed (8/8 tests, 4 test files)
+- Root checks passed
 
 ### Security notes
 
-- Storefront commerce blocks remain typed and validated in `@nexpress/builder-core`; unsafe handles, links, and CTA props fail safe instead of rendering live commerce UI
-- Public builder rendering now uses a NexPress-owned server render bridge; editor-only Puck code remains outside the public bundle
-- Product and cart UI never call Medusa directly from the browser; client interactivity only targets NexPress-owned `/api/commerce/*` routes
-- Commerce availability is still capability-gated server-side through `commerce-pack` and returns safe disabled or misconfigured states without exposing provider internals
-- Variant ids and quantities are validated server-side before cart mutation, and the client never supplies trusted prices, totals, taxes, shipping, or discounts
-- The only browser-persisted cart state is a local cart id pointer for the signed-in member; customer mappings, orders, provider secrets, and runtime config remain server-only
+- The API platform package provides strict typing for responses, preventing accidental data leaks.
+- Rate limiting foundation ensures uniform abuse control interfaces.
+- OpenAPI explicitly documents security schemes without exposing raw credentials or secrets.
+- `openapi.json` route is fully static and does not execute untrusted client-side code.
 
 ### Blockers
 
-- No live database-backed Payload migration file was generated for recent commerce work because migration generation still requires a live database connection
-- Checkout still persists a server-side test-mode order snapshot instead of a real payment-complete order flow
-- Guest carts remain out of scope; storefront cart UI prompts login or fails safely for unauthenticated users
-- The collection list block is a curated safe link list rather than a provider-backed category or collection sync
-- Real payment capture, shipping, taxes, coupons, inventory sync, refunds, and webhook reconciliation remain deferred
+- Fully integrated API Keys are deferred until explicit implementation.
 
 ### Next recommended prompt
 
-Start Phase 19 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and `03-phases/phase-19-*` before implementing.
+Start Phase 20 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and `03-phases/phase-20-*` before implementing.
+
+---
+
+## Phase 18 - Storefront Commerce Blocks
+
+Status: done
+Implemented: 2026-05-15
+
+### Files added
+
+- `packages/builder-core/src/{blocks/core-blocks.tsx,index.ts,types.ts}`
+- `packages/builder-core/src/{renderer.test.tsx,schema.test.ts}`
+- `packages/builder-editor/src/{config.tsx,config.test.tsx,adapter.test.ts}`
+- `apps/web/src/lib/commerce/{service.ts,service.test.ts,storefront.ts}`
+- `apps/web/src/components/commerce/{storefront-add-to-cart.tsx,storefront-cart.tsx,storefront-blocks.tsx}`
+- `apps/web/src/lib/content/{rendering.ts,rendering.test.tsx}`
+- `apps/web/src/app/{(public)/[slug]/page.tsx,dashboard/pages/[id]/preview/page.tsx}`
+- `docs/runbooks/commerce-mvp.md`
+- `plans/phase-18-storefront-commerce-blocks/review.md`
 
 ---
 

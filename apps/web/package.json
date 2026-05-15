@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@measured/puck": "0.20.2",
+    "@nexpress/api": "workspace:*",
     "@nexpress/builder-core": "workspace:*",
     "@nexpress/builder-editor": "workspace:*",
     "@nexpress/commerce": "workspace:*",

@@ -705,3 +705,39 @@ Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-17-commerce-mvp/re
 ### Resume instructions
 
 Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-18-storefront-commerce-blocks/review.md`, and `docs/runbooks/commerce-mvp.md`, then start Phase 19 only if explicitly requested.
+---
+## Session: 2026-05-15
+
+### What was done
+
+- Implemented Phase 19 API Platform and OpenAPI foundations as a new `packages/api` workspace package
+- Added typed `successResponse` and `errorResponse` helpers, an `ApiScope` system, and a `RateLimiter` interface with an in-memory implementation
+- Added a static OpenAPI 3.1.1 document generator in `@nexpress/api`
+- Added a new public route handler at `apps/web/src/app/api/openapi.json/route.ts` to serve the API specification
+- Verified root, package, and app quality gates including the new `@nexpress/api` package
+
+### Decisions made
+
+- Kept API helpers returning raw objects rather than `NextResponse` instances - Reason: allows for better testability and flexibility before passing to `NextResponse.json()`
+- Kept the OpenAPI generation fully static and unauthenticated - Reason: documentation of the public API structure must not execute untrusted code or require privileges to read
+- Added security scheme documentation without implementing full API key management yet - Reason: Phase 19 establishes the API boundaries and documentation, while key generation/persistence is deferred
+
+### Files changed
+
+- `packages/api/*`
+- `apps/web/package.json`
+- `apps/web/src/app/api/openapi.json/route.ts`
+- `plans/context.md`
+- `plans/phase-19-api-platform-openapi/review.md`
+- `IMPLEMENTATION_STATUS.md`
+
+### State at end of session
+
+- Active feature: phase-19-api-platform-openapi
+- Last completed task: Phase 19 verification and review
+- Next task: wait for explicit instruction before starting Phase 20
+- Blockers: fully integrated API Keys are deferred until explicit implementation; distributed rate limiting is out of scope for the current memory-based limiter
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-19-api-platform-openapi/review.md`, then start Phase 20 only if explicitly requested.
