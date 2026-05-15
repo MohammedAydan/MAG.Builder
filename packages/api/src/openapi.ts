@@ -428,6 +428,138 @@ export function generateOpenApiDocument() {
           },
         },
       },
+      '/search': {
+        get: {
+          summary: 'Public content search',
+          description:
+            'Returns safe projections of published content. ' +
+            'Anonymous users see only public-access documents. ' +
+            'Authenticated members also see members-only documents. ' +
+            'Draft content is never returned. ' +
+            'Query inputs are validated and length-limited. ' +
+            'Pagination is bounded to 50 results per page.',
+          tags: ['Search'],
+          parameters: [
+            {
+              name: 'q',
+              in: 'query',
+              required: false,
+              schema: { type: 'string', maxLength: 200 },
+              description: 'Free-text search query (max 200 chars).',
+            },
+            {
+              name: 'type',
+              in: 'query',
+              required: false,
+              schema: { type: 'string', enum: ['page', 'post'] },
+              description: 'Filter by content type.',
+            },
+            {
+              name: 'page',
+              in: 'query',
+              required: false,
+              schema: { type: 'integer', minimum: 1, default: 1 },
+            },
+            {
+              name: 'limit',
+              in: 'query',
+              required: false,
+              schema: { type: 'integer', minimum: 1, maximum: 50, default: 10 },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Search results',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', enum: [true] },
+                      data: {
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          properties: {
+                            id: { type: 'string' },
+                            type: { type: 'string', enum: ['page', 'post'] },
+                            title: { type: 'string' },
+                            slug: { type: 'string' },
+                            excerpt: { type: 'string' },
+                            publishedAt: { type: 'string', format: 'date-time' },
+                            accessLevel: { type: 'string', enum: ['public', 'members-only'] },
+                          },
+                        },
+                      },
+                      meta: {
+                        type: 'object',
+                        properties: {
+                          total: { type: 'integer' },
+                          page: { type: 'integer' },
+                          limit: { type: 'integer' },
+                          hasNextPage: { type: 'boolean' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/analytics/summary': {
+        get: {
+          summary: 'Analytics aggregate summary',
+          description:
+            'Returns aggregated event counts by event name. ' +
+            'Admin-only. Never returns raw event data or PII. ' +
+            'Requires analytics:read or analytics:admin permission.',
+          tags: ['Analytics'],
+          security: [{ adminAuth: [] }],
+          parameters: [
+            {
+              name: 'since',
+              in: 'query',
+              required: false,
+              schema: { type: 'string', format: 'date-time' },
+              description: 'ISO 8601 datetime — only count events after this timestamp.',
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Aggregated event counts',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', enum: [true] },
+                      data: {
+                        type: 'object',
+                        additionalProperties: { type: 'integer' },
+                        description: 'Map of event name to count.',
+                      },
+                      meta: {
+                        type: 'object',
+                        properties: {
+                          since: { type: 'string', nullable: true },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            '401': {
+              description: 'Unauthorized',
+            },
+            '403': {
+              description: 'Forbidden — requires analytics:read or analytics:admin permission',
+            },
+          },
+        },
+      },
     },
   };
 }

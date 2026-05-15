@@ -2,10 +2,10 @@
 
 Project: NexPress
 Mode: Greenfield
-Current phase: 19-api-platform-openapi
+Current phase: 22-search-analytics-automation
 Overall status: in-progress
 
-The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, visual editor adapter, themes/templates foundation, plugin/module system, forms/workflows foundation, public membership/protected-route foundation, the commerce service spike, the commerce MVP slice, and storefront commerce builder blocks are implemented. Broader API platform work and MCP features remain out of scope for the current repository state.
+The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, visual editor adapter, themes/templates foundation, plugin/module system, forms/workflows foundation, public membership/protected-route foundation, the commerce service spike, the commerce MVP slice, storefront commerce builder blocks, the API platform with OpenAPI, webhooks/integrations foundation, MCP native gateway, and the search/analytics/automation foundation are all implemented.
 
 ## Phase tracker
 
@@ -31,7 +31,7 @@ The platform foundation, Payload CMS foundation, database/migration/seed layer, 
 - [x] Phase 19 - API Platform and OpenAPI: done
 - [x] Phase 20 - Webhooks and Integrations: done
 - [x] Phase 21 - MCP Native Gateway: done
-- [ ] Phase 22 - Search, Analytics, and Automation: not-started
+- [x] Phase 22 - Search, Analytics, and Automation: done
 - [ ] Phase 23 - Multi-site and SaaS Readiness: not-started
 - [ ] Phase 24 - Marketplace, Packaging, and Updates: not-started
 - [ ] Phase 25 - Observability and Security Hardening: not-started
@@ -46,11 +46,97 @@ The platform foundation, Payload CMS foundation, database/migration/seed layer, 
 
 ### Agent/tool
 
-Codex (GPT-5)
+Antigravity (Claude Sonnet 4.6)
 
 ### Requested phase
 
-Phase 20 - Webhooks and Integrations
+Phase 22 - Search, Analytics, and Automation
+
+### Files changed
+
+**New packages:**
+- `packages/search/package.json` — `@nexpress/search` workspace package
+- `packages/search/tsconfig.json`
+- `packages/search/vitest.config.ts`
+- `packages/search/src/types.ts` — SearchDocument, SearchQuery, SearchAdapter contracts
+- `packages/search/src/adapter.ts` — InMemorySearchAdapter
+- `packages/search/src/service.ts` — SearchService with access-level filtering and fail-safe behaviour
+- `packages/search/src/search.test.ts` — 17 tests
+- `packages/search/src/index.ts`
+- `packages/analytics/package.json` — `@nexpress/analytics` workspace package
+- `packages/analytics/tsconfig.json`
+- `packages/analytics/vitest.config.ts`
+- `packages/analytics/src/types.ts` — Typed discriminated union event schema, sensitive-field detection, AnalyticsAdapter contract
+- `packages/analytics/src/adapter.ts` — NoopAnalyticsAdapter
+- `packages/analytics/src/service.ts` — AnalyticsService with Zod validation and sensitive-field rejection
+- `packages/analytics/src/analytics.test.ts` — 22 tests
+- `packages/analytics/src/index.ts`
+- `packages/automation/package.json` — `@nexpress/automation` workspace package
+- `packages/automation/tsconfig.json`
+- `packages/automation/vitest.config.ts`
+- `packages/automation/src/types.ts` — Allowlisted triggers/actions, Zod-validated rule schema
+- `packages/automation/src/engine.ts` — AutomationEngine with safe execution and fail-safe error isolation
+- `packages/automation/src/automation.test.ts` — 21 tests
+- `packages/automation/src/index.ts`
+
+**New web app files:**
+- `apps/web/src/lib/search/service.ts` — Search service singleton + Payload content indexing helpers
+- `apps/web/src/lib/analytics/service.ts` — Analytics service singleton
+- `apps/web/src/lib/automation/hooks.ts` — Automation engine wired with action handlers + built-in rules
+- `apps/web/src/app/api/search/route.ts` — Public search API route
+- `apps/web/src/app/api/analytics/summary/route.ts` — Admin-only analytics summary route
+
+**Modified files:**
+- `apps/web/package.json` — added @nexpress/search, @nexpress/analytics, @nexpress/automation deps
+- `apps/web/src/lib/auth/permissions.ts` — added search:read, analytics:read, analytics:admin, automation:read, automation:manage
+- `apps/web/src/lib/auth/access.ts` — added Phase 22 access helpers
+- `apps/web/src/lib/audit/service.ts` — added automation and search audit actions
+- `packages/api/src/openapi.ts` — added /search and /analytics/summary paths
+
+**New docs:**
+- `docs/runbooks/search-analytics-automation.md`
+- `plans/phase-22-search-analytics-automation/review.md`
+
+### Commands run
+
+- `pnpm install` — passed (30 workspace projects)
+- `pnpm --dir packages/search test` — passed (17/17)
+- `pnpm --dir packages/analytics test` — passed (22/22)
+- `pnpm --dir packages/automation test` — passed (21/21)
+- `pnpm --dir packages/search typecheck` — passed
+- `pnpm --dir packages/analytics typecheck` — passed
+- `pnpm --dir packages/automation typecheck` — passed
+- `pnpm --dir apps/web typecheck` — passed
+- `pnpm --dir apps/web test` — passed (91/91)
+- `pnpm --dir apps/web lint` — passed (0 warnings)
+- `pnpm --dir apps/web build` — passed
+
+### Security notes
+
+- Search only exposes published content; draft and private data never reaches the index
+- Anonymous users see only `accessLevel: 'public'` docs; member auth is checked server-side
+- Search queries are Zod-validated and length-limited (max 200 chars, max 50 results/page)
+- Analytics events use a typed discriminated union; unknown event names are rejected
+- Sensitive field names (password, secret, token, api_key, etc.) are detected and rejected before storage
+- IP addresses are omitted from all analytics events by design
+- Analytics aggregates endpoint requires `analytics:read` or `analytics:admin` — never exposes raw events
+- Automation trigger payloads are fully Zod-validated before execution
+- Automation actions are an explicit allowlist; forbidden actions (shell.exec, database.query, etc.) have no handler path
+- Action handler errors are caught and return a generic "Action failed unexpectedly" message — no internal details leak
+- All three packages use fail-safe patterns: errors are logged and swallowed rather than propagating
+
+### Blockers
+
+- In-memory search index is not production-safe (process-local, lost on restart)
+- No-op analytics adapter does not persist events
+- Automation rules are hard-coded (no admin UI or Payload collection for rule management)
+- No scheduled/cron automation (Phase 25+)
+- Search index is empty at startup; populated by automation events on content publish
+
+### Next recommended prompt
+
+Start Phase 23 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and `03-phases/phase-23-*` before implementing.
+
 
 ### Files changed
 

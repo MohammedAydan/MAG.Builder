@@ -319,3 +319,29 @@ export const integrationsReadAccess: Access = ({ req }) =>
 
 export const integrationsManageAccess: Access = ({ req }) =>
   hasPermission(req.user as AuthenticatedUserLike | undefined, 'integrations:manage');
+
+// ---------------------------------------------------------------------------
+// Phase 22 — Search, Analytics, Automation access helpers
+// ---------------------------------------------------------------------------
+
+/** Search is readable by authenticated admins/editors; public search is handled in the Route Handler. */
+export const searchReadAccess: Access = ({ req }) =>
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'search:read');
+
+/** Analytics aggregates — admin-only */
+export const analyticsAdminAccess: Access = ({ req }) =>
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'analytics:admin');
+
+/** Analytics events collection — admin read only */
+export const analyticsReadAccess: Access = ({ req }) =>
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'analytics:read') ||
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'analytics:admin');
+
+/** Automation rules — admin manage */
+export const automationManageAccess: Access = ({ req }) =>
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'automation:manage');
+
+/** Automation rules — admin read */
+export const automationReadAccess: Access = ({ req }) =>
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'automation:read') ||
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'automation:manage');
