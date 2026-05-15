@@ -6,7 +6,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 
 ## Current Status
 
-- Active feature: phase-19-api-platform-openapi
+- Active feature: phase-20-webhooks-integrations
 - Overall health: green
 - Last updated: 2026-05-15
 
@@ -40,6 +40,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - phase-17-commerce-mvp: done, commerce now exposes server-side catalog, cart, checkout, customer mapping, and member-order flows with Payload-backed admin snapshots and audit events
 - phase-18-storefront-commerce-blocks: done, builder-core and builder-editor now support safe storefront commerce blocks, while `apps/web` injects NexPress-owned server rendering plus minimal client cart interactivity through existing `/api/commerce/*` routes
 - phase-19-api-platform-openapi: done, `packages/api` now provides core response, rate-limit, and scope foundations, while `apps/web` exposes a static OpenAPI 3.1.1 specification document
+- phase-20-webhooks-integrations: done, `packages/webhooks` now owns the typed event registry, url validation, and signature verification, while `apps/web` exposes admin-only webhook/integration collections, outbound delivery foundation, and an inbound signature verification API
 
 ## Known Issues / Tech Debt
 

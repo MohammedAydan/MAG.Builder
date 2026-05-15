@@ -81,6 +81,9 @@ export interface Config {
     pages: Page;
     posts: Post;
     redirects: Redirect;
+    'webhook-subscriptions': WebhookSubscription;
+    'webhook-deliveries': WebhookDelivery;
+    integrations: Integration;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -101,6 +104,9 @@ export interface Config {
     pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
+    'webhook-subscriptions': WebhookSubscriptionsSelect<false> | WebhookSubscriptionsSelect<true>;
+    'webhook-deliveries': WebhookDeliveriesSelect<false> | WebhookDeliveriesSelect<true>;
+    integrations: IntegrationsSelect<false> | IntegrationsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -535,6 +541,74 @@ export interface Redirect {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "webhook-subscriptions".
+ */
+export interface WebhookSubscription {
+  id: number;
+  name: string;
+  url: string;
+  /**
+   * Used to sign outbound webhooks. Keep this secret.
+   */
+  secret?: string | null;
+  events: ('form.submitted' | 'order.created' | 'order.updated' | 'page.published' | 'page.unpublished')[];
+  active?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "webhook-deliveries".
+ */
+export interface WebhookDelivery {
+  id: number;
+  subscription: number | WebhookSubscription;
+  event: string;
+  /**
+   * Safe payload without secrets
+   */
+  payload:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  status: 'success' | 'failed';
+  statusCode?: number | null;
+  responseBody?: string | null;
+  errorMessage?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "integrations".
+ */
+export interface Integration {
+  id: number;
+  name: string;
+  provider: 'medusa' | 'stripe';
+  active?: boolean | null;
+  /**
+   * Safe configuration only. DO NOT STORE SECRETS HERE.
+   */
+  config?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -608,6 +682,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'redirects';
         value: number | Redirect;
+      } | null)
+    | ({
+        relationTo: 'webhook-subscriptions';
+        value: number | WebhookSubscription;
+      } | null)
+    | ({
+        relationTo: 'webhook-deliveries';
+        value: number | WebhookDelivery;
+      } | null)
+    | ({
+        relationTo: 'integrations';
+        value: number | Integration;
       } | null);
   globalSlug?: string | null;
   user:
@@ -945,6 +1031,46 @@ export interface RedirectsSelect<T extends boolean = true> {
   destinationPath?: T;
   type?: T;
   isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "webhook-subscriptions_select".
+ */
+export interface WebhookSubscriptionsSelect<T extends boolean = true> {
+  name?: T;
+  url?: T;
+  secret?: T;
+  events?: T;
+  active?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "webhook-deliveries_select".
+ */
+export interface WebhookDeliveriesSelect<T extends boolean = true> {
+  subscription?: T;
+  event?: T;
+  payload?: T;
+  status?: T;
+  statusCode?: T;
+  responseBody?: T;
+  errorMessage?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "integrations_select".
+ */
+export interface IntegrationsSelect<T extends boolean = true> {
+  name?: T;
+  provider?: T;
+  active?: T;
+  config?: T;
   updatedAt?: T;
   createdAt?: T;
 }

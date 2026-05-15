@@ -29,7 +29,7 @@ The platform foundation, Payload CMS foundation, database/migration/seed layer, 
 - [x] Phase 17 - Commerce MVP: done
 - [x] Phase 18 - Storefront Commerce Blocks: done
 - [x] Phase 19 - API Platform and OpenAPI: done
-- [ ] Phase 20 - Webhooks and Integrations: not-started
+- [x] Phase 20 - Webhooks and Integrations: done
 - [ ] Phase 21 - MCP Native Gateway: not-started
 - [ ] Phase 22 - Search, Analytics, and Automation: not-started
 - [ ] Phase 23 - Multi-site and SaaS Readiness: not-started
@@ -50,51 +50,57 @@ Codex (GPT-5)
 
 ### Requested phase
 
-Phase 19 - API Platform and OpenAPI
+Phase 20 - Webhooks and Integrations
 
 ### Files changed
 
-- `packages/api/package.json` - created `@nexpress/api` platform module
-- `packages/api/tsconfig.json`
-- `packages/api/vitest.config.ts`
-- `packages/api/src/responses.ts` - added standard API response/error helper contracts
-- `packages/api/src/rate-limit.ts` - added common rate limit interface and memory implementation
-- `packages/api/src/scopes.ts` - added API scope foundation definitions
-- `packages/api/src/openapi.ts` - added static OpenAPI 3.1.1 document generator
-- `packages/api/src/index.ts`
-- `packages/api/src/*.test.ts` - test coverage for all new api platform modules
-- `apps/web/package.json` - added `@nexpress/api` dependency
-- `apps/web/src/app/api/openapi.json/route.ts` - added static OpenAPI endpoint
-- `plans/phase-19-api-platform-openapi/review.md`
-- `plans/context.md`
-- `plans/SESSION_LOG.md`
-- `IMPLEMENTATION_STATUS.md`
+- `packages/webhooks/package.json` - created `@nexpress/webhooks` module
+- `packages/webhooks/tsconfig.json`
+- `packages/webhooks/vitest.config.ts`
+- `packages/webhooks/src/url-validation.ts` - SSRF protection for outbound webhooks
+- `packages/webhooks/src/signing.ts` - HMAC signature generation and verification
+- `packages/webhooks/src/registry.ts` - Typed event registry and payload schemas
+- `packages/webhooks/src/index.ts`
+- `packages/webhooks/src/*.test.ts` - test coverage for webhook security functions
+- `apps/web/package.json` - added `@nexpress/webhooks` dependency
+- `apps/web/src/collections/WebhookSubscriptions.ts` - webhook outbound configs
+- `apps/web/src/collections/WebhookDeliveries.ts` - delivery attempt tracking
+- `apps/web/src/collections/Integrations.ts` - third party config registry
+- `apps/web/src/lib/auth/permissions.ts` - added webhook/integration RBAC
+- `apps/web/src/lib/auth/access.ts` - added webhook/integration access handlers
+- `apps/web/src/payload.config.ts` - registered new collections
+- `apps/web/src/lib/webhooks/outbound.ts` - outbound delivery service
+- `apps/web/src/app/api/webhooks/inbound/route.ts` - inbound webhook verification API
+- `packages/api/src/openapi.ts` - updated OpenAPI with inbound webhook spec
 
 ### Commands run
 
 - `pnpm install`
-- `pnpm --dir packages/api test`
+- `pnpm --dir packages/webhooks test`
+- `pnpm --dir apps/web generate:types`
 - `pnpm check`
 
 ### Test results
 
-- `packages/api` test passed (8/8 tests, 4 test files)
-- Root checks passed
+- `packages/webhooks` test passed (19/19 tests)
+- Root checks passed (lint, typecheck, test, build)
 
 ### Security notes
 
-- The API platform package provides strict typing for responses, preventing accidental data leaks.
-- Rate limiting foundation ensures uniform abuse control interfaces.
-- OpenAPI explicitly documents security schemes without exposing raw credentials or secrets.
-- `openapi.json` route is fully static and does not execute untrusted client-side code.
+- Outbound webhooks implement SSRF protection (localhost, private IPs, metadata IPs, non-HTTP schemes are rejected).
+- Outbound webhooks enforce a timeout and body truncation for safety.
+- Inbound webhooks strictly verify signatures with replay protection (timestamp checking).
+- Safe configuration for integrations avoids exposing webhook secrets to clients.
+- Admin-only access to configure subscriptions and integrations.
 
 ### Blockers
 
-- Fully integrated API Keys are deferred until explicit implementation.
+- Outbound webhook delivery is synchronous; needs a background job queue in the future for reliability.
 
 ### Next recommended prompt
 
-Start Phase 20 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and `03-phases/phase-20-*` before implementing.
+Start Phase 21 only. Read PLAN.md, IMPLEMENTATION_STATUS.md, and `03-phases/phase-21-*` before implementing.
+
 
 ---
 

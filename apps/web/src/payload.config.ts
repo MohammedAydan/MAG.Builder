@@ -16,7 +16,9 @@ import { PluginStates } from './collections/PluginStates';
 import { Posts } from './collections/Posts';
 import { Redirects } from './collections/Redirects';
 import { Users } from './collections/Users';
-
+import { WebhookSubscriptions } from './collections/WebhookSubscriptions';
+import { WebhookDeliveries } from './collections/WebhookDeliveries';
+import { Integrations } from './collections/Integrations';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -43,7 +45,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Members, InstallationState, AuditLogs, PluginStates, CommerceCustomers, CommerceOrders, Forms, FormSubmissions, Media, Pages, Posts, Redirects],
+  collections: [Users, Members, InstallationState, AuditLogs, PluginStates, CommerceCustomers, CommerceOrders, Forms, FormSubmissions, Media, Pages, Posts, Redirects, WebhookSubscriptions, WebhookDeliveries, Integrations],
   editor: lexicalEditor({}),
   secret: payloadSecret,
   typescript: {

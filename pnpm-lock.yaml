@@ -38,6 +38,9 @@ importers:
       '@nexpress/themes':
         specifier: workspace:*
         version: link:../../packages/themes
+      '@nexpress/webhooks':
+        specifier: workspace:*
+        version: link:../../packages/webhooks
       '@payloadcms/db-postgres':
         specifier: ^3.84.1
         version: 3.84.1(payload@3.84.1(graphql@16.14.0)(typescript@6.0.3))
@@ -112,9 +115,6 @@ importers:
       '@types/node':
         specifier: 25.7.0
         version: 25.7.0
-      eslint:
-        specifier: 9.39.4
-        version: 9.39.4(jiti@2.7.0)
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -252,6 +252,22 @@ importers:
       '@nexpress/builder-core':
         specifier: workspace:*
         version: link:../builder-core
+      zod:
+        specifier: 4.4.3
+        version: 4.4.3
+    devDependencies:
+      '@types/node':
+        specifier: 25.7.0
+        version: 25.7.0
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: 4.1.6
+        version: 4.1.6(@types/node@25.7.0)(happy-dom@20.9.0)(vite@8.0.12(@types/node@25.7.0)(esbuild@0.27.7)(jiti@2.7.0)(sass@1.77.4)(tsx@4.21.0))
+
+  packages/webhooks:
+    dependencies:
       zod:
         specifier: 4.4.3
         version: 4.4.3

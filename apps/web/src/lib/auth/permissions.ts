@@ -15,13 +15,17 @@ export const APP_PERMISSIONS = [
   'plugins:read',
   'redirects:manage',
   'redirects:read',
-  'system:read',
   'system:install',
+  'system:read',
   'users:create',
   'users:delete',
   'users:read',
   'users:update',
   'users:roles:manage',
+  'webhooks:read',
+  'webhooks:manage',
+  'integrations:read',
+  'integrations:manage',
 ] as const;
 
 export type AppPermission = (typeof APP_PERMISSIONS)[number];
@@ -42,6 +46,10 @@ const ROLE_PERMISSIONS: Record<AppRole, readonly AppPermission[]> = {
     'plugins:read',
     'redirects:manage',
     'redirects:read',
+    'webhooks:read',
+    'webhooks:manage',
+    'integrations:read',
+    'integrations:manage',
   ],
   editor: ['content:delete', 'content:read', 'content:write', 'forms:read', 'media:manage'],
 };

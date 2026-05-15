@@ -741,3 +741,44 @@ Read `plans/context.md`, `plans/SESSION_LOG.md`, `plans/phase-18-storefront-comm
 ### Resume instructions
 
 Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-19-api-platform-openapi/review.md`, then start Phase 20 only if explicitly requested.
+---
+## Session: 2026-05-15
+
+### What was done
+
+- Implemented Phase 20 Webhooks and Integrations foundation
+- Created `@nexpress/webhooks` with registry, SSRF url-validation, and signature verification
+- Added Payload CMS collections: `WebhookSubscriptions`, `WebhookDeliveries`, and `Integrations`
+- Implemented outbound synchronous webhook delivery and inbound signature-verified APIs
+- Updated OpenAPI with the inbound webhook definition
+
+### Decisions made
+
+- Kept Phase 20 focused on foundation - Reason: real queue workers and complex integration mapping are out of scope until the foundational security and tracking models are proven
+- Implemented synchronous outbound delivery - Reason: Phase 20 requires a delivery mechanism, but background job orchestration (BullMQ) is deferred to later phases
+- Added SSRF URL validation and HMAC signature signing/verification - Reason: security is a non-negotiable architectural constraint
+
+### Files changed
+
+- `packages/webhooks/*`
+- `apps/web/package.json`
+- `apps/web/src/collections/{WebhookSubscriptions,WebhookDeliveries,Integrations}.ts`
+- `apps/web/src/lib/auth/{permissions,access}.ts`
+- `apps/web/src/payload.config.ts`
+- `apps/web/src/lib/webhooks/outbound.ts`
+- `apps/web/src/app/api/webhooks/inbound/route.ts`
+- `packages/api/src/openapi.ts`
+- `plans/context.md`
+- `plans/phase-20-webhooks-integrations/review.md`
+- `IMPLEMENTATION_STATUS.md`
+
+### State at end of session
+
+- Active feature: phase-20-webhooks-integrations
+- Last completed task: Phase 20 verification and review
+- Next task: wait for explicit instruction before starting Phase 21
+- Blockers: none
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-20-webhooks-integrations/review.md`, then start Phase 21 only if explicitly requested.

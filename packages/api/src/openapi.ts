@@ -371,6 +371,63 @@ export function generateOpenApiDocument() {
           },
         },
       },
+      '/webhooks/inbound': {
+        post: {
+          summary: 'Inbound Webhook Verification',
+          description: 'Verifies the signature of inbound webhooks from integrations.',
+          tags: ['Webhooks'],
+          parameters: [
+            {
+              name: 'integration',
+              in: 'query',
+              required: true,
+              schema: { type: 'string' },
+            },
+            {
+              name: 'nexpress-signature',
+              in: 'header',
+              required: true,
+              schema: { type: 'string' },
+            },
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  description: 'Dynamic payload from the integration provider.',
+                },
+              },
+            },
+          },
+          responses: {
+            '200': {
+              description: 'Webhook verified and accepted',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', enum: [true] },
+                      message: { type: 'string' },
+                    },
+                  },
+                },
+              },
+            },
+            '400': {
+              description: 'Bad request (missing integration or invalid JSON)',
+            },
+            '401': {
+              description: 'Unauthorized (invalid signature or missing secret)',
+            },
+            '404': {
+              description: 'Integration not found or inactive',
+            },
+          },
+        },
+      },
     },
   };
 }

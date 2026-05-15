@@ -307,3 +307,15 @@ export const membersUpdateAccess: Access = ({ req }) => {
 };
 
 export const membersUnlockAccess: Access = () => false;
+
+export const webhooksReadAccess: Access = ({ req }) =>
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'webhooks:read');
+
+export const webhooksManageAccess: Access = ({ req }) =>
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'webhooks:manage');
+
+export const integrationsReadAccess: Access = ({ req }) =>
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'integrations:read');
+
+export const integrationsManageAccess: Access = ({ req }) =>
+  hasPermission(req.user as AuthenticatedUserLike | undefined, 'integrations:manage');
