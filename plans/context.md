@@ -6,7 +6,7 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 
 ## Current Status
 
-- Active feature: phase-24-marketplace-packaging-updates
+- Active feature: phase-26-production-deployment-docs
 - Overall health: green
 - Last updated: 2026-05-15
 
@@ -45,6 +45,8 @@ NexPress is a greenfield, production-grade CMS + commerce + visual-builder platf
 - phase-22-search-analytics-automation: done, `packages/search`, `packages/analytics`, and `packages/automation` now provide bounded search, privacy-safe analytics contracts, and allowlisted automation flows, while `apps/web` exposes public search and admin analytics summary endpoints
 - phase-23-multisite-saas-readiness: done, `apps/web` now has a hidden `sites` collection, server-side hostname resolution, default-site fallback behavior, and site-aware filtering across content, forms, members, commerce, search, analytics, and automation metadata
 - phase-24-marketplace-packaging-updates: done, `packages/marketplace` now provides typed local package manifests, a local allowlisted catalog, integrity and compatibility validation, and dry-run planning, while `apps/web` exposes admin-only marketplace listing and plan endpoints
+- phase-25-security-observability-hardening: done, added `@nexpress/observability` and `@nexpress/security` with structured logging, redaction, safe errors, CSP, security headers, readiness checks, and threat model documentation
+- phase-26-production-deployment-docs: done, added Dockerfile, docker-compose, CI/CD validation foundation, deployment/operations runbooks, release/rollback checklists, environment matrix, and production readiness documentation
 
 ## Known Issues / Tech Debt
 

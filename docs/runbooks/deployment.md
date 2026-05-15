@@ -1,0 +1,104 @@
+# Deployment Runbook
+
+This guide covers the deployment of NexPress to production environments.
+
+## Deployment Strategy
+
+NexPress is designed for containerized deployment (Docker) or standard Node.js hosting. It uses Next.js Standalone mode for efficient production builds.
+
+### Environment Requirements
+
+- **Runtime:** Node.js 22+ (LTS)
+- **Database:** PostgreSQL 16+
+- **Storage:** Local file system (dev) or S3-compatible storage (prod)
+- **Memory:** Minimum 1GB RAM recommended for build/runtime
+- **Disk:** Dependent on media upload volume
+
+## 1. Environment Variable Matrix
+
+Refer to `docs/architecture/environment-matrix.md` for a full list of required and optional variables.
+
+### Critical Production Secrets
+
+| Variable | Description |
+|---|---|
+| `DATABASE_URI` | PostgreSQL connection string |
+| `PAYLOAD_SECRET` | Used for Payload CMS encryption and authentication |
+| `NEXT_PUBLIC_SITE_URL` | The public canonical URL of the site |
+| `MEDUSA_ADMIN_API_TOKEN` | If commerce is enabled |
+
+## 2. Standard Deployment (Node.js/pnpm)
+
+1. **Install Dependencies:**
+   ```bash
+   pnpm install --frozen-lockfile
+   ```
+
+2. **Build the Platform:**
+   ```bash
+   pnpm turbo run build --filter=@nexpress/web
+   ```
+
+3. **Run Migrations:**
+   ```bash
+   pnpm --dir apps/web migrate
+   ```
+
+4. **Start the Application:**
+   ```bash
+   pnpm --dir apps/web start
+   ```
+
+## 3. Containerized Deployment (Docker)
+
+1. **Build the Image:**
+   ```bash
+   docker build -t nexpress:latest .
+   ```
+
+2. **Run the Container:**
+   ```bash
+   docker run -p 3000:3000 \
+     -e DATABASE_URI=postgres://... \
+     -e PAYLOAD_SECRET=... \
+     -e NEXT_PUBLIC_SITE_URL=https://example.com \
+     nexpress:latest
+   ```
+
+## 4. Database Migrations
+
+Database migrations must be run during the deployment process, typically before the new version of the application becomes healthy.
+
+### Backup Before Migration
+
+**Always** perform a database backup before running migrations in production.
+
+```bash
+# Example PostgreSQL backup
+pg_dump -U postgres -d nexpress > nexpress_backup_$(date +%Y%m%d).sql
+```
+
+### Running Migrations
+
+```bash
+pnpm --dir apps/web migrate
+```
+
+## 5. Health and Readiness Checks
+
+Monitoring systems should use these endpoints to determine service health:
+
+- **Health Check:** `/api/health` - Basic uptime check.
+- **Readiness Check:** `/api/readiness` - Validates database and critical config availability.
+
+## 6. Zero-Downtime Deployment (Recommended)
+
+1. Deploy new database migrations (ensure they are backward compatible).
+2. Start new application containers.
+3. Wait for `/api/readiness` to return 200.
+4. Update load balancer to point to new containers.
+5. Terminate old containers.
+
+## 7. Rollback Procedure
+
+See `docs/runbooks/rollback.md` for detailed instructions.

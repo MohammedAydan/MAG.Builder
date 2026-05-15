@@ -1,0 +1,23 @@
+# Phase 26 Review
+
+- Files changed: `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `.github/workflows/ci.yml`, `docs/runbooks/*`, `docs/architecture/environment-matrix.md`, `docs/checklists/production-readiness.md`, `docs/product/production-roadmap.md`
+- Packages added: None.
+- Deployment runbooks added: `deployment.md`, `operations.md`, `rollback.md`, `release-checklist.md`.
+- Production environment matrix: Created in `docs/architecture/environment-matrix.md`.
+- Release checklist: Created in `docs/runbooks/release-checklist.md`.
+- Rollback checklist: Created in `docs/runbooks/rollback.md`.
+- Backup/restore checklist: Created in `docs/runbooks/operations.md`.
+- Migration checklist: Included in `deployment.md` and `operations.md`.
+- CI/CD changes: Added `.github/workflows/ci.yml` for basic build/test validation.
+- Container/hosting changes: Added `Dockerfile` and `docker-compose.yml`.
+- Health/readiness operations guidance: Included in `operations.md`.
+- Observability operations guidance: Included in `operations.md`.
+- Security operations guidance: Included in `operations.md`.
+- API/OpenAPI changes: None.
+- MCP changes: None.
+- Payload collections added/changed: None.
+- Payload types/migrations status: N/A.
+- Tests added: N/A (Documentation and configuration phase).
+- Commands run: `pnpm install`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`.
+- Security notes: Documented secret rotation and incident response.
+- Known gaps: Manual secret rotation, lack of automated CD, and staged CSP rollout.

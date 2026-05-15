@@ -1,6 +1,21 @@
 {
   "name": "@nexpress/observability",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
-  "description": "Phase 00 placeholder package."
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "lint": "tsc --noEmit --pretty false",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "tsc --noEmit --pretty false"
+  },
+  "dependencies": {
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "25.7.0",
+    "typescript": "6.0.3",
+    "vitest": "4.1.6"
+  }
 }

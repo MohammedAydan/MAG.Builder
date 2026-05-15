@@ -3,6 +3,7 @@ import { getPayload } from 'payload';
 import configPromise from '@/payload.config';
 import { mcpHandler } from '@/lib/mcp';
 import { isAppRole } from '@/lib/auth/roles';
+import { logger } from '@nexpress/observability';
 
 export async function POST(req: NextRequest) {
   try {
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('MCP Gateway Error:', error);
+    logger.error('MCP Gateway Error:', { error });
     return NextResponse.json(
       { jsonrpc: '2.0', id: null, error: { code: -32603, message: 'Internal Server Error' } },
       { status: 500 }

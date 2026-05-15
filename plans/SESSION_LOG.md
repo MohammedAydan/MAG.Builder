@@ -4,6 +4,91 @@
 
 ### What was done
 
+- Implemented Phase 25 Security and Observability Hardening
+- Created `@nexpress/observability` with structured JSON logger, field redaction, safe client errors, and correlation IDs
+- Created `@nexpress/security` with CSP and baseline security headers (X-Frame-Options, HSTS, Permissions-Policy, Referrer-Policy)
+- Added `/api/readiness` endpoint for safe health checks against database and Payload initialization
+- Hardened `apps/web/src/app/api/mcp/route.ts` to use new logger to prevent internal error leakage
+- Created `docs/runbooks/security-hardening.md` with threat model, ASVS checklist, and production readiness checks
+- Ran `pnpm audit` and added tests for all hardening packages
+
+### Decisions made
+
+- Kept CSP in report-only/staged configuration via `next.config.ts` - Reason: Strict nonces require complex dynamic routing adjustments that may conflict with Payload CMS internals
+- Placed readiness checks under `/api/readiness` separating from `/api/health` - Reason: General health should remain fast and static, whereas readiness checks downstream systems
+- Maintained lazy runtime configuration validation - Reason: This enforces secure separation of build-time variables from execution secrets
+
+### Files changed
+
+- `packages/observability/*`
+- `packages/security/*`
+- `apps/web/package.json`
+- `apps/web/next.config.ts`
+- `apps/web/src/app/api/readiness/route.ts`
+- `apps/web/src/app/api/mcp/route.ts`
+- `docs/runbooks/security-hardening.md`
+- `plans/context.md`
+- `plans/phase-25-security-observability-hardening/review.md`
+- `IMPLEMENTATION_STATUS.md`
+
+### State at end of session
+
+- Active feature: phase-26-production-deployment-docs
+- Last completed task: Phase 26 verification and review
+- Next task: wait for explicit instruction before starting Phase 27
+- Blockers: none
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-26-production-deployment-docs/review.md`, then start Phase 27 only if explicitly requested.
+---
+
+## Session: 2026-05-15
+
+### What was done
+
+- Implemented Phase 26 Production Deployment and Docs
+- Created multi-stage `Dockerfile` and `docker-compose.yml` for production-grade containerization
+- Established CI/CD foundation with `.github/workflows/ci.yml`
+- Added comprehensive production runbooks: `deployment.md`, `operations.md`, `rollback.md`, `release-checklist.md`
+- Added production readiness and environment variable matrices
+- Documented known production blockers and deferred hardening work in `production-roadmap.md`
+
+### Decisions made
+
+- Used Next.js standalone mode in Dockerfile - Reason: provides the smallest and most efficient production image
+- Kept CI/CD foundation generic and secret-free - Reason: production secrets must be managed by the deployment platform, not the source repository
+- Grouped operational tasks into logical runbooks - Reason: improves maintainability and clarity for DevOps/SRE teams
+
+### Files changed
+
+- `Dockerfile`
+- `.dockerignore`
+- `docker-compose.yml`
+- `.github/workflows/ci.yml`
+- `docs/runbooks/{deployment,operations,rollback,release-checklist}.md`
+- `docs/architecture/environment-matrix.md`
+- `docs/checklists/production-readiness.md`
+- `docs/product/production-roadmap.md`
+- `plans/context.md`
+- `IMPLEMENTATION_STATUS.md`
+
+### State at end of session
+
+- Active feature: phase-26-production-deployment-docs
+- Last completed task: Phase 26 verification and review
+- Next task: wait for explicit instruction before starting Phase 27
+- Blockers: none
+
+### Resume instructions
+
+Read `plans/context.md`, `plans/SESSION_LOG.md`, and `plans/phase-26-production-deployment-docs/review.md`, then start Phase 27 only if explicitly requested.
+---
+
+## Session: 2026-05-15
+
+### What was done
+
 - Implemented Phase 24 marketplace, packaging, and update-planning foundations
 - Added the new `@nexpress/marketplace` workspace package with typed local package manifests, a local allowlisted catalog, compatibility checks, integrity metadata validation, and dry-run planning
 - Added admin-only `GET /api/marketplace/packages` and `POST /api/marketplace/plans` route handlers plus marketplace audit coverage
