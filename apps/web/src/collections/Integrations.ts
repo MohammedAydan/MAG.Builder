@@ -5,7 +5,7 @@ export const Integrations: CollectionConfig = {
   slug: 'integrations',
   admin: {
     useAsTitle: 'name',
-    group: 'Settings',
+    group: 'System & Marketplace',
   },
   access: {
     create: integrationsManageAccess,

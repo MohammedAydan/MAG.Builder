@@ -26,6 +26,10 @@ import { SearchIndex } from './collections/SearchIndex';
 import { AnalyticsEvents } from './collections/AnalyticsEvents';
 import { AutomationRules } from './collections/AutomationRules';
 import { AutomationExecutions } from './collections/AutomationExecutions';
+import { SEOSettings } from './globals/SEOSettings';
+import { ThemeSettings } from './globals/ThemeSettings';
+import { SiteSettings } from './globals/SiteSettings';
+import { SystemSettings } from './globals/SystemSettings';
 
 
 const filename = fileURLToPath(import.meta.url);
@@ -54,6 +58,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Members, Sites, SiteMemberships, SiteInvitations, InstallationState, AuditLogs, PluginStates, CommerceCustomers, CommerceOrders, Forms, FormSubmissions, Media, Pages, Posts, Redirects, WebhookSubscriptions, WebhookDeliveries, Integrations, SearchIndex, AnalyticsEvents, AutomationRules, AutomationExecutions],
+  globals: [SystemSettings, SiteSettings, ThemeSettings, SEOSettings],
   editor: lexicalEditor({}),
   secret: payloadSecret,
   typescript: {

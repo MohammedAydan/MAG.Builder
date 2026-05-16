@@ -5,7 +5,7 @@ export const WebhookDeliveries: CollectionConfig = {
   slug: 'webhook-deliveries',
   admin: {
     useAsTitle: 'id',
-    group: 'Settings',
+    group: 'System & Marketplace',
     defaultColumns: ['id', 'subscription', 'event', 'status', 'createdAt'],
   },
   access: {

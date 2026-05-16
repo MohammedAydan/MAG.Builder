@@ -1,620 +1,319 @@
-# Unified Payload Admin + Puck Builder Rebuild Plan
+# Unified Payload Admin Dashboard + Puck Builder Rebuild Plan
 
 ## 1. Executive Summary
-- Current state has two management surfaces: custom Next.js dashboard at `/dashboard` and Payload admin at `/admin`.
-- Target state is a single management surface: Payload Admin at `/admin`.
-- Existing `/dashboard` features should be migrated into Payload Collections, Globals, Custom Views, and Custom Components.
-- Builder stack already uses `@measured/puck` (`packages/builder-editor`) and `@nexpress/builder-core`; migration focus is integration into Payload Admin and strict boundary enforcement.
-- This plan is repository-specific and maps exact file paths, phases, risks, and acceptance criteria.
+- Objective: consolidate management UX into Payload Admin (`/admin`) and retire custom dashboard (`/dashboard`) after parity.
+- Constraint: no blind rewrites; migrate by feature classification (Existing/Partial/Missing/Broken/Duplicated/Risk).
+- Current repo already has substantial Payload collections, a working custom dashboard route tree, and existing builder-core/editor packages.
+- This plan is discovery-locked and implementation-sequenced for low-risk migration.
 
 ## 2. Current Project Analysis
-### Admin + Payload
-- Payload admin route already exists and is active:
-  - `apps/web/src/app/(payload)/admin/[[...segments]]/page.tsx`
-  - `apps/web/src/app/(payload)/admin/[[...segments]]/not-found.tsx`
-  - `apps/web/src/payload.config.ts` (admin configured with default `RootPage` + import map).
-- `apps/web/src/payload.config.ts` currently has:
-  - No `globals` configured.
-  - No custom `admin.components`/`admin.views` customization.
-  - Collections-only admin model.
+- Monorepo uses Turbo + pnpm workspaces: `package.json`, `pnpm-workspace.yaml`, `turbo.json`.
+- Web app: `apps/web` with Payload 3 + Next 16 integration: `apps/web/src/payload.config.ts`.
+- Payload admin route exists: `apps/web/src/app/(payload)/admin/[[...segments]]/*`.
+- Custom dashboard route tree exists: `apps/web/src/app/(app)/dashboard/**`.
+- Collections exist and are registered in config.
+- Builder packages exist:
+  - `packages/builder-core/src/*`
+  - `packages/builder-editor/src/*`
+- Public rendering path exists separately under content libs and route layer.
 
-### Collections currently present
-- Core platform/content/system collections exist in `apps/web/src/collections/*`:
-  - Users, Members, Sites, SiteMemberships, SiteInvitations
-  - InstallationState, AuditLogs, PluginStates
-  - CommerceCustomers, CommerceOrders
-  - Forms, FormSubmissions
-  - Media, Pages, Posts, Redirects
-  - WebhookSubscriptions, WebhookDeliveries, Integrations
-  - SearchIndex, AnalyticsEvents, AutomationRules, AutomationExecutions
-- Missing or partial areas:
-  - Missing / Needs Implementation: Menus/Navigation collection(s).
-  - Missing / Needs Implementation: Products, Product Categories, Coupons, Payments, Shipping, Tax collections.
-  - Missing / Needs Implementation: Payload Globals for System/Theme/SEO/Runtime settings.
-  - Hidden collections that likely need admin exposure strategy: `AuditLogs`, `InstallationState`, `PluginStates`, `CommerceCustomers`, `AutomationExecutions`, `Members`.
+## 3. Existing vs Partial vs Missing Feature Audit
+- Existing - Keep: Payload core collections, payload admin catch-all route, builder-core schema/validation/renderer baseline.
+- Existing - Refactor: admin grouping labels, hidden-collection visibility strategy, builder entry points currently tied to dashboard routes.
+- Existing - Move: `/dashboard` feature surfaces into Payload collections/globals/custom views.
+- Partial - Complete: Payload custom views registry, admin home metrics, globals catalog, builder integration in Pages admin UI.
+- Missing - Implement: explicit Payload globals, admin view components folder structure, redirect layer for old dashboard routes.
+- Broken - Repair: N/A in this phase (requires runtime verification pass).
+- Risk - Requires Manual Review: role mapping beyond existing permissions, tenant isolation edge paths, plugin/theme install boundaries.
 
-### Access/RBAC
-- Centralized permission checks in `apps/web/src/lib/auth/access.ts`.
-- Existing permission coverage includes admin/content/forms/commerce/search/analytics/automation/plugins/sites/webhooks/integrations.
-- Multi-site scope helpers are used (for published content/read paths and site-scoped queries).
+## 4. Current Dashboard/Admin Duplication
+- Duplicate management surfaces:
+  - Payload admin: `apps/web/src/app/(payload)/admin/**`
+  - Custom dashboard: `apps/web/src/app/(app)/dashboard/**`
+- Duplicated concerns include analytics, automation, forms, integrations, marketplace, plugins, sites, templates/themes, search, settings, and page-builder entry.
+- Migration target: keep Payload CRUD where possible; only keep custom views for workflows not represented by collection/global screens.
 
-### Dashboard app (`/dashboard`)
-- Full custom dashboard shell exists under `apps/web/src/app/(app)/dashboard/**` with own layout/nav/guards.
-- This is duplication relative to Payload admin.
+## 5. Target Architecture
+- Single management center: `/admin` (Payload).
+- `/dashboard` transitions to redirects only, then route removal.
+- Payload-first architecture:
+  - Collections for CRUD.
+  - Globals for configuration.
+  - Custom views/components for operational dashboards.
+  - Access controls enforced in collection/global access + APIs.
 
-### Builder
-- Builder core:
-  - `packages/builder-core/src/*` includes schema/validation/registry/migrations/renderer.
-- Editor adapter:
-  - `packages/builder-editor/src/*` uses `@measured/puck`, has autosave, custom config categories/components.
-- App integration:
-  - Dashboard builder routes in `apps/web/src/app/(app)/dashboard/pages/[id]/builder/**`.
-  - Save endpoint is dashboard route `.../builder/save/route.ts`.
-- Public rendering:
-  - `apps/web/src/lib/content/rendering.ts` validates and renders builder documents via `builder-core`; does not import editor code.
-- Coupling gap:
-  - Editor entry and save flow are tied to `/dashboard` routes and dashboard auth guards instead of Payload custom view/action flow.
+## 6. Unified Payload Admin Information Architecture
+- System & Marketplace: Users, Webhooks, Integrations, Search, Analytics, Audit Logs, Plugins.
+- Platform: Sites, Memberships, Invitations, Themes/Templates managers.
+- Commerce: Orders, Customers (+ future product stack if introduced).
+- Forms & Automation: Forms, submissions, rules, executions.
+- Content: Media, Pages, Posts, Redirects.
+- System: installation state, runtime/system settings, health.
+- Custom Views: Admin Home, Analytics Overview, Marketplace, Plugin Manager, Theme Manager, Template Manager, Builder, API/OpenAPI, MCP, Search Reindex, Health.
 
-### Themes/Templates/Marketplace/Plugins/API/MCP
-- Themes + template manifests: `packages/themes/src/*`.
-- Template service + import/export/apply flows: `apps/web/src/lib/templates/service.ts`, API routes under `/api/templates/*` and `/api/themes/apply`.
-- Plugins + plugin migrations: `apps/web/src/lib/plugins/service.ts`, API routes under `/api/plugins/*`.
-- Marketplace planning: `apps/web/src/lib/marketplace/service.ts`, `/api/marketplace/*`.
-- OpenAPI: `packages/api/src/openapi.ts`, served by `/api/openapi.json`.
-- MCP gateway: `apps/web/src/lib/mcp.ts`, `/api/mcp`.
+## 7. Payload Collections Plan
+- Keep all currently registered collections in `apps/web/src/payload.config.ts`.
+- Normalize `admin.group` and labels across:
+  - `apps/web/src/collections/Users.ts`
+  - `apps/web/src/collections/Members.ts`
+  - `apps/web/src/collections/Sites.ts`
+  - `apps/web/src/collections/SiteMemberships.ts`
+  - `apps/web/src/collections/SiteInvitations.ts`
+  - `apps/web/src/collections/Pages.ts`
+  - `apps/web/src/collections/Posts.ts`
+  - `apps/web/src/collections/Media.ts`
+  - `apps/web/src/collections/Redirects.ts`
+  - `apps/web/src/collections/Forms.ts`
+  - `apps/web/src/collections/FormSubmissions.ts`
+  - `apps/web/src/collections/AutomationRules.ts`
+  - `apps/web/src/collections/AutomationExecutions.ts`
+  - `apps/web/src/collections/CommerceOrders.ts`
+  - `apps/web/src/collections/CommerceCustomers.ts`
+  - `apps/web/src/collections/Integrations.ts`
+  - `apps/web/src/collections/PluginStates.ts`
+  - `apps/web/src/collections/WebhookSubscriptions.ts`
+  - `apps/web/src/collections/WebhookDeliveries.ts`
+  - `apps/web/src/collections/SearchIndex.ts`
+  - `apps/web/src/collections/AnalyticsEvents.ts`
+  - `apps/web/src/collections/AuditLogs.ts`
+  - `apps/web/src/collections/InstallationState.ts`
 
-### Tests
-- E2E currently dashboard-centric in `apps/web/e2e/*` (`/dashboard` expectations).
-- Unit/integration coverage exists for builder-core/editor, forms, commerce, auth/access, templates, marketplace, plugins, health/install.
+## 8. Payload Globals Plan
+- Add globals directory and initial globals only where needed:
+  - `apps/web/src/globals/SystemSettings.ts`
+  - `apps/web/src/globals/SiteSettings.ts`
+  - `apps/web/src/globals/ThemeSettings.ts`
+  - `apps/web/src/globals/SEOSettings.ts`
+  - `apps/web/src/globals/BuilderSettings.ts`
+- Wire globals in `apps/web/src/payload.config.ts` after access policies are finalized.
 
-## 3. Current Dashboard/Admin Duplication
-- `/dashboard` currently hosts custom pages for analytics/search/sites/forms/automation/integrations/webhooks/plugins/marketplace/themes/templates/builder.
-- `/admin` hosts Payload-native collection CRUD only.
-- This split causes:
-  - Duplicate navigation and auth layers.
-  - Duplicate management UX.
-  - Builder editor and operational views outside Payload admin.
-
-## 4. Target Architecture
-- **Single admin route**: `/admin` (Payload Admin) as only management surface.
-- `/dashboard` becomes redirect/deprecation layer only.
-- Payload Admin becomes control center via:
-  - Collection list/edit views
-  - Globals
-  - Custom Views
-  - Custom Components
-  - Admin grouping and visibility rules.
-- Builder architecture target:
-  - `packages/builder-core`: schema/registry/validation/migrations/renderer contracts.
-  - `packages/builder-editor`: Puck editor adapter only.
-  - `apps/web/src/admin/views/builder/*`: Payload admin integration shell/actions.
-  - `apps/web/src/lib/content/*`: public rendering only.
-  - `packages/themes/*`: layout/theme/template systems.
-
-## 5. Unified Payload Admin Information Architecture
-### System & Marketplace
-- Users (`users`)
-- Webhook Subscriptions (`webhook-subscriptions`)
-- Webhook Deliveries (`webhook-deliveries`)
-- Integrations (`integrations`)
-- Search Index (`search-index`)
-- Analytics Events (`analytics-events`)
-- Plugin States (`plugin-states`) [currently hidden; expose through custom views]
-
-### Platform
-- Sites (`sites`)
-- Site Memberships (`site-memberships`)
-- Site Invitations (`site-invitations`)
-- Themes (custom view backed by `packages/themes` + site settings)
-
-### Commerce
-- Commerce Orders (`commerce-orders`)
-- Commerce Customers (`commerce-customers`) [hidden now]
-- Products — Missing / Needs Implementation
-- Product Categories — Missing / Needs Implementation
-- Coupons — Missing / Needs Implementation
-- Payments settings — Missing / Needs Implementation
-- Shipping settings — Missing / Needs Implementation
-- Tax settings — Missing / Needs Implementation
-
-### Forms & Automation
-- Forms (`forms`)
-- Form Submissions (`form-submissions`)
-- Automation Rules (`automation-rules`)
-- Automation Executions (`automation-executions`) [hidden now]
-
-### Content
-- Media (`media`)
-- Pages (`pages`)
-- Posts (`posts`)
-- Redirects (`redirects`)
-- Menus/Navigation — Missing / Needs Implementation
-- SEO uses fields on pages/posts; global SEO settings missing.
-
-### System
-- Settings Globals — Missing / Needs Implementation
-- Audit Logs (`audit-logs`) [hidden now]
-- Installation State (`installation-state`) [hidden now]
-- Runtime Config global/view — Missing / Needs Implementation
-- Health/Readiness custom view
-
-### Custom Views
-- Admin Home
-- Analytics Overview
-- Marketplace Center
-- Builder Editor
-- Theme Manager
-- Template Manager
-- Plugin Manager
-- API/OpenAPI Center
-- MCP Gateway Center
-- System Health
-
-## 6. Payload Collections Plan
-- Keep and regroup existing collections by IA above.
-- Add admin labels/grouping consistency across all existing collections.
-- Unhide/selectively expose currently hidden collections via:
-  - direct admin visibility where safe, or
-  - custom views wrapping restricted operations.
-- Add missing collections (phased):
-  - `products`, `product-categories`, `coupons`, `payment-settings`, `shipping-settings`, `tax-settings`, `menus`/`navigation`.
-- `pages` collection enhancement plan:
-  - Keep `builder` JSON field.
-  - Add explicit builder metadata fields (`builderVersion`, optional `publishedBuilderData`) if needed for publish pipeline/audit.
-  - Add admin custom action/button to open Builder view in Payload Admin.
-
-## 7. Payload Globals Plan
-Create `apps/web/src/globals/*` and wire in `apps/web/src/payload.config.ts`:
-- `SystemSettings` global (runtime toggles, operational flags without secrets)
-- `ThemeSettings` global (default theme behavior)
-- `SEOSettings` global (sitewide SEO defaults)
-- `RuntimeSettings` global (safe runtime controls)
-- Optional `NavigationSettings` global if collection-based menus are deferred.
-
-## 8. Payload Custom Views Plan
-Create `apps/web/src/admin/views/*` for non-CRUD dashboards:
-- `AdminHomeView`
-- `AnalyticsOverviewView`
-- `MarketplaceView`
-- `PluginsView`
-- `ThemeManagerView`
-- `TemplateManagerView`
-- `SearchOperationsView`
-- `SystemHealthView`
-- `ApiOpenApiCenterView`
-- `McpGatewayCenterView`
-- `PageBuilderView` (entry via pages collection/action)
-
-## 9. Payload Custom Components Plan
-Create reusable components in `apps/web/src/admin/components/*`:
-- Cards and summary widgets (analytics, health, queue status)
-- Builder launch button for pages
-- Reindex/search actions
-- Theme apply controls
-- Plugin activation/migration controls
-- Template import/export controls
-- Permission-aware wrappers (hide/disable by role/permission)
-
-## 10. Roles, Permissions, and Access Control Plan
-- Keep `apps/web/src/lib/auth/access.ts` as source of permission checks.
-- Enforce access only server-side in:
-  - Payload access controls
-  - route handlers
-  - server actions.
-- Add Payload-admin view-level gating using existing permissions:
-  - `admin:access`, `content:*`, `plugins:*`, `marketplace:*`, `analytics:*`, `automation:*`, `sites:*`, `system:*`.
-- Ensure members never gain admin access.
-- Ensure per-site scopes remain enforced for non-global actors.
-
-## 11. Route Migration Plan
-- Final admin route: `/admin`.
-- `/dashboard` strategy:
-  - Phase transition: temporary redirects from dashboard pages to equivalent `/admin` collection/custom views.
-  - End state: global redirect `/dashboard/:path* -> /admin` and remove dashboard code.
-
-Dashboard route classification:
-- `apps/web/src/app/(app)/dashboard/layout.tsx` → Delete after migration; replace with Payload admin shell.
-- `apps/web/src/app/(app)/dashboard/page.tsx` → Migrate to Payload Admin Home custom view.
-- `.../dashboard/pages/page.tsx` → Migrate to Pages collection + Builder action.
-- `.../dashboard/pages/[id]/builder/page.tsx` → Migrate to Payload Builder custom view.
-- `.../dashboard/pages/[id]/builder/save/route.ts` → Migrate to admin API/server action under Payload-integrated path.
-- `.../dashboard/pages/[id]/preview/page.tsx` → Migrate to builder custom view preview panel or draft-preview endpoint.
-- `.../dashboard/forms/page.tsx` → Migrate to Forms collection list; submissions link via collection/custom view.
-- `.../dashboard/forms/[id]/submissions/page.tsx` → Migrate to Form Submissions custom view/filter preset.
-- `.../dashboard/commerce/orders/page.tsx` → Migrate to Commerce Orders collection/custom view.
-- `.../dashboard/commerce/customers/page.tsx` → Migrate to Commerce Customers collection/custom view.
-- `.../dashboard/sites/page.tsx` → Migrate to Sites collection.
-- `.../dashboard/sites/[id]/page.tsx` → Migrate to Site detail custom view or collection edit.
-- `.../dashboard/sites/[id]/domains/page.tsx` → Migrate to Sites edit/custom component.
-- `.../dashboard/sites/[id]/members/page.tsx` → Migrate to SiteMemberships/SiteInvitations collection views.
-- `.../dashboard/sites/[id]/settings/page.tsx` → Migrate to Sites edit + Globals/custom view.
-- `.../dashboard/settings/page.tsx` → Migrate to System Settings globals/custom views.
-- `.../dashboard/search/page.tsx` + actions/button → Migrate to Search custom view.
-- `.../dashboard/analytics/page.tsx` → Migrate to Analytics custom view.
-- `.../dashboard/automation/*` → Migrate to Automation rules/executions collection + custom controls.
-- `.../dashboard/integrations/page.tsx` → Migrate to Integrations collection.
-- `.../dashboard/webhooks/page.tsx` → Migrate to Webhook collections + custom delivery view.
-- `.../dashboard/plugins/*` → Migrate to Payload Plugin Manager custom view(s).
-- `.../dashboard/marketplace/*` → Migrate to Payload Marketplace custom view(s).
-- `.../dashboard/templates/*` → Migrate to Payload Template Manager custom view.
-- `.../dashboard/themes/*` → Migrate to Payload Theme Manager custom view.
-
-## 12. Builder Editor Rebuild Plan
-- Keep `@measured/puck` as editor layer only (already in `packages/builder-editor`).
-- Move editor entrypoint from dashboard route into Payload custom view:
+## 9. Payload Custom Views Plan
+- Create admin view module tree:
+  - `apps/web/src/admin/index.ts`
+  - `apps/web/src/admin/views/HomeView.tsx`
+  - `apps/web/src/admin/views/AnalyticsOverviewView.tsx`
+  - `apps/web/src/admin/views/MarketplaceView.tsx`
+  - `apps/web/src/admin/views/PluginManagerView.tsx`
+  - `apps/web/src/admin/views/ThemeManagerView.tsx`
+  - `apps/web/src/admin/views/TemplateManagerView.tsx`
+  - `apps/web/src/admin/views/SearchReindexView.tsx`
+  - `apps/web/src/admin/views/SystemHealthView.tsx`
+  - `apps/web/src/admin/views/ApiCenterView.tsx`
+  - `apps/web/src/admin/views/McpGatewayView.tsx`
   - `apps/web/src/admin/views/builder/PageBuilderView.tsx`
-  - `apps/web/src/admin/views/builder/PageBuilderShell.tsx`
-  - `apps/web/src/admin/views/builder/PageBuilderSaveActions.ts`
-  - `apps/web/src/admin/views/builder/PageBuilderPreviewFrame.tsx`
-- Add Page-level action/button from Payload edit view to open builder.
-- Provide save draft + publish controls with permission checks.
-- Add UI parity requirements (viewport switch, validation panel, dirty-state warning, autosave guards).
+- Register custom views via Payload admin config.
 
-## 13. Builder Core / Renderer / Layout Separation Plan
-Current status:
-- Separation mostly exists:
-  - `builder-core` independent.
-  - `builder-editor` independent.
-  - Public renderer in `apps/web/src/lib/content/rendering.ts` uses `builder-core`, not editor.
+## 10. Payload Custom Components Plan
+- Introduce shared admin UI components:
+  - `apps/web/src/admin/components/AdminCard.tsx`
+  - `apps/web/src/admin/components/AdminMetricCard.tsx`
+  - `apps/web/src/admin/components/OpenBuilderButton.tsx`
+  - `apps/web/src/admin/components/ReindexButton.tsx`
+  - `apps/web/src/admin/components/PluginStateButton.tsx`
+  - `apps/web/src/admin/components/ThemeApplyButton.tsx`
+  - `apps/web/src/admin/components/TemplateImportButton.tsx`
 
-Planned hardening:
-- Preserve no-editor-import rule in public runtime.
-- Keep layout/theme concerns in `packages/themes` + public shell.
-- Keep builder data content-only, no layout shell ownership.
-- Add boundary tests asserting no editor imports under public rendering modules.
+## 11. Roles, Permissions, and Access Control Plan
+- Canonical auth modules:
+  - `apps/web/src/lib/auth/access.ts`
+  - `apps/web/src/lib/auth/permissions.ts`
+  - `apps/web/src/lib/auth/roles.ts`
+- Dashboard-specific guards to be deprecated after migration:
+  - `apps/web/src/lib/dashboard/access.ts`
+  - `apps/web/src/lib/dashboard/guards.ts`
+  - `apps/web/src/lib/dashboard/navigation.ts`
+  - `apps/web/src/lib/dashboard/session.ts`
+- Map suggested roles to existing role model; do not invent runtime roles until mapping is proven.
 
-## 14. Puck Integration Plan
-Current Puck integration:
-- `packages/builder-editor/src/editor.tsx`
-- `packages/builder-editor/src/config.tsx`
-- config modules under `packages/builder-editor/src/config/*`.
+## 12. Route Migration Plan
+- Source route set: `apps/web/src/app/(app)/dashboard/**`.
+- Target route set: Payload admin and custom views under `/admin`.
+- Maintain temporary compatibility redirects using Next route handlers/middleware once each destination is live.
+- Keep public routes under `apps/web/src/app/(app)/(public)/**` unchanged.
 
-Planned updates:
-- Add explicit Puck integration modules:
-  - `packages/builder-editor/src/puck/config.ts`
-  - `packages/builder-editor/src/puck/fields.ts`
-  - `packages/builder-editor/src/puck/categories.ts`
-  - `packages/builder-editor/src/puck/permissions.ts`
-  - `packages/builder-editor/src/puck/preview.tsx`
-- Keep block source of truth in `builder-core`.
-- Expand block taxonomy beyond current minimal set (currently: section, heading, text, image, button, form, commerce blocks).
+## 13. Builder Editor Rebuild Plan
+- Existing builder dashboard entry:
+  - `apps/web/src/app/(app)/dashboard/pages/[id]/builder/page.tsx`
+  - `apps/web/src/app/(app)/dashboard/pages/[id]/builder/save/route.ts`
+- Rebuild target is Payload-native view + action model:
+  - `apps/web/src/admin/views/builder/*`
+  - `apps/web/src/admin/components/OpenBuilderButton.tsx`
+- Preserve editor features (draft/publish/preview/dirty state/permissions) while moving container.
 
-## 15. Page Builder Feature Matrix
-Current implemented:
-- Puck editor UI, autosave, draft preview, dirty state unload warning.
-- Block categories and drag/edit controls.
-- Draft save endpoint and structural/semantic validation.
-- Legacy migration support v0→v1 in `builder-core`.
+## 14. Builder Core / Renderer / Layout Separation Plan
+- Builder core ownership: `packages/builder-core/**`.
+- Editor ownership: `packages/builder-editor/**`.
+- Public rendering ownership: `apps/web/src/lib/content/rendering.ts`, `apps/web/src/lib/content/public.ts`, `packages/themes/**`.
+- Rule: public routes must not import `packages/builder-editor` or Puck directly.
 
-Missing / Needs Implementation:
-- Publish flow in editor UI (currently save draft focus).
-- Undo/redo policy confirmation.
-- Block search and richer categories.
-- Reusable/global sections and symbols.
-- Block lock/hide controls.
-- Rich text dedicated block.
-- Advanced marketing blocks (hero/pricing/faq/testimonials/gallery/tabs/accordion/etc.).
-- Accessibility checks panel.
-- SEO preview panel in builder.
-- Conflict handling when page changes during editing.
+## 15. Puck Integration Plan
+- Keep Puck isolated to `packages/builder-editor` and admin builder views.
+- Add payload adapter layer for fetching/saving page builder docs with permission checks.
+- Validate builder document before persistence; keep migration hooks for legacy format normalization.
 
-## 16. Theme, Template, and Layout Plan
-- Keep themes in `packages/themes/src/*` and site assignment in `sites.settings.themeId`.
-- Keep template import/export in `apps/web/src/lib/templates/service.ts` and `/api/templates/*`.
-- Migrate dashboard theme/template UIs to Payload custom views:
-  - Theme Manager view wrapping `/api/themes/apply` and theme registry.
-  - Template Manager view wrapping import/export/demo APIs.
-- Keep public shell/layout rendering independent of Puck/editor.
+## 16. Page Builder Feature Matrix
+- Existing: builder-core schema/registry/renderer tests, dashboard builder route.
+- Partial: payload integration UX, save/publish in admin context, validation surfacing.
+- Missing: admin-native layers panel/SEO drawer/settings drawer parity verification, explicit audit hooks from admin builder actions.
 
-## 17. Content Management Plan
-- Pages/Posts/Media/Redirects remain Payload-first.
-- Add Builder launch from Pages collection document view.
-- Keep draft/publish/versioning via Payload versions (`pages`, `posts`).
-- Add missing Menus/Navigation model.
-- Preserve SEO fields and extend with global SEO settings.
-- Ensure per-site content ownership remains enforced.
+## 17. Theme, Template, and Layout Plan
+- Existing service modules retained:
+  - `apps/web/src/lib/templates/service.ts`
+  - `apps/web/src/lib/themes/*` (if present) and `packages/themes/**`
+- Migrate dashboard theme/template screens to payload custom views while reusing service layer.
 
-## 18. Commerce Admin Plan
-Current:
-- Collections: `commerce-orders`, `commerce-customers`.
-- Services/APIs: cart, checkout, orders, products listing via adapter routes.
+## 18. Content Management Plan
+- Keep Payload CRUD-first for `Pages`, `Posts`, `Media`, `Redirects`.
+- Add builder open action to `Pages` admin view.
+- Preserve preview flow via tokenized public preview endpoints.
 
-Missing / Needs Implementation:
-- Product and taxonomy admin collections in Payload.
-- Coupon/discount, shipping, tax, payment settings collections/globals.
-- Commerce analytics cards in Admin Home/custom views.
-- Store-manager role segmentation for commerce-only controls.
+## 19. Commerce Admin Plan
+- Use existing collections/services first:
+  - `apps/web/src/collections/CommerceOrders.ts`
+  - `apps/web/src/collections/CommerceCustomers.ts`
+  - `apps/web/src/lib/commerce/**`
+- Dashboard commerce routes map to payload collection views.
 
-## 19. Forms and Automation Admin Plan
-Current:
-- Forms + submissions collections.
-- Automation rules/executions collections.
-- Submission APIs and workflows already server-validated.
+## 20. Forms and Automation Admin Plan
+- Use existing forms/automation collections and services:
+  - `apps/web/src/collections/Forms.ts`
+  - `apps/web/src/collections/FormSubmissions.ts`
+  - `apps/web/src/collections/AutomationRules.ts`
+  - `apps/web/src/collections/AutomationExecutions.ts`
+  - `apps/web/src/lib/forms/**`
+  - `apps/web/src/lib/automation/**`
+- Keep advanced controls as custom views only where needed.
 
-Migration:
-- Replace dashboard forms/automation pages with Payload collection/custom views.
-- Add custom submissions viewer/filter tooling in Payload admin.
-- Add automation executions operational view and safe controls.
+## 21. System, Marketplace, Plugins, API, OpenAPI, MCP Plan
+- Reuse service modules:
+  - `apps/web/src/lib/plugins/service.ts`
+  - `apps/web/src/lib/marketplace/service.ts`
+  - `apps/web/src/lib/search/service.ts`
+  - `apps/web/src/lib/analytics/service.ts`
+  - `apps/web/src/lib/mcp.ts`
+  - `packages/api/**`
+- Move dashboard operational UIs into payload custom views.
 
-## 20. System, Marketplace, Plugins, API, OpenAPI, MCP Plan
-- Move dashboard plugin/marketplace/search/analytics/system pages into Payload custom views.
-- Keep operational APIs:
-  - `/api/plugins/*`, `/api/marketplace/*`, `/api/search`, `/api/analytics/summary`, `/api/openapi.json`, `/api/mcp`, `/api/health`, `/api/readiness`.
-- Add admin center views for:
-  - OpenAPI overview
-  - MCP gateway overview/scope docs
-  - Health/readiness and install/runtime warnings.
+## 22. Data Model and Migration Plan
+- Builder model baseline should remain versioned JSON document with metadata.
+- Confirm current Pages schema and existing persisted shape before structural changes:
+  - `apps/web/src/collections/Pages.ts`
+  - `packages/builder-core/src/types.ts`
+  - `packages/builder-core/src/migrations.ts`
+- Add migration tests before any shape rewrite.
 
-## 21. Data Model and Migration Plan
-- Builder document currently uses:
-  - `schema: 'nexpress-builder'`
-  - `version: 1`
-  - `blocks[]` structure (`packages/builder-core/src/types.ts`, `schema.ts`).
-- Existing migration support from legacy v0 exists in `packages/builder-core/src/migrations.ts`.
+## 23. File-by-File Task List
+- [ ] `apps/web/src/payload.config.ts` — Existing - Refactor (admin views/globals/groups wiring).
+- [ ] `apps/web/src/payload-types.ts` — Existing - Regenerate after schema changes.
+- [ ] `apps/web/src/app/(app)/dashboard/**` — Existing - Delete after migration (with redirects).
+- [ ] `apps/web/src/app/(payload)/admin/**` — Existing - Keep/extend for custom views.
+- [ ] `apps/web/src/lib/dashboard/**` — Existing - Delete after migration unless shared utilities remain.
+- [ ] `apps/web/src/lib/builder/editor.ts` — Existing - Refactor into payload integration path.
+- [ ] `apps/web/src/lib/builder/kernel.ts` — Existing - Keep or refactor for neutral service layer.
+- [ ] `apps/web/src/lib/content/rendering.ts` — Existing - Keep; enforce no editor imports.
+- [ ] `apps/web/src/lib/content/public.ts` — Existing - Keep; enforce published-only reads.
+- [ ] `packages/builder-core/**` — Existing - Keep/Refactor for stricter contracts.
+- [ ] `packages/builder-editor/**` — Existing - Refactor editor-only boundaries.
+- [ ] `apps/web/e2e/auth.spec.ts` — Partial - Update for `/admin` flows.
+- [ ] `apps/web/e2e/builder.spec.ts` — Partial - Update builder-entry flow via payload.
+- [ ] `apps/web/e2e/smoke.spec.ts` — Partial - Update dashboard redirect assertions.
 
-Planned additions:
-- Preserve old builder data pre-migration snapshot where needed.
-- Add migration tracking metadata at page-level if required (`builderVersion`, `lastMigratedAt`).
-- If introducing published snapshot field (`publishedBuilderData`), create migration/backfill tasks.
-- Validate all migrated pages with renderer regression tests.
+## 24. Implementation Phases
+1. Discovery lock + plan update.
+2. Payload IA/grouping changes.
+3. Globals creation.
+4. Custom view scaffolding.
+5. Simple route migration to native collection/global screens.
+6. Complex route migration to custom views.
+7. Builder integration migration.
+8. Redirect rollout.
+9. Dashboard deletion.
+10. Test hardening and cleanup.
 
-## 22. File-by-File Task List
-- [ ] `apps/web/src/payload.config.ts`
-  - Action: Add globals and admin custom views/components wiring.
-  - Reason: unify admin under Payload.
-  - Replacement: Payload admin IA + custom routes.
-  - Dependencies: new files under `apps/web/src/globals`, `apps/web/src/admin/views`.
-  - Validation: payload boot + `/admin` navigation load.
+## 25. Testing and Validation Plan
+- Repo checks:
+  - `pnpm lint`
+  - `pnpm typecheck`
+  - `pnpm test`
+  - `pnpm build`
+- Web focused:
+  - `pnpm --filter @nexpress/web test`
+  - `pnpm --filter @nexpress/web exec playwright test`
+- Add/adjust tests for admin access, sidebar grouping, builder open/save/publish, and `/dashboard` redirects.
 
-- [ ] `apps/web/src/app/(app)/dashboard/layout.tsx`
-  - Action: Delete after migration.
-  - Reason: duplicate admin shell.
-  - Replacement: Payload admin shell.
-  - Dependencies: complete migration of child routes.
-  - Validation: `/dashboard` redirects to `/admin`.
+## 26. Security and Multi-Tenant Isolation Plan
+- Maintain strict server-side authorization in access functions and handlers.
+- Validate tenant scoping for site-bound content and admin operations.
+- Keep secrets server-only; no client bundle leaks.
+- Enforce draft content protection and secure preview token mechanics.
 
-- [ ] `apps/web/src/app/(app)/dashboard/page.tsx`
-  - Action: Migrate to Payload custom Admin Home view.
-  - Reason: duplicate dashboard homepage.
-  - Replacement: `apps/web/src/admin/views/AdminHomeView.tsx`.
-  - Dependencies: analytics/health/plugin summary providers.
-  - Validation: admin home loads with permission-aware cards.
+## 27. Performance and Bundle Strategy
+- Restrict editor/Puck code to admin builder routes.
+- Use dynamic imports for heavy admin views.
+- Keep public rendering minimal and cache-aware.
+- Avoid unbounded collection queries in custom views.
 
-- [ ] `apps/web/src/app/(app)/dashboard/pages/page.tsx`
-  - Action: Migrate to Pages collection workflows.
-  - Reason: pages management should be in Payload.
-  - Replacement: Pages collection list + builder action.
-  - Dependencies: builder action integration.
-  - Validation: create/open page from `/admin`.
+## 28. Risks and Warnings
+- Risk: hidden coupling between dashboard components and service modules.
+- Risk: role mapping mismatch between desired and implemented permissions.
+- Risk: legacy builder document variants in persisted data.
+- Warning: deleting dashboard prematurely can break operational workflows.
 
-- [ ] `apps/web/src/app/(app)/dashboard/pages/[id]/builder/page.tsx`
-  - Action: Migrate to Payload Builder custom view.
-  - Reason: editor must live in unified admin.
-  - Replacement: `apps/web/src/admin/views/builder/PageBuilderView.tsx`.
-  - Dependencies: payload custom view route + permissions.
-  - Validation: open editor from page edit in `/admin`.
+## 29. Final Acceptance Criteria
+- `/admin` is sole management UI.
+- `/dashboard` no longer acts as independent dashboard.
+- Collection/global/custom-view parity reached.
+- Builder works in Payload admin with draft/publish/preview.
+- Public renderer remains editor-free.
+- Security checks and tenant isolation preserved.
+- CI checks pass and no dead dashboard dependencies remain.
 
-- [ ] `apps/web/src/app/(app)/dashboard/pages/[id]/builder/save/route.ts`
-  - Action: Replace with Payload-integrated save action/route.
-  - Reason: remove dashboard route coupling.
-  - Replacement: admin server action/API in admin view module.
-  - Dependencies: builder view and auth checks.
-  - Validation: save draft returns typed response + audit + revalidate.
+## 30. Next-Agent Handoff Checklist
+- Verify plan assumptions against full file inspection backlog.
+- Implement phase 2 (collection grouping + admin view registry) first.
+- Keep changelog of route mapping status per old dashboard path.
+- Run typecheck/tests after each migration slice.
+- Defer destructive deletions until redirect + parity verification are complete.
 
-- [ ] `apps/web/src/app/(app)/dashboard/pages/[id]/preview/page.tsx`
-  - Action: Migrate to builder preview panel/endpoint.
-  - Reason: preview tied to old dashboard route.
-  - Replacement: builder custom view preview frame.
-  - Dependencies: public renderer parity checks.
-  - Validation: draft preview matches public renderer semantics.
 
-- [ ] `apps/web/src/lib/builder/editor.ts`
-  - Action: Refactor to neutral admin adapter service (not dashboard-specific sources).
-  - Reason: remove dashboard source naming and route assumptions.
-  - Replacement: payload-admin builder adapter methods.
-  - Dependencies: new admin builder view actions.
-  - Validation: unit tests for load/save/validation remain green.
+## Appendix A: Legacy `/dashboard` Route-to-Target Map
+- `apps/web/src/app/(app)/dashboard/page.tsx` -> `/admin` custom Home view.
+- `apps/web/src/app/(app)/dashboard/analytics/page.tsx` -> `/admin` custom Analytics overview.
+- `apps/web/src/app/(app)/dashboard/automation/page.tsx` -> `/admin/collections/automation-rules` (+ optional automation overview view).
+- `apps/web/src/app/(app)/dashboard/commerce/orders/page.tsx` -> `/admin/collections/commerce-orders`.
+- `apps/web/src/app/(app)/dashboard/commerce/customers/page.tsx` -> `/admin/collections/commerce-customers`.
+- `apps/web/src/app/(app)/dashboard/forms/page.tsx` -> `/admin/collections/forms`.
+- `apps/web/src/app/(app)/dashboard/forms/[id]/submissions/page.tsx` -> `/admin/collections/form-submissions` with filter.
+- `apps/web/src/app/(app)/dashboard/integrations/page.tsx` -> `/admin/collections/integrations`.
+- `apps/web/src/app/(app)/dashboard/marketplace/page.tsx` -> `/admin` custom Marketplace view.
+- `apps/web/src/app/(app)/dashboard/marketplace/[packageId]/page.tsx` -> `/admin` custom Marketplace package detail.
+- `apps/web/src/app/(app)/dashboard/pages/page.tsx` -> `/admin/collections/pages`.
+- `apps/web/src/app/(app)/dashboard/pages/[id]/builder/page.tsx` -> `/admin` custom PageBuilder view.
+- `apps/web/src/app/(app)/dashboard/pages/[id]/preview/page.tsx` -> keep public preview endpoint route.
+- `apps/web/src/app/(app)/dashboard/plugins/page.tsx` -> `/admin/collections/plugin-states` + custom manager.
+- `apps/web/src/app/(app)/dashboard/plugins/[pluginId]/page.tsx` -> `/admin` custom plugin detail view.
+- `apps/web/src/app/(app)/dashboard/plugins/[pluginId]/migrations/page.tsx` -> `/admin` custom plugin migrations view.
+- `apps/web/src/app/(app)/dashboard/search/page.tsx` -> `/admin` custom Search/Reindex view.
+- `apps/web/src/app/(app)/dashboard/settings/page.tsx` -> Payload globals (`SystemSettings`, `SiteSettings`, `ThemeSettings`, `SEOSettings`).
+- `apps/web/src/app/(app)/dashboard/sites/page.tsx` -> `/admin/collections/sites`.
+- `apps/web/src/app/(app)/dashboard/sites/[id]/page.tsx` -> `/admin/collections/sites/:id`.
+- `apps/web/src/app/(app)/dashboard/sites/[id]/domains/page.tsx` -> site settings/global or domains collection (if introduced).
+- `apps/web/src/app/(app)/dashboard/sites/[id]/members/page.tsx` -> `/admin/collections/site-memberships` with filter.
+- `apps/web/src/app/(app)/dashboard/sites/[id]/settings/page.tsx` -> `/admin/collections/sites/:id` and/or `SiteSettings` global.
+- `apps/web/src/app/(app)/dashboard/templates/page.tsx` -> `/admin` custom Template manager view.
+- `apps/web/src/app/(app)/dashboard/themes/page.tsx` -> `/admin` custom Theme manager view.
+- `apps/web/src/app/(app)/dashboard/webhooks/page.tsx` -> `/admin/collections/webhook-subscriptions` + `/admin/collections/webhook-deliveries`.
 
-- [ ] `packages/builder-editor/src/editor.tsx`
-  - Action: Keep and harden as editor-only UI.
-  - Reason: Puck layer stays editor-only.
-  - Replacement: none.
-  - Dependencies: payload integration wrapper.
-  - Validation: editor tests + payload view integration tests.
-
-- [ ] `packages/builder-editor/src/config.tsx` + `src/config/*`
-  - Action: Reorganize into explicit puck config/fields/categories/permissions modules.
-  - Reason: scalability and feature matrix expansion.
-  - Replacement: `src/puck/*` structure.
-  - Dependencies: expanded builder-core block registry.
-  - Validation: config tests and editor runtime.
-
-- [ ] `packages/builder-core/src/blocks/*`
-  - Action: Expand block catalog and metadata (a11y/security notes, responsive defaults).
-  - Reason: meet required feature matrix.
-  - Replacement: richer registry definitions.
-  - Dependencies: editor mapping + public renderer components.
-  - Validation: schema/registry/renderer tests.
-
-- [ ] `apps/web/src/lib/content/rendering.ts`
-  - Action: Preserve no-editor-import boundary; add tests for new blocks.
-  - Reason: strict separation of editor vs public runtime.
-  - Replacement: none.
-  - Dependencies: builder-core block additions.
-  - Validation: rendering tests + boundary import checks.
-
-- [ ] `apps/web/src/collections/Pages.ts`
-  - Action: Add builder workflow fields/action integration metadata as needed.
-  - Reason: payload-native builder flow.
-  - Replacement: pages-centric builder lifecycle.
-  - Dependencies: builder custom view.
-  - Validation: page CRUD + builder open/save/publish.
-
-- [ ] `apps/web/src/globals/*` (new)
-  - Action: Add System/Theme/SEO/Runtime globals.
-  - Reason: dashboard settings migration to Payload globals.
-  - Replacement: `/dashboard/settings` UI.
-  - Dependencies: payload config registration.
-  - Validation: globals visible + access-protected.
-
-- [ ] `apps/web/src/admin/views/*` (new)
-  - Action: Add all custom views listed in this plan.
-  - Reason: migrate non-CRUD dashboard screens.
-  - Replacement: `/dashboard/*` feature pages.
-  - Dependencies: API/services and permission guards.
-  - Validation: view rendering + role-based visibility.
-
-- [ ] `apps/web/src/lib/dashboard/*`
-  - Action: Delete after `/dashboard` retirement.
-  - Reason: obsolete auth/nav abstraction.
-  - Replacement: Payload admin + access.ts.
-  - Dependencies: redirect complete.
-  - Validation: no imports remain.
-
-- [ ] `apps/web/src/app/(app)/dashboard/**`
-  - Action: Delete after migration and redirects are stable.
-  - Reason: enforce one-admin rule.
-  - Replacement: `/admin` collections/views/components.
-  - Dependencies: all mapped replacements complete.
-  - Validation: no dashboard route remains except redirect.
-
-- [ ] `apps/web/src/app/(app)/dashboard/...` client controls (theme-switcher, template-importer, plugin managers, etc.)
-  - Action: migrate into payload custom components under `apps/web/src/admin/components/*`.
-  - Reason: preserve capability under unified admin.
-  - Replacement: payload custom views/components.
-  - Dependencies: API endpoints retained.
-  - Validation: same actions functional in `/admin`.
-
-- [ ] `apps/web/e2e/*.spec.ts`
-  - Action: rewrite `/dashboard` assertions to `/admin` IA and custom views.
-  - Reason: end-to-end tests currently dashboard-centric.
-  - Replacement: admin-centric flows.
-  - Dependencies: view URLs and selectors finalized.
-  - Validation: playwright suite passes.
-
-## 23. Implementation Phases
-### Phase 1: Discovery and Architecture Lock
-- Finalize this plan from current code reality.
-- Lock decisions and migration matrix.
-
-### Phase 2: Payload Sidebar and Admin Information Architecture
-- Re-group collections labels/groups.
-- Add admin home placeholder custom view.
-- Keep dashboard temporarily.
-
-### Phase 3: Globals and Settings
-- Add globals under `apps/web/src/globals`.
-- Wire into payload config and permissions.
-
-### Phase 4: Custom Admin Views
-- Create `apps/web/src/admin/views`.
-- Migrate analytics/search/marketplace/plugins/themes/templates/health views.
-
-### Phase 5: Builder Core Cleanup
-- Expand builder-core registry and contracts.
-- Add migration/test hardening.
-
-### Phase 6: Puck Builder Editor Rebuild
-- Refactor builder-editor into explicit puck modules/panels.
-- Add required UX features incrementally.
-
-### Phase 7: Payload Page Integration
-- Add builder action from pages edit view.
-- Add payload admin builder custom route.
-- Implement save/publish/preview/audit/revalidate.
-
-### Phase 8: Public Renderer Separation
-- Verify public runtime only depends on builder-core + themes.
-- Add import-boundary regression checks.
-
-### Phase 9: Migrate Old Dashboard Features
-- Move each dashboard feature to payload collection/view/component.
-- Add redirect strategy and remove duplicate CRUD routes.
-
-### Phase 10: Security, RBAC, Multi-Tenant Isolation
-- Validate all collection/view/action permissions.
-- Validate site isolation and protected content boundaries.
-
-### Phase 11: Testing and Cleanup
-- Update unit/integration/e2e tests.
-- Remove dead dashboard code.
-- Run full quality gates and fix regressions.
-
-## 24. Testing and Validation Plan
-### Unit
-- Builder schema validation, migrations, registry, renderer (`packages/builder-core/src/*.test.ts*`).
-- Editor adapter/config (`packages/builder-editor/src/*.test.ts*`).
-- Access control (`apps/web/src/lib/auth/access.test.ts`, `apps/web/src/lib/sites/tenant-isolation.test.ts`).
-- Forms/commerce/plugins/themes/template services tests.
-
-### Integration
-- `/admin` loads and custom views load.
-- Pages collection + builder action opens view.
-- Save draft + publish + preview workflow.
-- `/dashboard` redirects.
-- Role-based view restrictions.
-
-### E2E (Playwright)
-- Replace dashboard flows in:
-  - `apps/web/e2e/smoke.spec.ts`
-  - `apps/web/e2e/builder.spec.ts`
-  - `apps/web/e2e/auth.spec.ts`
-- Add checks for admin IA groups, custom views, builder save/publish, public render parity, security boundaries.
-
-### Commands (from current repo scripts)
-- `corepack pnpm install`
-- `corepack pnpm lint`
-- `corepack pnpm typecheck`
-- `corepack pnpm test`
-- `corepack pnpm build`
-- `corepack pnpm --filter @nexpress/web test`
-- `corepack pnpm --filter @nexpress/web e2e`
-
-## 25. Security and Multi-Tenant Isolation Plan
-- Keep server-enforced authorization via `apps/web/src/lib/auth/access.ts`.
-- Keep payload access controls for all collections.
-- Ensure site-scoped queries use `createSiteScopeWhere`/resolved site context.
-- Preserve anti-CSRF browser POST checks used in management APIs (`validateBrowserPostRequest`).
-- Keep webhook signature verification (`/api/webhooks/inbound`, webhooks package).
-- Keep form anti-spam/rate limiting pipeline in forms API/service.
-- Keep MCP scoped execution (role-to-scope mapping in `/api/mcp`).
-- Keep OpenAPI read-only document exposure.
-- Restrict plugin/theme/template installation and state changes to admin permissions.
-- Ensure builder HTML/embed/code blocks (future) are sanitized and constrained before public render.
-- Ensure no secrets in client-exposed config, templates, logs, or manifests.
-
-## 26. Risks and Warnings
-- **Risk:** breaking operational workflows while moving dashboard pages.
-  - Mitigation: migrate view-by-view with redirects and parity tests.
-- **Risk:** permission regressions in custom views.
-  - Mitigation: central permission wrappers + integration tests per role.
-- **Risk:** builder publish/preview mismatch.
-  - Mitigation: renderer parity tests and snapshot checks.
-- **Risk:** node engine mismatch in CI/local (`>=22` required; environment currently Node 20).
-  - Mitigation: enforce Node 22 in execution environment.
-- **Risk:** large scope across multiple domains (content/commerce/plugins/themes/forms/system).
-  - Mitigation: phased execution and strict phase gates.
-- **Warning:** existing lint baseline already fails for unrelated `no-explicit-any` issues in web package.
-
-## 27. Final Acceptance Criteria
-- `/admin` is the only management dashboard.
-- `/dashboard` fully redirects/deprecated with no duplicate management UI.
-- All migrated dashboard capabilities available from Payload collections/globals/custom views/components.
-- Builder is launched and managed from Payload Pages context.
-- Puck remains editor-only; public renderer has no editor imports.
-- Theme/layout engine remains separate from builder document content.
-- Access controls and multi-tenant isolation remain server-enforced.
-- Required tests updated and passing (except pre-existing documented failures).
-- Full migration map and handoff checklist completed.
-
-## 28. Next-Agent Handoff Checklist
-- [ ] Confirm Node 22 runtime before implementation.
-- [ ] Implement Phase 2 collection regrouping and admin IA labels first.
-- [ ] Introduce `apps/web/src/admin/views/*` skeletons and wire into payload config.
-- [ ] Introduce `apps/web/src/globals/*` and register in payload config.
-- [ ] Move builder route from dashboard to payload custom view/action.
-- [ ] Port dashboard feature UIs one by one into payload custom views/components.
-- [ ] Add `/dashboard` redirect mapping after equivalent payload views are ready.
-- [ ] Remove `apps/web/src/lib/dashboard/*` and `apps/web/src/app/(app)/dashboard/**` only after parity.
-- [ ] Rewrite Playwright tests for `/admin` flows.
-- [ ] Run full quality gates and resolve regressions.
+## Appendix B: Phase-2 Immediate File Ownership
+- `apps/web/src/payload.config.ts`
+  - Status: Existing - Refactor
+  - Action: wire admin groups/custom views/globals registrations.
+- `apps/web/src/collections/*.ts`
+  - Status: Existing - Refactor
+  - Action: normalize `admin.group`, labels, and strategic hidden/exposed flags.
+- `apps/web/src/admin/**`
+  - Status: Missing - Implement
+  - Action: create custom view/component shell modules.
+- `apps/web/src/globals/**`
+  - Status: Missing - Implement
+  - Action: add minimal settings globals with strict access.

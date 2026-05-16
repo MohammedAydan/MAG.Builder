@@ -6,7 +6,7 @@ export const WebhookSubscriptions: CollectionConfig = {
   slug: 'webhook-subscriptions',
   admin: {
     useAsTitle: 'name',
-    group: 'Settings',
+    group: 'System & Marketplace',
   },
   access: {
     create: webhooksManageAccess,

@@ -5,7 +5,7 @@ export const SearchIndex: CollectionConfig = {
   slug: 'search-index',
   admin: {
     useAsTitle: 'title',
-    group: 'System',
+    group: 'System & Marketplace',
   },
   access: {
     create: () => false, // Only system can create

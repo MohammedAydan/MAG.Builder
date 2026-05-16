@@ -1,0 +1,10 @@
+export { HomeView } from './views/HomeView';
+export { AnalyticsOverviewView } from './views/AnalyticsOverviewView';
+export { MarketplaceView } from './views/MarketplaceView';
+export { PluginManagerView } from './views/PluginManagerView';
+export { ThemeManagerView } from './views/ThemeManagerView';
+export { TemplateManagerView } from './views/TemplateManagerView';
+export { SearchReindexView } from './views/SearchReindexView';
+export { SystemHealthView } from './views/SystemHealthView';
+export { ApiCenterView } from './views/ApiCenterView';
+export { McpGatewayView } from './views/McpGatewayView';
