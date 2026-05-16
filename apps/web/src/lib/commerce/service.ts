@@ -764,8 +764,9 @@ export async function createCheckoutSessionForCartWithDeps(
   const paymentSessionId = existingPaymentSessionId ?? `sess_${randomUUID()}`;
 
   if (existingOrder && existingOrder.checkoutIdempotencyKey === idempotencyKey && existingPaymentSessionId) {
+    const checkoutUrl = buildHostedCheckoutUrl(existingPaymentSessionId);
     return {
-      checkoutUrl: buildHostedCheckoutUrl(existingPaymentSessionId),
+      ...(checkoutUrl ? { checkoutUrl } : {}),
       currencyCode: cart.currencyCode,
       externalCartId: cart.externalId,
       externalId: existingPaymentSessionId,
@@ -835,8 +836,9 @@ export async function createCheckoutSessionForCartWithDeps(
     targetId: orderExternalId,
   });
 
+  const checkoutUrl = buildHostedCheckoutUrl(paymentSessionId);
   return {
-    checkoutUrl: buildHostedCheckoutUrl(paymentSessionId),
+    ...(checkoutUrl ? { checkoutUrl } : {}),
     currencyCode: cart.currencyCode,
     externalCartId: cart.externalId,
     externalId: paymentSessionId,
