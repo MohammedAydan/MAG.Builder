@@ -7,14 +7,14 @@
 import { AnalyticsService, NoopAnalyticsAdapter } from '@nexpress/analytics';
 import type { AnalyticsEvent } from '@nexpress/analytics';
 import { ANALYTICS_SCHEMA_VERSION } from '@nexpress/analytics';
-import { AuditLogAnalyticsAdapter } from '@/lib/analytics/audit-log-adapter';
+import { PayloadAnalyticsAdapter } from '@/lib/analytics/payload-adapter';
 import { getRuntimeServicesConfig } from '@/lib/runtime-services/config';
 
 function createAnalyticsAdapter() {
   const config = getRuntimeServicesConfig();
   return config.analytics.provider === 'noop'
     ? new NoopAnalyticsAdapter()
-    : new AuditLogAnalyticsAdapter();
+    : new PayloadAnalyticsAdapter();
 }
 
 export const analyticsService = new AnalyticsService(createAnalyticsAdapter());

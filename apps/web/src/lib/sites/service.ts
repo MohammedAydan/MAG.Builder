@@ -208,6 +208,11 @@ export function extractSiteRelationshipId(value: number | string | { id: number 
   return value;
 }
 
+export async function getSelectedSiteId(): Promise<string> {
+  const site = await resolveCurrentSite();
+  return String(site?.id || DEFAULT_SITE_ID);
+}
+
 export function isResolvedSiteMatch(site: ResolvedSite, relation: number | string | { id: number | string } | null | undefined) {
   const relationId = extractSiteRelationshipId(relation);
 

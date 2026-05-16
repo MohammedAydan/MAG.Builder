@@ -29,6 +29,7 @@ export const ANALYTICS_EVENT_NAMES = [
   'commerce.product_viewed',
   'commerce.cart_updated',
   'commerce.order_created',
+  'automation.executed',
 ] as const;
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENT_NAMES)[number];
@@ -145,6 +146,11 @@ const OrderCreatedPayloadSchema = z.object({
   itemCount: z.number().int().min(0).optional(),
 });
 
+const AutomationExecutedPayloadSchema = z.object({
+  ruleId: z.string().max(128),
+  status: z.string().max(50),
+});
+
 // ---------------------------------------------------------------------------
 // Union event schema (typed discriminated union)
 // ---------------------------------------------------------------------------
@@ -214,6 +220,12 @@ export const AnalyticsEventSchema = z.discriminatedUnion('name', [
     schemaVersion: z.literal(ANALYTICS_SCHEMA_VERSION),
     name: z.literal('commerce.order_created'),
     payload: OrderCreatedPayloadSchema,
+    meta: SafeSessionMetaSchema.optional(),
+  }),
+  z.object({
+    schemaVersion: z.literal(ANALYTICS_SCHEMA_VERSION),
+    name: z.literal('automation.executed'),
+    payload: AutomationExecutedPayloadSchema,
     meta: SafeSessionMetaSchema.optional(),
   }),
 ]);

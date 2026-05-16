@@ -1,119 +1,148 @@
 import type { SearchAdapter, SearchDocument, SearchQuery, SearchResult } from '@nexpress/search';
-import { getPayloadClient } from '@/lib/payload';
-import { DEFAULT_SITE_ID } from '@/lib/sites/model';
-import { extractSiteRelationshipId } from '@/lib/sites/service';
-
-type SearchPayloadRecord = {
-  _status?: string | null;
-  accessLevel?: string | null;
-  excerpt?: string | null;
-  id: number | string;
-  publishedAt?: string | null;
-  site?: number | string | { id: number | string } | null;
-  slug?: string | null;
-  title?: string | null;
-};
-
-type SearchPayloadClient = {
-  find: <T>(args: Record<string, unknown>) => Promise<{ docs: T[] }>;
-};
-
-function matchesQuery(doc: SearchDocument, query: SearchQuery) {
-  const needle = query.q?.trim().toLowerCase();
-
-  if (!needle) {
-    return true;
-  }
-
-  return (
-    doc.title.toLowerCase().includes(needle) ||
-    doc.slug.toLowerCase().includes(needle) ||
-    (doc.excerpt?.toLowerCase().includes(needle) ?? false)
-  );
-}
-
-function toSearchDocument(
-  record: SearchPayloadRecord,
-  type: 'page' | 'post',
-): SearchDocument | null {
-  if (record._status !== 'published' || !record.title || !record.slug) {
-    return null;
-  }
-
-  return {
-    accessLevel:
-      record.accessLevel === 'members' || record.accessLevel === 'members-only'
-        ? 'members-only'
-        : 'public',
-    excerpt: record.excerpt ?? undefined,
-    id: String(record.id),
-    publishedAt: record.publishedAt ?? undefined,
-    siteId: String(extractSiteRelationshipId(record.site) ?? DEFAULT_SITE_ID),
-    slug: record.slug,
-    title: record.title,
-    type,
-  };
-}
-
-async function getSearchPayload() {
-  return (await getPayloadClient()) as unknown as SearchPayloadClient;
-}
+import { getPayload } from 'payload';
+import configPromise from '@/payload.config';
 
 export class DatabaseSearchAdapter implements SearchAdapter {
   async indexDocument(doc: SearchDocument): Promise<void> {
-    void doc;
+    const payload = await getPayload({ config: configPromise });
+    
+    // Upsert the document into the search-index collection
+    const existing = await payload.find({
+      collection: 'search-index',
+      where: {
+        and: [
+          { siteId: { equals: doc.siteId } },
+          { type: { equals: doc.type } },
+          { documentId: { equals: doc.id } },
+        ],
+      },
+      limit: 1,
+      overrideAccess: true,
+      depth: 0,
+    });
+
+    if (existing.docs.length > 0 && existing.docs[0]) {
+      await payload.update({
+        collection: 'search-index',
+        id: existing.docs[0].id,
+        data: {
+          title: doc.title,
+          excerpt: doc.excerpt ?? null,
+          slug: doc.slug,
+          status: 'published',
+          lastIndexedAt: new Date().toISOString(),
+        },
+        overrideAccess: true,
+      });
+    } else {
+      await payload.create({
+        collection: 'search-index',
+        data: {
+          siteId: doc.siteId as any,
+          type: doc.type,
+          documentId: doc.id,
+          title: doc.title,
+          excerpt: doc.excerpt ?? null,
+          slug: doc.slug,
+          status: 'published',
+          lastIndexedAt: new Date().toISOString(),
+        },
+        overrideAccess: true,
+      });
+    }
   }
 
   async removeDocument(doc: Pick<SearchDocument, 'id' | 'siteId' | 'type'>): Promise<void> {
-    void doc;
+    const payload = await getPayload({ config: configPromise });
+    await payload.delete({
+      collection: 'search-index',
+      where: {
+        and: [
+          { siteId: { equals: doc.siteId } },
+          { type: { equals: doc.type } },
+          { documentId: { equals: doc.id } },
+        ],
+      },
+      overrideAccess: true,
+    });
   }
 
   async reindex(docs: SearchDocument[]): Promise<void> {
-    void docs;
+    const payload = await getPayload({ config: configPromise });
+    
+    // For a full reindex, we might want to clear first or just batch upsert.
+    // Given the scale, clearing for the specific types provided is safer.
+    const types = Array.from(new Set(docs.map(d => d.type)));
+    const siteIds = Array.from(new Set(docs.map(d => d.siteId)));
+
+    if (types.length > 0 && siteIds.length > 0) {
+      await payload.delete({
+        collection: 'search-index',
+        where: {
+          and: [
+            { siteId: { in: siteIds } },
+            { type: { in: types } },
+          ],
+        },
+        overrideAccess: true,
+      });
+    }
+
+    // Batch create
+    for (const doc of docs) {
+      await this.indexDocument(doc);
+    }
   }
 
   async search(query: SearchQuery): Promise<SearchResult> {
-    const payload = await getSearchPayload();
-    const siteId = query.siteId;
-    const collections = query.type ? [query.type] : (['page', 'post'] as const);
+    const payload = await getPayload({ config: configPromise });
+    
+    const where: any = {
+      and: [],
+    };
 
-    const records = await Promise.all(
-      collections.map(async (type) => {
-        const collection = type === 'page' ? 'pages' : 'posts';
-        const result = await payload.find<SearchPayloadRecord>({
-          collection,
-          depth: 0,
-          limit: 1000,
-          overrideAccess: true,
-          pagination: false,
-          where: {
-            _status: {
-              equals: 'published',
-            },
-          },
-        });
+    if (query.siteId) {
+      where.and.push({ siteId: { equals: query.siteId } });
+    }
 
-        return result.docs
-          .map((record) => toSearchDocument(record, type))
-          .filter((doc): doc is SearchDocument => Boolean(doc))
-          .filter((doc) => !siteId || doc.siteId === siteId)
-          .filter((doc) => matchesQuery(doc, query));
-      }),
-    );
+    if (query.type) {
+      where.and.push({ type: { equals: query.type } });
+    }
 
-    const docs = records
-      .flat()
-      .sort((left, right) => (right.publishedAt ?? '').localeCompare(left.publishedAt ?? ''));
-    const total = docs.length;
-    const start = (query.page - 1) * query.limit;
-    const pageDocs = docs.slice(start, start + query.limit);
+    if (query.q) {
+      where.and.push({
+        or: [
+          { title: { contains: query.q } },
+          { excerpt: { contains: query.q } },
+          { slug: { contains: query.q } },
+        ],
+      });
+    }
 
-    return {
-      docs: pageDocs,
-      hasNextPage: start + pageDocs.length < total,
+    const result = await payload.find({
+      collection: 'search-index',
+      where,
       limit: query.limit,
       page: query.page,
-      total,
+      overrideAccess: true,
+      depth: 0,
+      sort: '-lastIndexedAt',
+    });
+
+    return {
+      docs: result.docs.map(d => ({
+        id: d.documentId as string,
+        siteId: String(typeof d.siteId === 'object' && d.siteId !== null ? d.siteId.id : d.siteId),
+        type: d.type as 'page' | 'post',
+        title: d.title as string,
+        slug: d.slug as string,
+        excerpt: d.excerpt as string | undefined,
+        accessLevel: 'public', // Defaulting to public for index-based search for now
+      })),
+      total: result.totalDocs,
+      page: result.page || 1,
+      limit: result.limit,
+      hasNextPage: result.hasNextPage,
     };
   }
 }

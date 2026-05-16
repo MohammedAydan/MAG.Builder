@@ -44,6 +44,8 @@ export type AutomationTrigger = (typeof AUTOMATION_TRIGGERS)[number];
 export const AUTOMATION_ACTIONS = [
   'analytics.emit_event',
   'search.enqueue_reindex',
+  'log',
+  'webhook',
 ] as const;
 
 export type AutomationAction = (typeof AUTOMATION_ACTIONS)[number];
@@ -120,9 +122,21 @@ export const SearchEnqueueReindexActionConfigSchema = z.object({
   action: z.literal('search.enqueue_reindex'),
 });
 
+export const LogActionConfigSchema = z.object({
+  action: z.literal('log'),
+  message: z.string().max(500),
+});
+
+export const WebhookActionConfigSchema = z.object({
+  action: z.literal('webhook'),
+  url: z.string().url(),
+});
+
 export const AutomationActionConfigSchema = z.discriminatedUnion('action', [
   AnalyticsEmitEventActionConfigSchema,
   SearchEnqueueReindexActionConfigSchema,
+  LogActionConfigSchema,
+  WebhookActionConfigSchema,
 ]);
 
 export type AutomationActionConfig = z.infer<typeof AutomationActionConfigSchema>;

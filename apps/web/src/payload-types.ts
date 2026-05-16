@@ -87,6 +87,10 @@ export interface Config {
     'webhook-subscriptions': WebhookSubscription;
     'webhook-deliveries': WebhookDelivery;
     integrations: Integration;
+    'search-index': SearchIndex;
+    'analytics-events': AnalyticsEvent;
+    'automation-rules': AutomationRule;
+    'automation-executions': AutomationExecution;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -113,6 +117,10 @@ export interface Config {
     'webhook-subscriptions': WebhookSubscriptionsSelect<false> | WebhookSubscriptionsSelect<true>;
     'webhook-deliveries': WebhookDeliveriesSelect<false> | WebhookDeliveriesSelect<true>;
     integrations: IntegrationsSelect<false> | IntegrationsSelect<true>;
+    'search-index': SearchIndexSelect<false> | SearchIndexSelect<true>;
+    'analytics-events': AnalyticsEventsSelect<false> | AnalyticsEventsSelect<true>;
+    'automation-rules': AutomationRulesSelect<false> | AutomationRulesSelect<true>;
+    'automation-executions': AutomationExecutionsSelect<false> | AutomationExecutionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -712,6 +720,118 @@ export interface Integration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "search-index".
+ */
+export interface SearchIndex {
+  id: number;
+  siteId: number | Site;
+  documentId: string;
+  type: string;
+  title: string;
+  excerpt?: string | null;
+  slug: string;
+  status: 'published' | 'draft' | 'private';
+  lastIndexedAt: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "analytics-events".
+ */
+export interface AnalyticsEvent {
+  id: number;
+  siteId: number | Site;
+  name: string;
+  anonymousId?: string | null;
+  sessionId?: string | null;
+  userId?: string | null;
+  path?: string | null;
+  payload?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  timestamp: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "automation-rules".
+ */
+export interface AutomationRule {
+  id: number;
+  siteId: number | Site;
+  name: string;
+  description?: string | null;
+  enabled?: boolean | null;
+  trigger: 'form_submitted' | 'order_created' | 'member_joined' | 'page_published';
+  conditions?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  actions: {
+    type: 'log' | 'webhook' | 'tag_member';
+    config:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    id?: string | null;
+  }[];
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "automation-executions".
+ */
+export interface AutomationExecution {
+  id: number;
+  siteId: number | Site;
+  rule: number | AutomationRule;
+  status: 'pending' | 'success' | 'failure';
+  triggerData?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  results?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  error?: string | null;
+  startedAt: string;
+  completedAt?: string | null;
+  durationMs?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -809,6 +929,22 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'integrations';
         value: number | Integration;
+      } | null)
+    | ({
+        relationTo: 'search-index';
+        value: number | SearchIndex;
+      } | null)
+    | ({
+        relationTo: 'analytics-events';
+        value: number | AnalyticsEvent;
+      } | null)
+    | ({
+        relationTo: 'automation-rules';
+        value: number | AutomationRule;
+      } | null)
+    | ({
+        relationTo: 'automation-executions';
+        value: number | AutomationExecution;
       } | null);
   globalSlug?: string | null;
   user:
@@ -1258,6 +1394,76 @@ export interface IntegrationsSelect<T extends boolean = true> {
   provider?: T;
   active?: T;
   config?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "search-index_select".
+ */
+export interface SearchIndexSelect<T extends boolean = true> {
+  siteId?: T;
+  documentId?: T;
+  type?: T;
+  title?: T;
+  excerpt?: T;
+  slug?: T;
+  status?: T;
+  lastIndexedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "analytics-events_select".
+ */
+export interface AnalyticsEventsSelect<T extends boolean = true> {
+  siteId?: T;
+  name?: T;
+  anonymousId?: T;
+  sessionId?: T;
+  userId?: T;
+  path?: T;
+  payload?: T;
+  timestamp?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "automation-rules_select".
+ */
+export interface AutomationRulesSelect<T extends boolean = true> {
+  siteId?: T;
+  name?: T;
+  description?: T;
+  enabled?: T;
+  trigger?: T;
+  conditions?: T;
+  actions?:
+    | T
+    | {
+        type?: T;
+        config?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "automation-executions_select".
+ */
+export interface AutomationExecutionsSelect<T extends boolean = true> {
+  siteId?: T;
+  rule?: T;
+  status?: T;
+  triggerData?: T;
+  results?: T;
+  error?: T;
+  startedAt?: T;
+  completedAt?: T;
+  durationMs?: T;
   updatedAt?: T;
   createdAt?: T;
 }

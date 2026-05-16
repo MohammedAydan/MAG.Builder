@@ -2,10 +2,10 @@
 
 Project: NexPress
 Mode: Greenfield
-Current phase: 33-saas-control-plane-v2
+Current phase: 35-search-analytics-automation-productionization
 Overall status: completed
 
-The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, visual editor adapter, themes/templates foundation, plugin/module system, forms/workflows foundation, public membership/protected-route foundation, the commerce service spike, the commerce MVP slice, storefront commerce builder blocks, the API platform with OpenAPI, webhooks/integrations foundation, MCP native gateway, the search/analytics/automation foundation, the multi-site/SaaS-readiness foundation, the marketplace/packaging/update-planning foundation, the security/observability hardening slice, the production deployment/docs slice, the final release-candidate validation slice, the Phase 28 RC fix pack/live DB validation slice, the Phase 29 production runtime services slice, the Phase 30 admin control center slice, the Phase 31 builder v1.5/forms/media runtime v2 slice, the Phase 32 commerce production checkout v2 slice, and the Phase 33 SaaS control plane v2 slice are implemented.
+The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, visual editor adapter, themes/templates foundation, plugin/module system, forms/workflows foundation, public membership/protected-route foundation, the commerce service spike, the commerce MVP slice, storefront commerce builder blocks, the API platform with OpenAPI, webhooks/integrations foundation, MCP native gateway, the search/analytics/automation foundation, the multi-site/SaaS-readiness foundation, the marketplace/packaging/update-planning foundation, the security/observability hardening slice, the production deployment/docs slice, the final release-candidate validation slice, the Phase 28 RC fix pack/live DB validation slice, the Phase 29 production runtime services slice, the Phase 30 admin control center slice, the Phase 31 builder v1.5/forms/media runtime v2 slice, the Phase 32 commerce production checkout v2 slice, the Phase 33 SaaS control plane v2 slice, the Phase 34 extension management v2 slice, and the Phase 35 search/analytics/automation productionization slice are implemented.
 
 ## Phase tracker
 
@@ -44,6 +44,7 @@ The platform foundation, Payload CMS foundation, database/migration/seed layer, 
 - [x] Phase 32 - Commerce Production Checkout v2: done
 - [x] Phase 33 - SaaS Control Plane v2: done
 - [x] Phase 34 - Marketplace, Plugin, Template, and Theme Management UI v2: done
+- [x] Phase 35 - Search, Analytics, Automation Productionization: done
 
 ## Current session log
 
@@ -57,52 +58,48 @@ Antigravity
 
 ### Requested phase
 
-Phase 34 - Marketplace, Plugin, Template, and Theme Management UI v2
+Phase 35 - Search, Analytics, Automation Productionization
 
 ### Files changed
 
 **New files:**
-- `apps/web/src/app/(app)/dashboard/marketplace/[packageId]/page.tsx`
-- `apps/web/src/app/(app)/dashboard/marketplace/marketplace-plan-creator.tsx`
-- `apps/web/src/app/(app)/dashboard/plugins/[pluginId]/page.tsx`
-- `apps/web/src/app/(app)/dashboard/plugins/[pluginId]/state-manager.tsx`
-- `apps/web/src/app/(app)/dashboard/plugins/[pluginId]/migrations/page.tsx`
-- `apps/web/src/app/(app)/dashboard/plugins/[pluginId]/migrations/migration-runner.tsx`
-- `apps/web/src/app/(app)/dashboard/templates/page.tsx`
-- `apps/web/src/app/(app)/dashboard/templates/template-importer.tsx`
-- `apps/web/src/app/(app)/dashboard/themes/page.tsx`
-- `apps/web/src/app/(app)/dashboard/themes/theme-switcher.tsx`
-- `apps/web/src/app/api/themes/apply/route.ts`
+- `apps/web/src/collections/SearchIndex.ts`
+- `apps/web/src/collections/AnalyticsEvents.ts`
+- `apps/web/src/collections/AutomationRules.ts`
+- `apps/web/src/collections/AutomationExecutions.ts`
+- `apps/web/src/lib/search/database-adapter.ts`
+- `apps/web/src/lib/analytics/payload-adapter.ts`
+- `apps/web/src/app/(app)/dashboard/automation/actions.ts`
+- `apps/web/src/app/(app)/dashboard/automation/rule-toggle.tsx`
 
 **Modified files:**
-- `apps/web/src/lib/marketplace/service.ts`
-- `apps/web/src/lib/plugins/service.ts`
-- `apps/web/src/lib/templates/service.ts`
-- `apps/web/src/app/(app)/dashboard/marketplace/page.tsx`
-- `apps/web/src/app/(app)/dashboard/plugins/page.tsx`
-- `IMPLEMENTATION_STATUS.md`
+- `apps/web/src/payload.config.ts`
+- `apps/web/src/lib/automation/service.ts`
+- `apps/web/src/app/(app)/dashboard/search/page.tsx`
+- `apps/web/src/app/(app)/dashboard/analytics/page.tsx`
+- `apps/web/src/app/(app)/dashboard/automation/page.tsx`
+- `packages/analytics/src/types.ts`
+- `packages/automation/src/types.ts`
+- `apps/web/src/lib/sites/service.ts`
 
 ### Commands run
 
+- `pnpm --dir apps/web generate:types` - passed
 - `pnpm typecheck` - passed
-- `pnpm --dir packages/marketplace test` - passed
-- `pnpm --dir packages/plugins test` - passed
-- `pnpm --dir packages/themes test` - passed
-- `pnpm --dir apps/web test` - passed
 - `pnpm build` - passed
 
 ### Runtime notes
 
-- Built a comprehensive admin UI for marketplace package management with dry-run planning.
-- Refactored plugin management to support activation, module selection, and schema migrations.
-- Implemented templates UI with demo site import capabilities.
-- Added themes UI for site-level visual identity customization via CSS tokens.
-- Verified all security boundaries (dry-run only, RBAC) and platform standards.
+- Successfully transitioned search, analytics, and automation from in-memory stubs to persistent Payload CMS collections.
+- Implemented production-ready database adapters for search indexing and event tracking.
+- Productionized the automation engine with persistent rule storage, execution history, and expanded action handlers (log, webhook).
+- Updated admin dashboards to provide real-time visibility into system health, search index status, and automation performance.
+- Verified all security gates and RBAC policies for system-level data collections.
 
 ### Blockers
 
-- Global `pnpm lint` remains failing due to pre-existing legacy issues.
+- None.
 
 ### Next recommended prompt
 
-Phase 34 is complete. The marketplace and extension management UIs are now production-ready. The next phase should focus on the final validation and documentation of the packaging workflows (Phase 35).
+Phase 35 is complete. The platform's persistent runtime services are now fully stabilized. The next phase should focus on the final system-wide documentation and developer experience refinements for the NexPress v1.0 release.

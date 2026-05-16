@@ -22,6 +22,11 @@ import { WebhookDeliveries } from './collections/WebhookDeliveries';
 import { Integrations } from './collections/Integrations';
 import { SiteMemberships } from './collections/SiteMemberships';
 import { SiteInvitations } from './collections/SiteInvitations';
+import { SearchIndex } from './collections/SearchIndex';
+import { AnalyticsEvents } from './collections/AnalyticsEvents';
+import { AutomationRules } from './collections/AutomationRules';
+import { AutomationExecutions } from './collections/AutomationExecutions';
+
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -48,7 +53,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Members, Sites, SiteMemberships, SiteInvitations, InstallationState, AuditLogs, PluginStates, CommerceCustomers, CommerceOrders, Forms, FormSubmissions, Media, Pages, Posts, Redirects, WebhookSubscriptions, WebhookDeliveries, Integrations],
+  collections: [Users, Members, Sites, SiteMemberships, SiteInvitations, InstallationState, AuditLogs, PluginStates, CommerceCustomers, CommerceOrders, Forms, FormSubmissions, Media, Pages, Posts, Redirects, WebhookSubscriptions, WebhookDeliveries, Integrations, SearchIndex, AnalyticsEvents, AutomationRules, AutomationExecutions],
   editor: lexicalEditor({}),
   secret: payloadSecret,
   typescript: {

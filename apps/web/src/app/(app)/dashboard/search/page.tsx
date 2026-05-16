@@ -1,6 +1,7 @@
 import { requireDashboardUser } from '@/lib/dashboard/guards';
 import { getSearchStatus } from '@/lib/search/service';
 import { SurfaceCard } from '@/components/public/surface-card';
+import { ReindexButton } from './reindex-button';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,15 +32,7 @@ export default async function SearchPage() {
 
         <SurfaceCard className="flex flex-col gap-4">
           <p className="text-xs font-semibold tracking-wider text-slate-400 uppercase">Actions</p>
-          <div className="flex flex-col gap-3">
-            <button
-              disabled
-              className="w-full rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Full Reindex
-            </button>
-            <p className="text-[10px] text-slate-400 text-center italic">Reindexing is performed automatically via automation hooks.</p>
-          </div>
+          <ReindexButton />
         </SurfaceCard>
       </div>
 
