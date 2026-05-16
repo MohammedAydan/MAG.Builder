@@ -5,7 +5,7 @@ export const SiteMemberships: CollectionConfig = {
   slug: 'site-memberships',
   admin: {
     useAsTitle: 'id',
-    group: 'SaaS Control Plane',
+    group: 'Platform',
     defaultColumns: ['user', 'site', 'role'],
   },
   access: {

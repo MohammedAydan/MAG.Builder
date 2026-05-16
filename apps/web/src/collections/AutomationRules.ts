@@ -5,7 +5,7 @@ export const AutomationRules: CollectionConfig = {
   slug: 'automation-rules',
   admin: {
     useAsTitle: 'name',
-    group: 'Automation',
+    group: 'Forms & Automation',
   },
   access: {
     read: automationReadAccess,

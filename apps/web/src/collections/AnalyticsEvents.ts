@@ -5,7 +5,7 @@ export const AnalyticsEvents: CollectionConfig = {
   slug: 'analytics-events',
   admin: {
     useAsTitle: 'name',
-    group: 'System',
+    group: 'System & Marketplace',
   },
   access: {
     create: () => false, // Only system can capture

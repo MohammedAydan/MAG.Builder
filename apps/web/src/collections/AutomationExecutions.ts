@@ -5,7 +5,7 @@ export const AutomationExecutions: CollectionConfig = {
   slug: 'automation-executions',
   admin: {
     useAsTitle: 'id',
-    group: 'Automation',
+    group: 'Forms & Automation',
     hidden: true,
   },
   access: {

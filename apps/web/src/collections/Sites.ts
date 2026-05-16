@@ -7,7 +7,7 @@ export const Sites: CollectionConfig = {
   admin: {
     hidden: false,
     useAsTitle: 'name',
-    group: 'SaaS Control Plane',
+    group: 'Platform',
   },
   access: {
     create: sitesManageAccess,

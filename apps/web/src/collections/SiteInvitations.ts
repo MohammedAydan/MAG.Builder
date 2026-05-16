@@ -5,7 +5,7 @@ export const SiteInvitations: CollectionConfig = {
   slug: 'site-invitations',
   admin: {
     useAsTitle: 'email',
-    group: 'SaaS Control Plane',
+    group: 'Platform',
     defaultColumns: ['email', 'site', 'role', 'status'],
   },
   access: {
