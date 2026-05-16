@@ -7,8 +7,11 @@ import {
   resolveCommerceRuntimeConfig,
   type CommerceAdapter,
   type CommerceCartSummary,
+  type CommerceCheckoutSessionSummary,
   type CommerceCustomerRecord,
+  type CommerceOrderLifecycleStatus,
   type CommerceOrderSummary,
+  type CommercePaymentWebhookEvent,
 } from '@nexpress/commerce';
 import { AUDIT_ACTIONS, writeAuditEntry } from '@/lib/audit/service';
 import { fireAutomationTrigger } from '@/lib/automation/hooks';
@@ -78,6 +81,31 @@ const cartItemInputSchema = z.object({
   variantId: externalIdSchema,
 });
 
+const checkoutSessionInputSchema = z.object({
+  cartId: externalIdSchema,
+});
+
+const idempotencyKeySchema = z
+  .string()
+  .trim()
+  .min(8)
+  .max(120)
+  .regex(/^[A-Za-z0-9:_-]+$/, 'Invalid idempotency key.');
+
+const paymentWebhookInputSchema = z.object({
+  eventId: externalIdSchema,
+  orderExternalId: externalIdSchema,
+  provider: z.literal('medusa'),
+  sessionExternalId: externalIdSchema,
+  timestamp: z.string().datetime({ offset: true }),
+  type: z.enum([
+    'payment.authorized',
+    'payment.captured',
+    'payment.failed',
+    'payment.expired',
+  ]),
+});
+
 const catalogListInputSchema = z.object({
   limit: z.number().int().min(1).max(12).optional(),
 });
@@ -113,16 +141,21 @@ type PayloadCommerceOrderDoc = {
         variantExternalId?: string | null;
       }[]
     | null;
-  paymentMode: 'test';
+  paymentMode: 'production' | 'test';
+  paymentSessionId?: string | null;
+  paymentWebhookEventId?: string | null;
+  paymentWebhookReceivedAt?: string | null;
+  checkoutIdempotencyKey?: string | null;
   placedAt: string;
   site?: number | { id: number | string } | string | null;
-  status: 'draft' | 'fulfilled' | 'open' | 'placed';
+  status: CommerceOrderLifecycleStatus;
   totalAmount: number;
 };
 
 export type CommerceServicePayloadClient = {
   create: (args: Record<string, unknown>) => Promise<unknown>;
   find: (args: Record<string, unknown>) => Promise<PayloadFindResult<PayloadCommerceCustomerDoc | PayloadCommerceOrderDoc>>;
+  update: (args: Record<string, unknown>) => Promise<unknown>;
 };
 
 export class CommerceServiceError extends Error {
@@ -278,6 +311,104 @@ export function parseCommerceCartItemInput(input: unknown) {
   }
 
   return result.data;
+}
+
+export function parseCheckoutSessionInput(input: unknown) {
+  const result = checkoutSessionInputSchema.safeParse(input);
+
+  if (!result.success) {
+    throw new CommerceServiceError(
+      result.error.issues[0]?.message ?? 'Invalid checkout session input.',
+      'invalid-input',
+      400,
+    );
+  }
+
+  return result.data;
+}
+
+export function parseIdempotencyKey(input: string | null | undefined) {
+  const value = input?.trim();
+
+  if (!value) {
+    return `checkout-${randomUUID()}`;
+  }
+
+  const result = idempotencyKeySchema.safeParse(value);
+
+  if (!result.success) {
+    throw new CommerceServiceError('Invalid idempotency key.', 'invalid-input', 400);
+  }
+
+  return result.data;
+}
+
+export function parsePaymentWebhookEvent(input: unknown): CommercePaymentWebhookEvent {
+  const result = paymentWebhookInputSchema.safeParse(input);
+
+  if (!result.success) {
+    throw new CommerceServiceError(
+      result.error.issues[0]?.message ?? 'Invalid payment webhook payload.',
+      'invalid-input',
+      400,
+    );
+  }
+
+  return result.data;
+}
+
+function mapPaymentEventToOrderStatus(
+  eventType: CommercePaymentWebhookEvent['type'],
+): CommerceOrderLifecycleStatus {
+  switch (eventType) {
+    case 'payment.authorized':
+      return 'payment_authorized';
+    case 'payment.captured':
+      return 'placed';
+    case 'payment.failed':
+      return 'payment_failed';
+    case 'payment.expired':
+      return 'open';
+    default:
+      return 'payment_pending';
+  }
+}
+
+function isValidOrderLifecycleTransition(
+  current: CommerceOrderLifecycleStatus,
+  next: CommerceOrderLifecycleStatus,
+) {
+  if (current === next) {
+    return true;
+  }
+
+  const transitions: Record<CommerceOrderLifecycleStatus, readonly CommerceOrderLifecycleStatus[]> = {
+    draft: ['open', 'payment_pending'],
+    fulfilled: [],
+    open: ['payment_pending'],
+    payment_authorized: ['placed', 'payment_failed'],
+    payment_failed: ['open', 'payment_pending'],
+    payment_pending: ['payment_authorized', 'payment_failed', 'open', 'placed'],
+    placed: ['fulfilled'],
+  };
+
+  return transitions[current].includes(next);
+}
+
+function buildHostedCheckoutUrl(sessionId: string) {
+  const base = process.env.NEXPRESS_COMMERCE_CHECKOUT_BASE_URL?.trim();
+
+  if (!base) {
+    return undefined;
+  }
+
+  try {
+    const url = new URL(base);
+    url.searchParams.set('session', sessionId);
+    return url.toString();
+  } catch {
+    return undefined;
+  }
 }
 
 export async function hasCommerceCatalogAccess() {
@@ -584,6 +715,223 @@ export async function checkoutCommerceCartWithDeps(
   return order;
 }
 
+export async function createCheckoutSessionForCartWithDeps(
+  payload: CommerceServicePayloadClient,
+  adapter: CommerceAdapter,
+  member: AuthenticatedMemberLike,
+  site: ResolvedSite,
+  cartId: string,
+  idempotencyKeyInput?: string | null,
+) {
+  const cartExternalId = parseCommerceExternalId(cartId, 'cart');
+  const idempotencyKey = parseIdempotencyKey(idempotencyKeyInput);
+  const customer = await ensureCommerceCustomerForMemberWithPayload(payload, adapter, member, site);
+  const cart = await adapter.carts.getById(cartExternalId);
+
+  if (!cart) {
+    throw new CommerceServiceError('Cart not found.', 'not-found', 404);
+  }
+
+  if (cart.itemCount < 1) {
+    throw new CommerceServiceError('Cart is empty.', 'invalid-input', 400);
+  }
+
+  const existingOrderLookup = await payload.find({
+    collection: 'commerce-orders',
+    limit: 1,
+    overrideAccess: true,
+    pagination: false,
+    where: {
+      and: [
+        {
+          externalCartId: {
+            equals: cart.externalId,
+          },
+        },
+        {
+          member: {
+            equals: member.id,
+          },
+        },
+        createSiteScopeWhere(site),
+      ],
+    },
+  });
+
+  const existingOrder = existingOrderLookup.docs[0] as PayloadCommerceOrderDoc | undefined;
+  const orderExternalId = existingOrder?.externalOrderId ?? `chk-order-${cart.externalId}-${randomUUID()}`;
+  const existingPaymentSessionId = existingOrder?.paymentSessionId ?? null;
+  const paymentSessionId = existingPaymentSessionId ?? `sess_${randomUUID()}`;
+
+  if (existingOrder && existingOrder.checkoutIdempotencyKey === idempotencyKey && existingPaymentSessionId) {
+    const checkoutUrl = buildHostedCheckoutUrl(existingPaymentSessionId);
+    return {
+      ...(checkoutUrl ? { checkoutUrl } : {}),
+      currencyCode: cart.currencyCode,
+      externalCartId: cart.externalId,
+      externalId: existingPaymentSessionId,
+      externalOrderId: existingOrder.externalOrderId,
+      idempotencyKey,
+      provider: adapter.provider,
+      status: 'pending',
+      total: cart.total,
+    } satisfies CommerceCheckoutSessionSummary;
+  }
+
+  const orderData = {
+    checkoutIdempotencyKey: idempotencyKey,
+    currencyCode: cart.currencyCode,
+    customerEmail: customer.email ?? assertMemberEmail(member),
+    externalCartId: cart.externalId,
+    externalCustomerId: customer.externalId,
+    externalOrderId: orderExternalId,
+    lineItems: cart.items.map((item) => ({
+      currencyCode: item.total.currencyCode,
+      productExternalId: item.productExternalId,
+      quantity: item.quantity,
+      title: item.title,
+      totalAmount: item.total.amount,
+      unitAmount: item.unitPrice.amount,
+      variantExternalId: item.variantExternalId,
+    })),
+    member: member.id,
+    paymentMode: 'production' as const,
+    paymentSessionId,
+    placedAt: existingOrder?.placedAt ?? new Date().toISOString(),
+    provider: adapter.provider,
+    site: site.id,
+    status: 'payment_pending' as const,
+    subtotalAmount: cart.subtotal.amount,
+    totalAmount: cart.total.amount,
+  };
+
+  if (existingOrder?.id) {
+    await payload.update({
+      collection: 'commerce-orders',
+      data: orderData,
+      id: existingOrder.id,
+      overrideAccess: true,
+    });
+  } else {
+    await payload.create({
+      collection: 'commerce-orders',
+      data: orderData,
+      overrideAccess: true,
+    });
+  }
+
+  await writeAuditEntry(payload, {
+    action: AUDIT_ACTIONS.commerceCheckoutSucceeded,
+    actor: createCommerceAuditActor(member),
+    metadata: {
+      checkoutSessionId: paymentSessionId,
+      externalCartId: cart.externalId,
+      externalOrderId: orderExternalId,
+      mode: 'production',
+      provider: adapter.provider,
+      siteId: site.siteId,
+    },
+    result: 'success',
+    targetCollection: 'commerce-orders',
+    targetId: orderExternalId,
+  });
+
+  const checkoutUrl = buildHostedCheckoutUrl(paymentSessionId);
+  return {
+    ...(checkoutUrl ? { checkoutUrl } : {}),
+    currencyCode: cart.currencyCode,
+    externalCartId: cart.externalId,
+    externalId: paymentSessionId,
+    externalOrderId: orderExternalId,
+    idempotencyKey,
+    provider: adapter.provider,
+    status: 'pending',
+    total: cart.total,
+  } satisfies CommerceCheckoutSessionSummary;
+}
+
+export async function processPaymentWebhookWithDeps(
+  payload: CommerceServicePayloadClient,
+  event: CommercePaymentWebhookEvent,
+) {
+  const orderLookup = await payload.find({
+    collection: 'commerce-orders',
+    limit: 1,
+    overrideAccess: true,
+    pagination: false,
+    where: {
+      and: [
+        {
+          externalOrderId: {
+            equals: event.orderExternalId,
+          },
+        },
+      ],
+    },
+  });
+
+  const order = orderLookup.docs[0] as PayloadCommerceOrderDoc | undefined;
+
+  if (!order) {
+    throw new CommerceServiceError('Order not found for payment webhook.', 'not-found', 404);
+  }
+
+  if (order.paymentWebhookEventId === event.eventId) {
+    return {
+      idempotent: true,
+      orderExternalId: order.externalOrderId,
+      status: order.status,
+    };
+  }
+
+  const nextStatus = mapPaymentEventToOrderStatus(event.type);
+
+  if (!isValidOrderLifecycleTransition(order.status, nextStatus)) {
+    return {
+      idempotent: false,
+      ignored: true,
+      orderExternalId: order.externalOrderId,
+      status: order.status,
+    };
+  }
+
+  await payload.update({
+    collection: 'commerce-orders',
+    data: {
+      paymentSessionId: event.sessionExternalId,
+      paymentWebhookEventId: event.eventId,
+      paymentWebhookReceivedAt: event.timestamp,
+      status: nextStatus,
+    },
+    id: order.id,
+    overrideAccess: true,
+  });
+
+  await writeAuditEntry(payload, {
+    action: AUDIT_ACTIONS.commerceOrderRecorded,
+    actor: {
+      role: null,
+      source: 'system',
+    },
+    metadata: {
+      eventId: event.eventId,
+      externalOrderId: event.orderExternalId,
+      paymentSessionId: event.sessionExternalId,
+      provider: event.provider,
+      webhookEvent: event.type,
+    },
+    result: 'success',
+    targetCollection: 'commerce-orders',
+    targetId: event.orderExternalId,
+  });
+
+  return {
+    idempotent: false,
+    orderExternalId: event.orderExternalId,
+    status: nextStatus,
+  };
+}
+
 export async function listMemberOrdersWithPayload(
   payload: CommerceServicePayloadClient,
   member: AuthenticatedMemberLike,
@@ -724,6 +1072,54 @@ export async function checkoutCommerceCart(cartId: string) {
     } satisfies ResolvedSite;
     const [payload, adapter] = await Promise.all([getPayload(), getCommerceAdapter()]);
     return checkoutCommerceCartWithDeps(payload, adapter, member, site, cartId);
+  } catch (error) {
+    throw normalizeCommerceError(error);
+  }
+}
+
+export async function createCheckoutSessionForCurrentMember(
+  input: unknown,
+  idempotencyKeyInput?: string | null,
+) {
+  try {
+    const parsed = parseCheckoutSessionInput(input);
+    const member = await getAuthenticatedMember();
+
+    if (!member) {
+      throw new CommerceServiceError('You must be signed in.', 'not-authenticated', 401);
+    }
+
+    if (!member.siteId) {
+      throw new CommerceServiceError('This member is not assigned to a site.', 'not-authenticated', 403);
+    }
+
+    const site = {
+      id: member.siteId,
+      isDefault: false,
+      name: 'Member site',
+      primaryHostname: null,
+      siteId: String(member.siteId),
+      slug: String(member.siteId),
+    } satisfies ResolvedSite;
+    const [payload, adapter] = await Promise.all([getPayload(), getCommerceAdapter()]);
+    return createCheckoutSessionForCartWithDeps(
+      payload,
+      adapter,
+      member,
+      site,
+      parsed.cartId,
+      idempotencyKeyInput,
+    );
+  } catch (error) {
+    throw normalizeCommerceError(error);
+  }
+}
+
+export async function processPaymentWebhook(eventInput: unknown) {
+  try {
+    const event = parsePaymentWebhookEvent(eventInput);
+    const payload = await getPayload();
+    return processPaymentWebhookWithDeps(payload, event);
   } catch (error) {
     throw normalizeCommerceError(error);
   }

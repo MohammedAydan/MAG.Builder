@@ -16,6 +16,18 @@ const orderStatusOptions = [
     value: 'placed',
   },
   {
+    label: 'Payment Pending',
+    value: 'payment_pending',
+  },
+  {
+    label: 'Payment Authorized',
+    value: 'payment_authorized',
+  },
+  {
+    label: 'Payment Failed',
+    value: 'payment_failed',
+  },
+  {
     label: 'Fulfilled',
     value: 'fulfilled',
   },
@@ -129,10 +141,46 @@ export const CommerceOrders: CollectionConfig = {
       defaultValue: 'test',
       options: [
         {
+          label: 'Production',
+          value: 'production',
+        },
+        {
           label: 'Test',
           value: 'test',
         },
       ],
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'checkoutIdempotencyKey',
+      type: 'text',
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'paymentSessionId',
+      type: 'text',
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'paymentWebhookEventId',
+      type: 'text',
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'paymentWebhookReceivedAt',
+      type: 'date',
       admin: {
         position: 'sidebar',
         readOnly: true,

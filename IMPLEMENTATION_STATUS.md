@@ -2,10 +2,10 @@
 
 Project: NexPress
 Mode: Greenfield
-Current phase: 31-builder-forms-media-v2
+Current phase: 32-commerce-production-checkout-v2
 Overall status: completed
 
-The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, visual editor adapter, themes/templates foundation, plugin/module system, forms/workflows foundation, public membership/protected-route foundation, the commerce service spike, the commerce MVP slice, storefront commerce builder blocks, the API platform with OpenAPI, webhooks/integrations foundation, MCP native gateway, the search/analytics/automation foundation, the multi-site/SaaS-readiness foundation, the marketplace/packaging/update-planning foundation, the security/observability hardening slice, the production deployment/docs slice, the final release-candidate validation slice, the Phase 28 RC fix pack/live DB validation slice, the Phase 29 production runtime services slice, the Phase 30 admin control center slice, and the Phase 31 builder v1.5/forms/media runtime v2 slice are implemented.
+The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, visual editor adapter, themes/templates foundation, plugin/module system, forms/workflows foundation, public membership/protected-route foundation, the commerce service spike, the commerce MVP slice, storefront commerce builder blocks, the API platform with OpenAPI, webhooks/integrations foundation, MCP native gateway, the search/analytics/automation foundation, the multi-site/SaaS-readiness foundation, the marketplace/packaging/update-planning foundation, the security/observability hardening slice, the production deployment/docs slice, the final release-candidate validation slice, the Phase 28 RC fix pack/live DB validation slice, the Phase 29 production runtime services slice, the Phase 30 admin control center slice, the Phase 31 builder v1.5/forms/media runtime v2 slice, and the Phase 32 commerce production checkout v2 slice are implemented.
 
 ## Phase tracker
 
@@ -41,74 +41,59 @@ The platform foundation, Payload CMS foundation, database/migration/seed layer, 
 - [x] Phase 29 - Production Runtime Services: done
 - [x] Phase 30 - Admin Control Center: done
 - [x] Phase 31 - Builder v1.5, Forms, and Media Runtime v2: done
+- [x] Phase 32 - Commerce Production Checkout v2: done
 
 ## Current session log
 
 ### Date
 
-2026-05-15
+2026-05-16
 
 ### Agent/tool
 
-Gemini CLI
+GitHub Copilot Task Agent
 
 ### Requested phase
 
-Phase 31 - Builder v1.5, Forms, and Media Runtime v2
+Phase 32 - Commerce Production Checkout v2
 
 ### Files changed
 
 **New files:**
-- `packages/builder-core/src/blocks/utils.tsx`
-- `packages/builder-core/src/blocks/content-blocks.tsx`
-- `packages/builder-core/src/blocks/form-blocks.tsx`
-- `packages/builder-core/src/blocks/commerce-blocks.tsx`
-- `packages/builder-core/src/blocks/layout-blocks.tsx`
-- `packages/builder-editor/src/config/utils.tsx`
-- `packages/builder-editor/src/config/content.tsx`
-- `packages/builder-editor/src/config/forms.tsx`
-- `packages/builder-editor/src/config/commerce.tsx`
-- `packages/builder-editor/src/config/layout.tsx`
-- `apps/web/src/lib/forms/rendering.ts`
-- `apps/web/src/components/forms/public-form.tsx`
-- `apps/web/src/components/forms/public-form-client.tsx`
+- `apps/web/src/app/api/commerce/checkout/session/route.ts`
+- `apps/web/src/app/api/commerce/webhooks/payment/route.ts`
+- `docs/runbooks/commerce-production-checkout.md`
 
 **Modified files:**
-- `packages/builder-core/src/blocks/core-blocks.tsx`
-- `packages/builder-editor/src/config.tsx`
-- `packages/builder-editor/src/adapter.test.ts`
-- `packages/builder-editor/src/config.test.tsx`
-- `apps/web/src/lib/content/rendering.ts`
-- `apps/web/src/lib/content/rendering.test.tsx`
-- `apps/web/src/app/(app)/(public)/[slug]/page.tsx`
-- `apps/web/src/app/(app)/dashboard/pages/[id]/preview/page.tsx`
-- `apps/web/src/lib/audit/service.test.ts`
-- `apps/web/tsconfig.json`
+- `packages/commerce/src/types.ts`
+- `packages/commerce/src/index.ts`
+- `apps/web/src/lib/commerce/service.ts`
+- `apps/web/src/lib/commerce/service.test.ts`
+- `apps/web/src/collections/CommerceOrders.ts`
+- `apps/web/src/app/(app)/dashboard/commerce/orders/page.tsx`
+- `packages/api/src/openapi.ts`
 - `IMPLEMENTATION_STATUS.md`
 
 ### Commands run
 
-- `pnpm lint` - passed
-- `pnpm typecheck` - passed
-- `pnpm test` - passed
-- `pnpm build` - passed
-- `pnpm --dir packages/builder-core test` - passed
-- `pnpm --dir packages/builder-editor test` - passed
-- `pnpm --dir apps/web test` - passed
+- `corepack pnpm lint` - failed (pre-existing eslint issues in `apps/web/src/components/forms/public-form-client.tsx` and `apps/web/src/lib/content/rendering.ts`)
+- `corepack pnpm typecheck` - passed
+- `corepack pnpm test` - passed
+- `corepack pnpm build` - passed
+- `corepack pnpm --dir packages/commerce test` - passed
+- `corepack pnpm --dir apps/web test` - passed
 
 ### Runtime notes
 
-- Large builder kernel and editor configuration files have been modularized by concern (content, layout, forms, commerce).
-- A real form renderer has been implemented in `apps/web`, supporting secure server-side definition fetching and interactive client-side submission.
-- Media relations are now resolved server-side for Image blocks, ensuring production-ready asset delivery without exposing private IDs to the client unnecessarily.
-- Responsive layout controls (columns, alignment, gap, width, background) have been added to the Section block with strict tokenized validation.
-- `apps/web` TS configuration updated to `react-jsx` to support Vitest parsing of JSX components in tests.
+- Added production-checkout session foundation with server-side idempotency handling and payment-pending order snapshots.
+- Added signed payment webhook endpoint and safe order lifecycle transition enforcement.
+- Added order payment metadata fields in Payload collection and surfaced session/webhook context in admin order UI.
+- Added commerce production checkout runbook and OpenAPI path entries for new checkout/webhook APIs.
 
 ### Blockers
 
-- None.
+- Lint still fails due pre-existing unrelated issues in `apps/web/src/components/forms/public-form-client.tsx` and `apps/web/src/lib/content/rendering.ts`.
 
 ### Next recommended prompt
 
-Phase 31 is complete. The next scoped prompt is Phase 32 Commerce Production Checkout.
-
+Phase 32 is complete. The next scoped prompt is Phase 33 (next roadmap phase) or a dedicated hardening/fix pass for production checkout integrations.

@@ -338,6 +338,85 @@ export function generateOpenApiDocument() {
           },
         },
       },
+      '/commerce/checkout/session': {
+        post: {
+          summary: 'Create production checkout session',
+          description:
+            'Creates a server-side payment session for a member cart. Card data never passes through NexPress.',
+          tags: ['Commerce'],
+          security: [{ memberAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    cartId: { type: 'string' },
+                  },
+                  required: ['cartId'],
+                },
+              },
+            },
+          },
+          responses: {
+            '201': {
+              description: 'Checkout session created',
+            },
+            '400': {
+              description: 'Invalid request',
+            },
+            '401': {
+              description: 'Unauthorized',
+            },
+          },
+        },
+      },
+      '/commerce/webhooks/payment': {
+        post: {
+          summary: 'Payment webhook receiver',
+          description:
+            'Verifies signed payment webhook events and applies safe order lifecycle transitions.',
+          tags: ['Commerce'],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    eventId: { type: 'string' },
+                    orderExternalId: { type: 'string' },
+                    provider: { type: 'string', enum: ['medusa'] },
+                    sessionExternalId: { type: 'string' },
+                    timestamp: { type: 'string', format: 'date-time' },
+                    type: {
+                      type: 'string',
+                      enum: ['payment.authorized', 'payment.captured', 'payment.failed', 'payment.expired'],
+                    },
+                  },
+                  required: [
+                    'eventId',
+                    'orderExternalId',
+                    'provider',
+                    'sessionExternalId',
+                    'timestamp',
+                    'type',
+                  ],
+                },
+              },
+            },
+          },
+          responses: {
+            '200': {
+              description: 'Webhook processed',
+            },
+            '401': {
+              description: 'Invalid signature',
+            },
+          },
+        },
+      },
       '/plugins': {
         get: {
           summary: 'List plugins',
