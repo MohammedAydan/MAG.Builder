@@ -131,6 +131,14 @@ export async function listMarketplacePackages(user: AuthenticatedUserLike | null
   );
 }
 
+export async function getMarketplacePackage(
+  packageId: string,
+  user: AuthenticatedUserLike | null | undefined,
+) {
+  const packages = await listMarketplacePackages(user);
+  return packages.find((pkg) => pkg.id === packageId);
+}
+
 export async function createMarketplacePlanWithPayload(
   payload: MarketplaceServicePayloadClient,
   args: {

@@ -707,6 +707,53 @@ export function parseTemplateRequestOrThrow<T>(result: z.ZodSafeParseResult<T>) 
   throw new TemplateFlowError(message || 'Invalid template request.', 400);
 }
 
+export async function applyThemeToSite(args: {
+  siteId: string;
+  themeId: string;
+  user: AuthenticatedUserLike | null | undefined;
+}) {
+  assertTemplateAdminUser(args.user);
+  const themeId = validateThemeId(args.themeId);
+  const payload = await getPayloadClient();
+
+  const site = await payload.find({
+    collection: 'sites',
+    where: {
+      siteId: { equals: args.siteId },
+    },
+    limit: 1,
+    user: args.user,
+  });
+
+  if (!site.docs[0]) {
+    throw new TemplateFlowError(`Site "${args.siteId}" not found.`, 404);
+  }
+
+  await payload.update({
+    collection: 'sites',
+    id: site.docs[0].id,
+    data: {
+      settings: {
+        ...site.docs[0].settings,
+        themeId,
+      },
+    },
+    user: args.user,
+  });
+
+  await writeTemplateAudit(payload as unknown as PayloadClientLike, {
+    action: AUDIT_ACTIONS.templateImported, // Reusing for now or could add THEME_APPLIED
+    metadata: {
+      siteId: args.siteId,
+      themeId,
+    },
+    targetId: args.siteId,
+    user: args.user as AuthenticatedUserLike,
+  });
+
+  return { success: true, themeId };
+}
+
 export function normalizeTemplateError(error: unknown) {
   return toTemplateFlowError(error);
 }

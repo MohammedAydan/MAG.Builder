@@ -271,6 +271,14 @@ export async function listAvailablePlugins(user: AuthenticatedUserLike | null | 
   return listAvailablePluginsWithPayload(payload as unknown as PluginServicePayloadClient, user);
 }
 
+export async function getPlugin(
+  pluginId: string,
+  user: AuthenticatedUserLike | null | undefined,
+) {
+  const plugins = await listAvailablePlugins(user);
+  return plugins.find((plugin) => plugin.id === pluginId);
+}
+
 export async function activatePluginWithPayload(
   payload: PluginServicePayloadClient,
   args: {
