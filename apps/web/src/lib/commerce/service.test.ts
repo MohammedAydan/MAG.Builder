@@ -5,12 +5,14 @@ import {
   CommerceServiceError,
   addItemToCommerceCartWithAdapter,
   checkoutCommerceCartWithDeps,
+  createCheckoutSessionForCartWithDeps,
   createCommerceCartForMemberWithDeps,
   ensureCommerceCustomerForMemberWithPayload,
   getCommerceAdapter,
   getCommerceStorefrontStatus,
   hasCommerceCatalogAccess,
   listMemberOrdersWithPayload,
+  processPaymentWebhookWithDeps,
 } from '@/lib/commerce/service';
 
 const hasActivePluginCapabilityMock = vi.fn();
@@ -23,6 +25,7 @@ vi.mock('@/lib/plugins/service', () => ({
 function createPayloadMock(): CommerceServicePayloadClient & {
   create: ReturnType<typeof vi.fn>;
   find: ReturnType<typeof vi.fn>;
+  update: ReturnType<typeof vi.fn>;
 } {
   const customerRecords = new Map<string, Record<string, unknown>>();
   const orderRecords = new Map<string, Record<string, unknown>>();
@@ -73,12 +76,22 @@ function createPayloadMock(): CommerceServicePayloadClient & {
       }
 
       if (collection === 'commerce-orders') {
+        const where = (args.where ?? {}) as {
+          and?: Array<Record<string, { equals?: number | string }>>;
+        };
+        const externalOrderClause = where.and?.find((entry) => 'externalOrderId' in entry)
+          ?.externalOrderId as { equals?: number | string } | undefined;
         const memberId = String(memberClause?.equals ?? '');
-        const docs = [...orderRecords.values()].filter(
-          (entry) =>
+        const docs = [...orderRecords.values()].filter((entry) => {
+          if (externalOrderClause?.equals) {
+            return String(entry.externalOrderId) === String(externalOrderClause.equals);
+          }
+
+          return (
             String(entry.member) === memberId &&
-            (!siteClause?.equals || String(entry.site) === String(siteClause.equals)),
-        );
+            (!siteClause?.equals || String(entry.site) === String(siteClause.equals))
+          );
+        });
 
         return {
           docs,
@@ -87,9 +100,31 @@ function createPayloadMock(): CommerceServicePayloadClient & {
 
       return { docs: [] };
     }),
+    update: vi.fn(async (args: Record<string, unknown>) => {
+      const collection = String(args.collection);
+
+      if (collection !== 'commerce-orders') {
+        return null;
+      }
+
+      const id = String(args.id ?? '');
+      const current = [...orderRecords.values()].find((entry) => String(entry.id) === id);
+
+      if (!current) {
+        return null;
+      }
+
+      const next = {
+        ...current,
+        ...(args.data as Record<string, unknown>),
+      };
+      orderRecords.set(String(next.externalOrderId), next);
+      return next;
+    }),
   } as CommerceServicePayloadClient & {
     create: ReturnType<typeof vi.fn>;
     find: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
   };
 }
 
@@ -255,5 +290,117 @@ describe('commerce service', () => {
         overrideAccess: true,
       }),
     );
+  });
+
+  it('creates idempotent checkout sessions that never trust client totals', async () => {
+    const payload = createPayloadMock();
+    const adapter = createMockCommerceAdapter({
+      products: [
+        {
+          externalId: 'prod_1',
+          handle: 'starter-product',
+          isPublished: true,
+          title: 'Starter Product',
+          variants: [
+            {
+              externalId: 'variant_1',
+              price: {
+                amount: 2500,
+                currencyCode: 'usd',
+              },
+              productExternalId: 'prod_1',
+              title: 'Starter Variant',
+            },
+          ],
+        },
+      ],
+    });
+
+    const cart = await createCommerceCartForMemberWithDeps(payload, adapter, member, site);
+    await addItemToCommerceCartWithAdapter(adapter, cart.externalId, {
+      quantity: 1,
+      variantId: 'variant_1',
+    });
+
+    const first = await createCheckoutSessionForCartWithDeps(
+      payload,
+      adapter,
+      member,
+      site,
+      cart.externalId,
+      'idem-1-checkout',
+    );
+    const second = await createCheckoutSessionForCartWithDeps(
+      payload,
+      adapter,
+      member,
+      site,
+      cart.externalId,
+      'idem-1-checkout',
+    );
+
+    expect(first.externalId).toBe(second.externalId);
+    expect(first.status).toBe('pending');
+    expect(first.total.amount).toBe(2500);
+  });
+
+  it('processes signed payment lifecycle events idempotently', async () => {
+    const payload = createPayloadMock();
+    const adapter = createMockCommerceAdapter({
+      products: [
+        {
+          externalId: 'prod_1',
+          handle: 'starter-product',
+          isPublished: true,
+          title: 'Starter Product',
+          variants: [
+            {
+              externalId: 'variant_1',
+              price: {
+                amount: 2500,
+                currencyCode: 'usd',
+              },
+              productExternalId: 'prod_1',
+              title: 'Starter Variant',
+            },
+          ],
+        },
+      ],
+    });
+
+    const cart = await createCommerceCartForMemberWithDeps(payload, adapter, member, site);
+    await addItemToCommerceCartWithAdapter(adapter, cart.externalId, {
+      quantity: 1,
+      variantId: 'variant_1',
+    });
+
+    const session = await createCheckoutSessionForCartWithDeps(
+      payload,
+      adapter,
+      member,
+      site,
+      cart.externalId,
+      'idem-2-checkout',
+    );
+
+    const first = await processPaymentWebhookWithDeps(payload, {
+      eventId: 'evt_1',
+      orderExternalId: session.externalOrderId!,
+      provider: 'medusa',
+      sessionExternalId: session.externalId,
+      timestamp: new Date().toISOString(),
+      type: 'payment.captured',
+    });
+    const second = await processPaymentWebhookWithDeps(payload, {
+      eventId: 'evt_1',
+      orderExternalId: session.externalOrderId!,
+      provider: 'medusa',
+      sessionExternalId: session.externalId,
+      timestamp: new Date().toISOString(),
+      type: 'payment.captured',
+    });
+
+    expect(first.status).toBe('placed');
+    expect(second.idempotent).toBe(true);
   });
 });

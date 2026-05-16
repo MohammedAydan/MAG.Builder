@@ -2,10 +2,34 @@ export const COMMERCE_PROVIDER_IDS = ['medusa'] as const;
 
 export type CommerceProviderId = (typeof COMMERCE_PROVIDER_IDS)[number];
 
+export type CommercePaymentProviderId = CommerceProviderId;
+
 export type CommerceMoney = Readonly<{
   amount: number;
   currencyCode: string;
 }>;
+
+export const COMMERCE_ORDER_LIFECYCLE_STATUSES = [
+  'draft',
+  'open',
+  'payment_pending',
+  'payment_authorized',
+  'placed',
+  'fulfilled',
+  'payment_failed',
+] as const;
+
+export type CommerceOrderLifecycleStatus = (typeof COMMERCE_ORDER_LIFECYCLE_STATUSES)[number];
+
+export const COMMERCE_CHECKOUT_SESSION_STATUSES = [
+  'pending',
+  'authorized',
+  'captured',
+  'failed',
+  'expired',
+] as const;
+
+export type CommerceCheckoutSessionStatus = (typeof COMMERCE_CHECKOUT_SESSION_STATUSES)[number];
 
 export type CommerceProductVariantSummary = Readonly<{
   externalId: string;
@@ -85,8 +109,49 @@ export type CommerceOrderSummary = Readonly<{
   externalCartId?: string;
   externalId: string;
   items: readonly CommerceOrderItemSummary[];
-  status: 'draft' | 'fulfilled' | 'open' | 'placed';
+  status: CommerceOrderLifecycleStatus;
   total: CommerceMoney;
+}>;
+
+export type CommerceCheckoutSessionSummary = Readonly<{
+  checkoutUrl?: string;
+  clientToken?: string;
+  currencyCode: string;
+  externalCartId: string;
+  externalId: string;
+  externalOrderId?: string;
+  expiresAt?: string;
+  idempotencyKey: string;
+  provider: CommercePaymentProviderId;
+  status: CommerceCheckoutSessionStatus;
+  total: CommerceMoney;
+}>;
+
+export type CommerceCheckoutSessionCreateInput = Readonly<{
+  cartExternalId: string;
+  currencyCode: string;
+  customerExternalId?: string;
+  idempotencyKey: string;
+  orderExternalId: string;
+  totalAmount: number;
+}>;
+
+export const COMMERCE_PAYMENT_WEBHOOK_EVENT_TYPES = [
+  'payment.authorized',
+  'payment.captured',
+  'payment.failed',
+  'payment.expired',
+] as const;
+
+export type CommercePaymentWebhookEventType = (typeof COMMERCE_PAYMENT_WEBHOOK_EVENT_TYPES)[number];
+
+export type CommercePaymentWebhookEvent = Readonly<{
+  eventId: string;
+  orderExternalId: string;
+  provider: CommercePaymentProviderId;
+  sessionExternalId: string;
+  timestamp: string;
+  type: CommercePaymentWebhookEventType;
 }>;
 
 export type CommerceCheckoutResult =
