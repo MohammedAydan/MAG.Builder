@@ -1,8 +1,4 @@
-import {
-  type CommerceAdapter,
-  type CommerceCartSummary,
-  type CommerceCustomerRecord,
-} from '@nexpress/commerce';
+import { type CommerceAdapter } from '@nexpress/commerce';
 import { getAuthenticatedMember } from '@/lib/members/service';
 import { type ResolvedSite } from '@/lib/sites/service';
 import { normalizeCommerceError, CommerceServiceError } from './errors';
@@ -49,7 +45,7 @@ export async function createCommerceCartForMemberWithDeps(
   const customer = await ensureCommerceCustomerForMemberWithPayload(payload, adapter, member, site);
   return adapter.carts.create({
     customerExternalId: customer.externalId,
-    email: customer.email ?? assertMemberEmail(member as any),
+    email: customer.email ?? assertMemberEmail(member as { id: string | number; email?: string | null }),
     regionId: adapter.config.defaultRegionId,
   });
 }

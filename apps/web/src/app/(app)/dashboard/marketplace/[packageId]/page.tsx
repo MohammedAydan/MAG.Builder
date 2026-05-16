@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { requireDashboardUser } from '@/lib/dashboard/guards';
 import { getMarketplacePackage } from '@/lib/marketplace/service';
-import { SurfaceCard } from '@/components/public/surface-card';
 import { MarketplacePlanCreator } from './plan-creator';
 
 interface PackagePageProps {
@@ -88,7 +87,7 @@ export default async function MarketplacePackagePage({ params }: PackagePageProp
               Security & Installation Model
             </h3>
             <p className="mt-2 text-sm text-amber-800 leading-relaxed">
-              NexPress uses a safe build-time plugin model. In this preview phase, the marketplace only supports generating "Dry-run Plans". 
+              NexPress uses a safe build-time plugin model. In this preview phase, the marketplace only supports generating &quot;Dry-run Plans&quot;. 
               These plans simulate the changes needed but do not execute any filesystem operations or runtime code loading.
             </p>
           </section>

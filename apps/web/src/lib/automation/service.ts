@@ -1,5 +1,5 @@
 import { defaultAutomationEngine, AutomationEngine } from '@nexpress/automation';
-import type { AutomationRule, AutomationTriggerPayload } from '@nexpress/automation';
+import type { AutomationRule } from '@nexpress/automation';
 import { getPayload } from 'payload';
 import configPromise from '@/payload.config';
 import { emitAnalyticsEvent, ANALYTICS_SCHEMA_VERSION } from '@/lib/analytics/service';
@@ -11,13 +11,13 @@ import { emitAnalyticsEvent, ANALYTICS_SCHEMA_VERSION } from '@/lib/analytics/se
 export class AutomationService {
   constructor(private readonly engine: AutomationEngine) {
     // Register base action handlers
-    this.engine.registerActionHandler('log', (async (config: any, trigger: any) => {
+    this.engine.registerActionHandler('log', async (config: Record<string, unknown>, trigger: unknown) => {
       console.log(`[automation:log] ${config.message || 'No message'}`, { trigger });
       return { action: 'log', status: 'success' };
-    }) as any);
+    });
 
-    this.engine.registerActionHandler('webhook', (async (config: any, trigger: any) => {
-      const url = config.url;
+    this.engine.registerActionHandler('webhook', async (config: Record<string, unknown>, trigger: unknown) => {
+      const url = config.url as string;
       if (!url) return { action: 'webhook', status: 'failure', message: 'Missing URL' };
       
       try {
@@ -35,13 +35,13 @@ export class AutomationService {
       } catch (err) {
         return { action: 'webhook', status: 'failure', message: String(err) };
       }
-    }) as any);
+    });
   }
 
   /**
    * Trigger automation rules for a given event.
    */
-  async trigger(siteId: string, trigger: string, payload: any): Promise<void> {
+  async trigger(siteId: string, trigger: string, payload: Record<string, unknown>): Promise<void> {
     const cms = await getPayload({ config: configPromise });
     
     // 1. Fetch enabled rules for this site and trigger
@@ -67,11 +67,11 @@ export class AutomationService {
         id: String(ruleDoc.id),
         name: ruleDoc.name,
         enabled: ruleDoc.enabled || false,
-        trigger: ruleDoc.trigger as any,
-        actions: (ruleDoc.actions || []).map((a: any) => ({
+        trigger: ruleDoc.trigger as AutomationRule['trigger'],
+        actions: (ruleDoc.actions || []).map((a: { type: string, config?: unknown }) => ({
           action: a.type,
-          config: a.config,
-        })),
+          config: a.config as Record<string, unknown>,
+        })) as any,
       };
 
       const startTime = Date.now();
@@ -80,7 +80,7 @@ export class AutomationService {
       const execution = await cms.create({
         collection: 'automation-executions',
         data: {
-          siteId: siteId as any,
+          siteId: siteId as unknown as number,
           rule: ruleDoc.id,
           status: 'pending',
           triggerData: payload,
@@ -90,14 +90,14 @@ export class AutomationService {
       });
 
       try {
-        const result = await this.engine.execute(rule, { trigger: trigger as any, payload });
+        const result = await this.engine.execute(rule, { trigger: trigger as AutomationRule['trigger'], payload });
         
         await cms.update({
           collection: 'automation-executions',
           id: execution.id,
           data: {
-            status: result.overallStatus === 'partial' ? 'success' : result.overallStatus as any,
-            results: result.results as any,
+            status: result.overallStatus === 'partial' ? 'success' : result.overallStatus as 'success' | 'failure' | 'pending',
+            results: result.results as unknown as Record<string, unknown>[],
             completedAt: new Date().toISOString(),
             durationMs: Date.now() - startTime,
           },

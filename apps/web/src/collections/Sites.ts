@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload';
-import { installationStateReadAccess, sitesManageAccess, sitesReadAccess } from '@/lib/auth/access';
+import { sitesManageAccess, sitesReadAccess } from '@/lib/auth/access';
 import { DEFAULT_SITE_ID, DEFAULT_SITE_SLUG, isValidSiteSlug, normalizeHostname, normalizeSiteSlug, validateDomainHostname } from '@/lib/sites/model';
 
 export const Sites: CollectionConfig = {

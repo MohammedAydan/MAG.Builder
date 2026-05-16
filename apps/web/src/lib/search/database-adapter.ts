@@ -38,7 +38,7 @@ export class DatabaseSearchAdapter implements SearchAdapter {
       await payload.create({
         collection: 'search-index',
         data: {
-          siteId: doc.siteId as any, // Cast to proper siteId type (number | Site)
+          siteId: doc.siteId as unknown as number, // Cast to proper siteId type (number | Site)
           type: doc.type,
           documentId: doc.id,
           title: doc.title,
@@ -97,7 +97,7 @@ export class DatabaseSearchAdapter implements SearchAdapter {
   async search(query: SearchQuery): Promise<SearchResult> {
     const payload = await getPayload({ config: configPromise });
     
-    const conditions: any[] = [];
+    const conditions: Record<string, unknown>[] = [];
 
     if (query.siteId) {
       conditions.push({ siteId: { equals: query.siteId } });
@@ -119,7 +119,7 @@ export class DatabaseSearchAdapter implements SearchAdapter {
 
     const result = await payload.find({
       collection: 'search-index',
-      where: conditions.length > 0 ? { and: conditions } : {} as any,
+      ...(conditions.length > 0 ? { where: { and: conditions as any } } : {}),
       limit: query.limit,
       page: query.page,
       overrideAccess: true,

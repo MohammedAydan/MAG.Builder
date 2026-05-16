@@ -3,7 +3,6 @@ import {
   renderValidatedBuilderDocument,
   type ValidatedBuilderBlock,
   type ValidatedBuilderDocument,
-  type BuilderKnownBlock,
   type BuilderExternalBlockRenderArgs,
 } from '@nexpress/builder-core';
 import { validatePublishedBuilderDocument } from '@/lib/builder/kernel';
@@ -107,7 +106,7 @@ function cloneBlocks(blocks: readonly ValidatedBuilderBlock[]): ValidatedBuilder
     } as ValidatedBuilderBlock;
 
     if (block.children) {
-      (clonedBlock as any).children = cloneBlocks(block.children);
+      (clonedBlock as unknown as { children?: ValidatedBuilderBlock[] }).children = cloneBlocks(block.children);
     }
 
     return clonedBlock;

@@ -37,7 +37,7 @@ export default async function ThemesPage() {
                       <div 
                         key={color} 
                         className="h-3 w-3 rounded-full border border-slate-200" 
-                        style={{ backgroundColor: (theme.tokens.colorModes.light as any)[color] }} 
+                        style={{ backgroundColor: (theme.tokens.colorModes.light as Record<string, string>)[color] }} 
                       />
                     ))}
                   </div>
@@ -54,10 +54,10 @@ export default async function ThemesPage() {
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-tight">Preview Tokens</p>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="rounded bg-slate-50 p-2 text-[10px] text-slate-500 border border-slate-100">
-                      Primary: {(theme.tokens.colorModes.light as any).primary}
+                      Primary: {(theme.tokens.colorModes.light as Record<string, string>).primary}
                     </div>
                     <div className="rounded bg-slate-50 p-2 text-[10px] text-slate-500 border border-slate-100">
-                      Surface: {(theme.tokens.colorModes.light as any).surface}
+                      Surface: {(theme.tokens.colorModes.light as Record<string, string>).surface}
                     </div>
                   </div>
                 </div>

@@ -3,7 +3,7 @@ import {
   type CommerceCustomerRecord,
 } from '@nexpress/commerce';
 import { type ResolvedSite, createSiteScopeWhere } from '@/lib/sites/service';
-import { getPayload, findMemberValue } from './common';
+import { getPayload } from './common';
 import {
   type CommerceServicePayloadClient,
   type PayloadCommerceCustomerDoc,
@@ -64,7 +64,7 @@ export async function ensureCommerceCustomerForMemberWithPayload(
   return created;
 }
 
-export async function listAllCustomers(user: any) {
+export async function listAllCustomers(user: Record<string, unknown> | null) {
   const payload = await getPayload();
 
   const result = await payload.find({

@@ -1,19 +1,10 @@
-import { randomUUID } from 'node:crypto';
-import {
-  type CommerceAdapter,
-  type CommerceCheckoutResult,
-} from '@nexpress/commerce';
 import { getAuthenticatedMember } from '@/lib/members/service';
 import { type ResolvedSite } from '@/lib/sites/service';
 import { AUDIT_ACTIONS, writeAuditEntry } from '@/lib/audit/service';
-import { fireAutomationTrigger } from '@/lib/automation/hooks';
-import { enqueueWebhookDelivery } from '@/lib/webhooks/outbound';
 import { normalizeCommerceError, CommerceServiceError } from './errors';
-import { getCommerceAdapter } from './adapter';
 import { parsePaymentWebhookEvent } from './validation';
 import {
   getPayload,
-  createCommerceAuditActor,
   mapPayloadOrderRecord,
   mapPaymentEventToOrderStatus,
   isValidOrderLifecycleTransition,
@@ -53,7 +44,7 @@ export async function listMemberOrders() {
 
 export async function listMemberOrdersWithPayload(
   payload: CommerceServicePayloadClient,
-  member: any,
+  member: { id: string | number },
   site: ResolvedSite,
 ) {
   const result = await payload.find({
@@ -90,7 +81,7 @@ export async function processPaymentWebhook(eventInput: unknown) {
 
 export async function processPaymentWebhookWithDeps(
   payload: CommerceServicePayloadClient,
-  event: any, // CommercePaymentWebhookEvent
+  event: ReturnType<typeof parsePaymentWebhookEvent>,
 ) {
   const orderLookup = await payload.find({
     collection: 'commerce-orders',
@@ -170,7 +161,7 @@ export async function processPaymentWebhookWithDeps(
   };
 }
 
-export async function listAllOrders(user: any) {
+export async function listAllOrders(user: Record<string, unknown> | null) {
   const payload = await getPayload();
 
   const result = await payload.find({

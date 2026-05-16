@@ -65,7 +65,7 @@ export async function createCheckoutSessionForCurrentMember(
 export async function createCheckoutSessionForCartWithDeps(
   payload: CommerceServicePayloadClient,
   adapter: CommerceAdapter,
-  member: any,
+  member: { id: string | number; email?: string | null },
   site: ResolvedSite,
   cartId: string,
   idempotencyKeyInput?: string | null,
@@ -231,7 +231,7 @@ export async function checkoutCommerceCart(cartId: string) {
 export async function checkoutCommerceCartWithDeps(
   payload: CommerceServicePayloadClient,
   adapter: CommerceAdapter,
-  member: any,
+  member: { id: string | number; email?: string | null },
   site: ResolvedSite,
   cartId: string,
 ) {

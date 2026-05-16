@@ -39,7 +39,7 @@ export function PublicFormClient({ form, submitLabel }: PublicFormClientProps) {
         setStatus('error');
         setErrors(result.errors || ['An unexpected error occurred.']);
       }
-    } catch (_err) {
+    } catch {
       setStatus('error');
       setErrors(['Failed to submit form. Please check your connection.']);
     }

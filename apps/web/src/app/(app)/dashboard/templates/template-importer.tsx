@@ -12,7 +12,7 @@ interface TemplateImporterProps {
 export function TemplateImporter({ templateId, label, isDemo }: TemplateImporterProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<{ counts: { pages: { created: number; updated: number }; posts: { created: number; updated: number }; redirects: { created: number; updated: number } } } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleImport() {

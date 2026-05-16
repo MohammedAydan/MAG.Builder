@@ -64,7 +64,7 @@ export default async function AutomationPage() {
                     <div>
                       <p className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">Actions</p>
                       <div className="mt-2 flex flex-wrap gap-2">
-                        {(rule.actions || []).map((action: any, idx: number) => (
+                        {(rule.actions || []).map((action: { type: string }, idx: number) => (
                           <span
                             key={idx}
                             className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600"

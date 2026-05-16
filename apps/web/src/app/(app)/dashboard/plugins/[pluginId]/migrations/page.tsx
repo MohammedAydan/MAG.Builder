@@ -50,7 +50,7 @@ export default async function PluginMigrationsPage({ params }: MigrationsPagePro
               Safe Migration Model
             </h3>
             <p className="mt-2 text-sm text-sky-800 leading-relaxed">
-              NexPress migrations are versioned schema updates. "Applied" migrations are persisted in your plugin state.
+              NexPress migrations are versioned schema updates. &quot;Applied&quot; migrations are persisted in your plugin state.
               Pending migrations should be executed in order to ensure the plugin works correctly with the current platform version.
             </p>
           </section>

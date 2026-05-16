@@ -9,7 +9,7 @@ export class PayloadAnalyticsAdapter implements AnalyticsAdapter {
     await payload.create({
       collection: 'analytics-events',
       data: {
-        siteId: event.meta.siteId as any,
+        siteId: event.meta.siteId as unknown as number,
         name: event.name,
         anonymousId: (event.meta.anonymousId as string) ?? null,
         sessionId: (event.meta.sessionId as string) ?? null,
@@ -25,7 +25,7 @@ export class PayloadAnalyticsAdapter implements AnalyticsAdapter {
   async getAggregateCounts(options?: AnalyticsAggregateOptions): Promise<Record<string, number>> {
     const payload = await getPayload({ config: configPromise });
     
-    const conditions: any[] = [];
+    const conditions: Record<string, unknown>[] = [];
     if (options?.siteId) {
       conditions.push({ siteId: { equals: options.siteId } });
     }
@@ -35,7 +35,7 @@ export class PayloadAnalyticsAdapter implements AnalyticsAdapter {
 
     const result = await payload.find({
       collection: 'analytics-events',
-      where: conditions.length > 0 ? { and: conditions } : {} as any,
+      ...(conditions.length > 0 ? { where: { and: conditions as any } } : {}),
       limit: 10000, // Reasonable limit for aggregate calculation in memory for now
       overrideAccess: true,
       depth: 0,
