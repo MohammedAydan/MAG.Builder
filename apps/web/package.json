@@ -17,7 +17,8 @@
     "migrate:status": "payload migrate:status",
     "migrate:fresh": "payload migrate:fresh",
     "reindex:search": "tsx src/scripts/reindex-search.ts",
-    "seed": "tsx src/scripts/seed.ts"
+    "seed": "tsx src/scripts/seed.ts",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@measured/puck": "0.20.2",
@@ -28,12 +29,12 @@
     "@nexpress/builder-editor": "workspace:*",
     "@nexpress/commerce": "workspace:*",
     "@nexpress/forms": "workspace:*",
-    "@nexpress/mcp-gateway": "workspace:*",
     "@nexpress/marketplace": "workspace:*",
+    "@nexpress/mcp-gateway": "workspace:*",
     "@nexpress/observability": "workspace:*",
-    "@nexpress/security": "workspace:*",
     "@nexpress/plugins": "workspace:*",
     "@nexpress/search": "workspace:*",
+    "@nexpress/security": "workspace:*",
     "@nexpress/themes": "workspace:*",
     "@nexpress/webhooks": "workspace:*",
     "@payloadcms/db-postgres": "^3.84.1",
@@ -49,6 +50,7 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "4.3.0",
     "@types/node": "25.7.0",
     "@types/react": "19.2.14",

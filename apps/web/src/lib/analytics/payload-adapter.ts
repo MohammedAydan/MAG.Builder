@@ -15,7 +15,7 @@ export class PayloadAnalyticsAdapter implements AnalyticsAdapter {
         sessionId: (event.meta.sessionId as string) ?? null,
         userId: (event.meta.userId as string) ?? null,
         path: (event.meta.path as string) ?? null,
-        payload: event.payload as any,
+        payload: event.payload as Record<string, unknown>,
         timestamp: event.occurredAt,
       },
       overrideAccess: true,
@@ -25,21 +25,17 @@ export class PayloadAnalyticsAdapter implements AnalyticsAdapter {
   async getAggregateCounts(options?: AnalyticsAggregateOptions): Promise<Record<string, number>> {
     const payload = await getPayload({ config: configPromise });
     
-    const where: any = {
-      and: [],
-    };
-
+    const conditions: any[] = [];
     if (options?.siteId) {
-      where.and.push({ siteId: { equals: options.siteId } });
+      conditions.push({ siteId: { equals: options.siteId } });
     }
-
     if (options?.since) {
-      where.and.push({ timestamp: { greater_than_equal: options.since } });
+      conditions.push({ timestamp: { greater_than_equal: options.since } });
     }
 
     const result = await payload.find({
       collection: 'analytics-events',
-      where,
+      where: conditions.length > 0 ? { and: conditions } : {} as any,
       limit: 10000, // Reasonable limit for aggregate calculation in memory for now
       overrideAccess: true,
       depth: 0,
