@@ -2,10 +2,10 @@
 
 Project: NexPress
 Mode: Greenfield
-Current phase: 32-commerce-production-checkout-v2
+Current phase: 33-saas-control-plane-v2
 Overall status: completed
 
-The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, visual editor adapter, themes/templates foundation, plugin/module system, forms/workflows foundation, public membership/protected-route foundation, the commerce service spike, the commerce MVP slice, storefront commerce builder blocks, the API platform with OpenAPI, webhooks/integrations foundation, MCP native gateway, the search/analytics/automation foundation, the multi-site/SaaS-readiness foundation, the marketplace/packaging/update-planning foundation, the security/observability hardening slice, the production deployment/docs slice, the final release-candidate validation slice, the Phase 28 RC fix pack/live DB validation slice, the Phase 29 production runtime services slice, the Phase 30 admin control center slice, the Phase 31 builder v1.5/forms/media runtime v2 slice, and the Phase 32 commerce production checkout v2 slice are implemented.
+The platform foundation, Payload CMS foundation, database/migration/seed layer, install/runtime configuration foundation, identity/RBAC/audit foundation, admin dashboard shell, public design-system shell, CMS content/media/SEO foundation, builder kernel, visual editor adapter, themes/templates foundation, plugin/module system, forms/workflows foundation, public membership/protected-route foundation, the commerce service spike, the commerce MVP slice, storefront commerce builder blocks, the API platform with OpenAPI, webhooks/integrations foundation, MCP native gateway, the search/analytics/automation foundation, the multi-site/SaaS-readiness foundation, the marketplace/packaging/update-planning foundation, the security/observability hardening slice, the production deployment/docs slice, the final release-candidate validation slice, the Phase 28 RC fix pack/live DB validation slice, the Phase 29 production runtime services slice, the Phase 30 admin control center slice, the Phase 31 builder v1.5/forms/media runtime v2 slice, the Phase 32 commerce production checkout v2 slice, and the Phase 33 SaaS control plane v2 slice are implemented.
 
 ## Phase tracker
 
@@ -42,6 +42,7 @@ The platform foundation, Payload CMS foundation, database/migration/seed layer, 
 - [x] Phase 30 - Admin Control Center: done
 - [x] Phase 31 - Builder v1.5, Forms, and Media Runtime v2: done
 - [x] Phase 32 - Commerce Production Checkout v2: done
+- [x] Phase 33 - SaaS Control Plane v2: done
 
 ## Current session log
 
@@ -51,49 +52,54 @@ The platform foundation, Payload CMS foundation, database/migration/seed layer, 
 
 ### Agent/tool
 
-GitHub Copilot Task Agent
+Antigravity
 
 ### Requested phase
 
-Phase 32 - Commerce Production Checkout v2
+Phase 33 - SaaS Control Plane v2
 
 ### Files changed
 
 **New files:**
-- `apps/web/src/app/api/commerce/checkout/session/route.ts`
-- `apps/web/src/app/api/commerce/webhooks/payment/route.ts`
-- `docs/runbooks/commerce-production-checkout.md`
+- `apps/web/src/collections/SiteMemberships.ts`
+- `apps/web/src/collections/SiteInvitations.ts`
+- `apps/web/src/lib/sites/invitations.ts`
+- `apps/web/src/lib/sites/memberships.ts`
+- `apps/web/src/lib/sites/tenant-isolation.test.ts`
+- `apps/web/src/app/(app)/dashboard/sites/[id]/page.tsx`
+- `apps/web/src/app/(app)/dashboard/sites/[id]/domains/page.tsx`
+- `apps/web/src/app/(app)/dashboard/sites/[id]/settings/page.tsx`
+- `apps/web/src/app/(app)/dashboard/sites/[id]/members/page.tsx`
 
 **Modified files:**
-- `packages/commerce/src/types.ts`
-- `packages/commerce/src/index.ts`
-- `apps/web/src/lib/commerce/service.ts`
-- `apps/web/src/lib/commerce/service.test.ts`
-- `apps/web/src/collections/CommerceOrders.ts`
-- `apps/web/src/app/(app)/dashboard/commerce/orders/page.tsx`
-- `packages/api/src/openapi.ts`
+- `apps/web/src/payload.config.ts`
+- `apps/web/src/lib/auth/permissions.ts`
+- `apps/web/src/lib/auth/access.ts`
+- `apps/web/src/collections/Sites.ts`
+- `apps/web/src/app/(app)/dashboard/sites/page.tsx`
 - `IMPLEMENTATION_STATUS.md`
 
 ### Commands run
 
-- `corepack pnpm lint` - failed (pre-existing eslint issues in `apps/web/src/components/forms/public-form-client.tsx` and `apps/web/src/lib/content/rendering.ts`)
-- `corepack pnpm typecheck` - passed
-- `corepack pnpm test` - passed
-- `corepack pnpm build` - passed
-- `corepack pnpm --dir packages/commerce test` - passed
-- `corepack pnpm --dir apps/web test` - passed
+- `pnpm --dir apps/web generate:types` - passed
+- `pnpm --dir apps/web typecheck` - passed
+- `pnpm vitest run src/lib/sites/tenant-isolation.test.ts` - passed
+- `pnpm --dir apps/web test` - passed
+- `pnpm --dir apps/web lint` - failed (pre-existing lint issues in other files)
 
 ### Runtime notes
 
-- Added production-checkout session foundation with server-side idempotency handling and payment-pending order snapshots.
-- Added signed payment webhook endpoint and safe order lifecycle transition enforcement.
-- Added order payment metadata fields in Payload collection and surfaced session/webhook context in admin order UI.
-- Added commerce production checkout runbook and OpenAPI path entries for new checkout/webhook APIs.
+- Implemented `SiteMemberships` and `SiteInvitations` collections for multi-tenant isolation.
+- Extended `Sites` collection with domain verification status/tokens and settings groups.
+- Added granular `sites:read` and `sites:manage` permissions and associated access helpers.
+- Implemented service logic for invitations (token hashing, expiry, acceptance) and memberships.
+- Constructed a comprehensive dashboard UI for site-specific management (Overview, Domains, Settings, Team).
+- Verified cross-tenant isolation logic with dedicated unit tests.
 
 ### Blockers
 
-- Lint still fails due pre-existing unrelated issues in `apps/web/src/components/forms/public-form-client.tsx` and `apps/web/src/lib/content/rendering.ts`.
+- Lint still fails due to pre-existing issues in `apps/web/src/lib/content/rendering.ts` and others. My new files are clean.
 
 ### Next recommended prompt
 
-Phase 32 is complete. The next scoped prompt is Phase 33 (next roadmap phase) or a dedicated hardening/fix pass for production checkout integrations.
+Phase 33 is complete. The system now supports robust multi-tenant site management. The next phase involves maturing the marketplace and packaging workflows (Phase 34).

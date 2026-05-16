@@ -1,18 +1,19 @@
 import type { CollectionConfig } from 'payload';
-import { installationStateReadAccess } from '@/lib/auth/access';
+import { installationStateReadAccess, sitesManageAccess, sitesReadAccess } from '@/lib/auth/access';
 import { DEFAULT_SITE_ID, DEFAULT_SITE_SLUG, isValidSiteSlug, normalizeHostname, normalizeSiteSlug, validateDomainHostname } from '@/lib/sites/model';
 
 export const Sites: CollectionConfig = {
   slug: 'sites',
   admin: {
-    hidden: true,
+    hidden: false,
     useAsTitle: 'name',
+    group: 'SaaS Control Plane',
   },
   access: {
-    create: () => false,
-    delete: () => false,
-    read: installationStateReadAccess,
-    update: () => false,
+    create: sitesManageAccess,
+    delete: sitesManageAccess,
+    read: sitesReadAccess,
+    update: sitesManageAccess,
   },
   fields: [
     {
@@ -116,6 +117,43 @@ export const Sites: CollectionConfig = {
           name: 'developmentOnly',
           type: 'checkbox',
           defaultValue: false,
+        },
+        {
+          name: 'verificationStatus',
+          type: 'select',
+          defaultValue: 'pending',
+          options: [
+            { label: 'Pending', value: 'pending' },
+            { label: 'Verified', value: 'verified' },
+            { label: 'Failed', value: 'failed' },
+          ],
+        },
+        {
+          name: 'verificationToken',
+          type: 'text',
+          admin: {
+            readOnly: true,
+          },
+        },
+      ],
+    },
+    {
+      name: 'settings',
+      type: 'group',
+      fields: [
+        {
+          name: 'themeId',
+          type: 'text',
+        },
+        {
+          name: 'allowedPlugins',
+          type: 'array',
+          fields: [
+            {
+              name: 'pluginId',
+              type: 'text',
+            },
+          ],
         },
       ],
     },

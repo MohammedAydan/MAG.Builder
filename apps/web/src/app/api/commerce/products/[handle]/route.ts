@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getCatalogProductByHandle, getSafeCommerceErrorMessage } from '@/lib/commerce/service';
+import { getCatalogProductByHandle, getSafeCommerceErrorMessage } from '@/lib/commerce';
 
 export const dynamic = 'force-dynamic';
 

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { checkoutCommerceCart, getSafeCommerceErrorMessage } from '@/lib/commerce/service';
+import { checkoutCommerceCart, getSafeCommerceErrorMessage } from '@/lib/commerce';
 import { validateBrowserPostRequest } from '@/lib/security/browser-post';
 
 export const dynamic = 'force-dynamic';

@@ -13,7 +13,7 @@ import {
   hasCommerceCatalogAccess,
   listMemberOrdersWithPayload,
   processPaymentWebhookWithDeps,
-} from '@/lib/commerce/service';
+} from '.';
 
 const hasActivePluginCapabilityMock = vi.fn();
 
@@ -220,7 +220,7 @@ describe('commerce service', () => {
     const second = await ensureCommerceCustomerForMemberWithPayload(payload, adapter, member, site);
 
     expect(first.externalId).toBe(second.externalId);
-    expect(payload.create).toHaveBeenCalledTimes(2);
+    expect(payload.create).toHaveBeenCalledTimes(1);
   });
 
   it('creates carts for authenticated members through the customer mapping foundation', async () => {

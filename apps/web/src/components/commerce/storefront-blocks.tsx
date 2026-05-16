@@ -5,7 +5,7 @@ import {
   getCatalogProductByHandle,
   getCommerceStorefrontStatus,
   listCatalogProductsWithInput,
-} from '@/lib/commerce/service';
+} from '@/lib/commerce';
 import type { CommerceProductSummary } from '@nexpress/commerce';
 
 export type CommerceProductGridProps = {

@@ -84,6 +84,14 @@ export default async function SitesPage() {
                   <span className="text-xs italic text-slate-400">No domains mapped</span>
                 )}
               </div>
+              <div className="mt-4 flex sm:justify-end">
+                <a
+                  href={`/dashboard/sites/${site.id}`}
+                  className="inline-flex items-center justify-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50"
+                >
+                  Manage
+                </a>
+              </div>
             </div>
           </SurfaceCard>
         ))}

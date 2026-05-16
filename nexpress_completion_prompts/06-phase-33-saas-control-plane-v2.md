@@ -4,7 +4,7 @@
 
 You are working on a greenfield production project called **MAG Builder / NexPress**.
 
-The project is currently a large Next.js 16 + Payload CMS monorepo that reached a Release Candidate foundation after phases 00-27. A recent project map reported:
+The project is currently a large Next.js 16 + Payload CMS monorepo that reached a Release Candidate foundation after phases 00-27. A recent project map reported: 
 - 273 scanned files.
 - 28,373 total lines.
 - 24,097 code lines.

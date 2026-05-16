@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { verifySignature } from '@nexpress/webhooks';
-import { getSafeCommerceErrorMessage, processPaymentWebhook } from '@/lib/commerce/service';
+import { getSafeCommerceErrorMessage, processPaymentWebhook } from '@/lib/commerce';
 
 export const dynamic = 'force-dynamic';
 

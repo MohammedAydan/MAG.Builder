@@ -397,3 +397,108 @@ export const automationManageAccess: Access = ({ req }) =>
 export const automationReadAccess: Access = ({ req }) =>
   hasPermission(req.user as AuthenticatedUserLike | undefined, 'automation:read') ||
   hasPermission(req.user as AuthenticatedUserLike | undefined, 'automation:manage');
+
+// ---------------------------------------------------------------------------
+// Phase 33 — SaaS Control Plane access helpers
+// ---------------------------------------------------------------------------
+
+export const sitesReadAccess: Access = ({ req }) => {
+  if (hasPermission(req.user as AuthenticatedUserLike | undefined, 'sites:read')) {
+    return true;
+  }
+
+  if (!req.user) return false;
+
+  // Users can read sites they are members of
+  return {
+    id: {
+      in: {
+        relationTo: 'site-memberships',
+        path: 'site',
+        where: {
+          user: {
+            equals: req.user.id,
+          },
+        },
+      },
+    },
+  };
+};
+
+export const sitesManageAccess: Access = ({ req }) => {
+  if (hasPermission(req.user as AuthenticatedUserLike | undefined, 'sites:manage')) {
+    return true;
+  }
+
+  if (!req.user) return false;
+
+  // Site owners/admins can manage their site
+  return {
+    id: {
+      in: {
+        relationTo: 'site-memberships',
+        path: 'site',
+        where: {
+          and: [
+            {
+              user: {
+                equals: req.user.id,
+              },
+            },
+            {
+              role: {
+                in: ['site-owner', 'site-admin'],
+              },
+            },
+          ],
+        },
+      },
+    },
+  };
+};
+
+export const siteMembershipsReadAccess: Access = ({ req }) => {
+  if (hasPermission(req.user as AuthenticatedUserLike | undefined, 'sites:read')) {
+    return true;
+  }
+
+  if (!req.user) return false;
+
+  return {
+    user: {
+      equals: req.user.id,
+    },
+  };
+};
+
+export const siteMembershipsManageAccess: Access = ({ req }) => {
+  if (hasPermission(req.user as AuthenticatedUserLike | undefined, 'sites:manage')) {
+    return true;
+  }
+
+  if (!req.user) return false;
+
+  // Site owners/admins can manage memberships of their sites
+  return {
+    site: {
+      in: {
+        relationTo: 'site-memberships',
+        path: 'site',
+        where: {
+          and: [
+            {
+              user: {
+                equals: req.user.id,
+              },
+            },
+            {
+              role: {
+                in: ['site-owner', 'site-admin'],
+              },
+            },
+          ],
+        },
+      },
+    },
+  };
+};

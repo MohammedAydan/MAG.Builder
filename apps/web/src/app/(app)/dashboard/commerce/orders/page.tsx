@@ -1,5 +1,5 @@
 import { requireDashboardUser } from '@/lib/dashboard/guards';
-import { listAllOrders } from '@/lib/commerce/service';
+import { listAllOrders } from '@/lib/commerce';
 import { SurfaceCard } from '@/components/public/surface-card';
 
 export const dynamic = 'force-dynamic';

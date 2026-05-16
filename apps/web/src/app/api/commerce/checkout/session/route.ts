@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import {
   createCheckoutSessionForCurrentMember,
   getSafeCommerceErrorMessage,
-} from '@/lib/commerce/service';
+} from '@/lib/commerce';
 import { validateBrowserPostRequest } from '@/lib/security/browser-post';
 
 export const dynamic = 'force-dynamic';

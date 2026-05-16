@@ -71,6 +71,8 @@ export interface Config {
     users: User;
     members: Member;
     sites: Site;
+    'site-memberships': SiteMembership;
+    'site-invitations': SiteInvitation;
     'installation-state': InstallationState;
     'audit-logs': AuditLog;
     'plugin-states': PluginState;
@@ -95,6 +97,8 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     members: MembersSelect<false> | MembersSelect<true>;
     sites: SitesSelect<false> | SitesSelect<true>;
+    'site-memberships': SiteMembershipsSelect<false> | SiteMembershipsSelect<true>;
+    'site-invitations': SiteInvitationsSelect<false> | SiteInvitationsSelect<true>;
     'installation-state': InstallationStateSelect<false> | InstallationStateSelect<true>;
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
     'plugin-states': PluginStatesSelect<false> | PluginStatesSelect<true>;
@@ -239,9 +243,48 @@ export interface Site {
         hostname: string;
         primary?: boolean | null;
         developmentOnly?: boolean | null;
+        verificationStatus?: ('pending' | 'verified' | 'failed') | null;
+        verificationToken?: string | null;
         id?: string | null;
       }[]
     | null;
+  settings?: {
+    themeId?: string | null;
+    allowedPlugins?:
+      | {
+          pluginId?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-memberships".
+ */
+export interface SiteMembership {
+  id: number;
+  user: number | User;
+  site: number | Site;
+  role: 'site-owner' | 'site-admin' | 'site-editor';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-invitations".
+ */
+export interface SiteInvitation {
+  id: number;
+  email: string;
+  site: number | Site;
+  role: 'site-admin' | 'site-editor';
+  status: 'pending' | 'accepted' | 'expired';
+  token: string;
+  invitedBy: number | User;
+  expiresAt: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -353,11 +396,15 @@ export interface CommerceOrder {
   member?: (number | null) | Member;
   customerEmail: string;
   externalCustomerId?: string | null;
-  status: 'draft' | 'open' | 'placed' | 'fulfilled';
+  status: 'draft' | 'open' | 'placed' | 'payment_pending' | 'payment_authorized' | 'payment_failed' | 'fulfilled';
   currencyCode: string;
   subtotalAmount: number;
   totalAmount: number;
-  paymentMode: 'test';
+  paymentMode: 'production' | 'test';
+  checkoutIdempotencyKey?: string | null;
+  paymentSessionId?: string | null;
+  paymentWebhookEventId?: string | null;
+  paymentWebhookReceivedAt?: string | null;
   placedAt: string;
   /**
    * Safe order snapshot recorded at test checkout time.
@@ -700,6 +747,14 @@ export interface PayloadLockedDocument {
         value: number | Site;
       } | null)
     | ({
+        relationTo: 'site-memberships';
+        value: number | SiteMembership;
+      } | null)
+    | ({
+        relationTo: 'site-invitations';
+        value: number | SiteInvitation;
+      } | null)
+    | ({
         relationTo: 'installation-state';
         value: number | InstallationState;
       } | null)
@@ -871,8 +926,47 @@ export interface SitesSelect<T extends boolean = true> {
         hostname?: T;
         primary?: T;
         developmentOnly?: T;
+        verificationStatus?: T;
+        verificationToken?: T;
         id?: T;
       };
+  settings?:
+    | T
+    | {
+        themeId?: T;
+        allowedPlugins?:
+          | T
+          | {
+              pluginId?: T;
+              id?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-memberships_select".
+ */
+export interface SiteMembershipsSelect<T extends boolean = true> {
+  user?: T;
+  site?: T;
+  role?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-invitations_select".
+ */
+export interface SiteInvitationsSelect<T extends boolean = true> {
+  email?: T;
+  site?: T;
+  role?: T;
+  status?: T;
+  token?: T;
+  invitedBy?: T;
+  expiresAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -970,6 +1064,10 @@ export interface CommerceOrdersSelect<T extends boolean = true> {
   subtotalAmount?: T;
   totalAmount?: T;
   paymentMode?: T;
+  checkoutIdempotencyKey?: T;
+  paymentSessionId?: T;
+  paymentWebhookEventId?: T;
+  paymentWebhookReceivedAt?: T;
   placedAt?: T;
   lineItems?:
     | T
